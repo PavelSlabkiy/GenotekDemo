@@ -39,6 +39,12 @@ import {
 } from 'lucide-react';
 
 const API_URL = '/api';
+const SMART_SEARCH_SUPPORTED_SOURCE_KEYS = ['pamyatNaroda', 'openList'];
+const SMART_SEARCH_SOURCE_LABELS = {
+  pamyatNaroda: 'Память народа',
+  openList: 'Открытый список',
+  warHeroes: 'Герои великой войны'
+};
 
 // Layout constants
 const CARD_WIDTH = 140;
@@ -91,7 +97,7 @@ const getSourceMatches = (person, sourceKey) => {
 const getSourceRecords = (person, sourceKey) => {
   const records = [];
   getSourceMatches(person, sourceKey).forEach((match) => {
-    const sourceLabel = match.sourceLabel || 'Память народа';
+    const sourceLabel = match.sourceLabel || SMART_SEARCH_SOURCE_LABELS[sourceKey] || 'Источник';
     if (Array.isArray(match.records) && match.records.length > 0) {
       match.records.forEach((record) => {
         records.push({
@@ -2712,8 +2718,9 @@ function App() {
       showToast('Выберите хотя бы одну карточку', 'error');
       return;
     }
-    if (!searchSources.pamyatNaroda) {
-      showToast('Для текущей версии включите источник "Память народа"', 'error');
+    const hasSupportedSource = SMART_SEARCH_SUPPORTED_SOURCE_KEYS.some((sourceKey) => searchSources[sourceKey]);
+    if (!hasSupportedSource) {
+      showToast('Выберите хотя бы один доступный источник поиска', 'error');
       return;
     }
 
@@ -2870,21 +2877,29 @@ function App() {
                   const personName = getFullName(person) || 'Без имени';
                   const isSelected = selectedSmartSearchIds.includes(person.id);
                   const isReady = isReadyForSmartSearch(person);
-                  const pamyatMatches = getSourceMatches(person, 'pamyatNaroda');
-                  const pamyatRecords = getSourceRecords(person, 'pamyatNaroda');
-                  const hasMatches = pamyatMatches.length > 0;
-                  const sourceCache = person.sourceSearchCache?.pamyatNaroda || null;
+                  const statusSourceKeys = SMART_SEARCH_SUPPORTED_SOURCE_KEYS.filter((sourceKey) => searchSources[sourceKey]);
+                  const visibleSourceKeys = statusSourceKeys.length > 0
+                    ? statusSourceKeys
+                    : SMART_SEARCH_SUPPORTED_SOURCE_KEYS;
+                  const sourceRecords = visibleSourceKeys.flatMap((sourceKey) =>
+                    getSourceRecords(person, sourceKey)
+                  );
+                  const hasMatches = sourceRecords.length > 0;
+                  const hasSourceCache = visibleSourceKeys.some((sourceKey) => {
+                    const sourceCache = person.sourceSearchCache?.[sourceKey];
+                    return sourceCache && Array.isArray(sourceCache.matches);
+                  });
                   const expanded = Boolean(expandedSmartSearchCards[person.id]);
                   const statusLabel = hasMatches
                     ? 'Найдены совпадения'
-                    : sourceCache?.status === 'no_matches'
+                    : hasSourceCache
                       ? 'Совпадений не найдено'
                       : isReady
                         ? 'Готово к поиску'
                         : 'Недостаточно данных';
                   const statusClass = hasMatches
                     ? 'found'
-                    : sourceCache?.status === 'no_matches'
+                    : hasSourceCache
                       ? 'empty'
                       : isReady
                         ? 'ready'
@@ -2935,10 +2950,10 @@ function App() {
                       </p>
                       {expanded && (
                         <div className="smart-source-results">
-                          {pamyatRecords.map((record, index) => (
+                          {sourceRecords.map((record, index) => (
                             <article key={`${person.id}-${index}`} className="smart-source-result-item">
                               <div className="smart-source-result-header">
-                                <span className="smart-source-name">{record.sourceLabel || 'Память народа'}</span>
+                                <span className="smart-source-name">{record.sourceLabel || 'Источник'}</span>
                                 {typeof record.score === 'number' && (
                                   <span className="smart-source-score">{record.score.toFixed(1)}%</span>
                                 )}
@@ -3048,7 +3063,11 @@ function App() {
               <button
                 type="button"
                 className="btn btn-primary btn-full smart-start-search-btn"
-                disabled={isSmartSearchRunning || selectedSmartSearchIds.length === 0 || !searchSources.pamyatNaroda}
+                disabled={
+                  isSmartSearchRunning
+                  || selectedSmartSearchIds.length === 0
+                  || !SMART_SEARCH_SUPPORTED_SOURCE_KEYS.some((sourceKey) => searchSources[sourceKey])
+                }
                 onClick={handleStartSmartSearch}
               >
                 {isSmartSearchRunning ? 'Идёт поиск...' : 'Начать поиск'}

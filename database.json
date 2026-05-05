@@ -2005,13 +2005,13 @@
     ],
     "birthdate": [
       {
-        "day": 23,
-        "month": 11,
-        "year": 1891
+        "day": 1,
+        "month": 1,
+        "year": 1892
       }
     ],
     "birthplace": [
-      "г. Семипалатинск"
+      "Восточно-Казахстанская обл., Бельагачский р-н, Новопокровка с."
     ],
     "birthplaceParsed": [],
     "liveOrDead": 0,
@@ -2041,8 +2041,56 @@
         ]
       }
     ],
-    "hasMatch": false,
-    "sourceSearchCache": {}
+    "hasMatch": true,
+    "sourceSearchCache": {
+      "openList": {
+        "searchedAt": "2026-05-05T23:08:18.988Z",
+        "status": "matches_found",
+        "source": "openList",
+        "sourceLabel": "Открытый список",
+        "matches": [
+          {
+            "data_id": "69ec7a322d2ada0deeede8f6",
+            "source": "openList",
+            "sourceLabel": "Открытый список",
+            "score": 100,
+            "person": {
+              "lastName": "Ворожейкин",
+              "name": "Александр",
+              "middleName": "Васильевич",
+              "birthDate": "",
+              "birthPlace": "Восточно-Казахстанская обл., Бельагачский р-н, Новопокровка с.",
+              "information": ""
+            },
+            "records": [
+              {
+                "source": "openList",
+                "sourceLabel": "Открытый список",
+                "title": "Ворожейкин Александр Васильевич (1892)",
+                "information": "",
+                "url": "https://ru.openlist.wiki/%D0%92%D0%BE%D1%80%D0%BE%D0%B6%D0%B5%D0%B9%D0%BA%D0%B8%D0%BD_%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B0%D0%BD%D0%B4%D1%80_%D0%92%D0%B0%D1%81%D0%B8%D0%BB%D1%8C%D0%B5%D0%B2%D0%B8%D1%87_(1892)",
+                "birthDate": "",
+                "birthPlace": "",
+                "score": 100
+              },
+              {
+                "source": "openList",
+                "sourceLabel": "Открытый список",
+                "title": "Ворожейкин Александр Васильевич (1923)",
+                "information": "",
+                "url": "https://ru.openlist.wiki/%D0%92%D0%BE%D1%80%D0%BE%D0%B6%D0%B5%D0%B9%D0%BA%D0%B8%D0%BD_%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B0%D0%BD%D0%B4%D1%80_%D0%92%D0%B0%D1%81%D0%B8%D0%BB%D1%8C%D0%B5%D0%B2%D0%B8%D1%87_(1923)",
+                "birthDate": "",
+                "birthPlace": "",
+                "score": 100
+              }
+            ],
+            "searchedAt": "2026-05-05T23:08:18+00:00",
+            "tlsFallbackUsed": true
+          }
+        ],
+        "errors": []
+      }
+    }
   },
   {
     "_id": {
@@ -3000,12 +3048,6 @@
       "$oid": "68f36f8fda84114f6acf1ce4"
     },
     "relatives": [
-      {
-        "id": {
-          "$oid": "1778020339016dvg5"
-        },
-        "relationType": "parent"
-      },
       {
         "id": {
           "$oid": "69ec8144f361179d8a0747b2"
@@ -4648,137 +4690,5 @@
     "relationships": [],
     "hasMatch": false,
     "sourceSearchCache": {}
-  },
-  {
-    "_id": {
-      "$oid": "1778020339016dvg5"
-    },
-    "treeId": {
-      "$oid": "68f36f8fda84114f6acf1ce4"
-    },
-    "gender": "Male",
-    "relatives": [
-      {
-        "id": {
-          "$oid": "69ec813c4631143b2ca22fec"
-        },
-        "relationType": "child"
-      }
-    ],
-    "relationships": [],
-    "birthdate": [
-      {
-        "day": 1,
-        "month": 1,
-        "year": 1921
-      }
-    ],
-    "birthplace": [
-      "Алтай"
-    ],
-    "name": [
-      "Михаил"
-    ],
-    "surname": [
-      "Авинов"
-    ],
-    "middleName": [
-      "Терентьевич"
-    ],
-    "liveOrDead": 1,
-    "hasMatch": true,
-    "sourceSearchCache": {
-      "pamyatNaroda": {
-        "searchedAt": "2026-05-05T22:32:36.957Z",
-        "status": "matches_found",
-        "source": "pamyatNaroda",
-        "sourceLabel": "Память народа",
-        "matches": [
-          {
-            "data_id": "1778020339016dvg5",
-            "source": "pamyatNaroda",
-            "sourceLabel": "Память народа",
-            "score": 90.1,
-            "person": {
-              "lastName": "Авинов",
-              "name": "Михаил",
-              "middleName": "Терентиевич",
-              "birthDate": "1921",
-              "birthPlace": "Алтайский край, Алтайский р-н, с. Сарача",
-              "information": "Рядовой, 1921, Алтайский край, Алтайский р-н, с. Сарача, Место службы: __.__.1941 Алтайский РВК, Алтайский край, Алтайский р-н. ВПП и ЗП"
-            },
-            "records": [
-              {
-                "source": "pamyatNaroda",
-                "sourceLabel": "Память народа",
-                "title": "Авинов Михаил Терентиевич",
-                "lastName": "Авинов",
-                "name": "Михаил",
-                "middleName": "Терентиевич",
-                "birthDate": "1921",
-                "birthPlace": "Алтайский край, Алтайский р-н, с. Сарача",
-                "information": "Рядовой, 1921, Алтайский край, Алтайский р-н, с. Сарача, Место службы: __.__.1941 Алтайский РВК, Алтайский край, Алтайский р-н. ВПП и ЗП",
-                "score": 90.1,
-                "url": "https://pamyat-naroda.ru/heroes/person-hero2002388181/"
-              },
-              {
-                "source": "pamyatNaroda",
-                "sourceLabel": "Память народа",
-                "title": "Авинов Михаил Терентьевич",
-                "lastName": "Авинов",
-                "name": "Михаил",
-                "middleName": "Терентьевич",
-                "birthDate": "1921",
-                "birthPlace": "",
-                "information": "Рядовой, 1921, Место службы: 04.01.1940. ВПП и ЗП",
-                "score": 90,
-                "url": "https://pamyat-naroda.ru/heroes/person-hero2004659341/"
-              },
-              {
-                "source": "pamyatNaroda",
-                "sourceLabel": "Память народа",
-                "title": "Авиков Мих. Терентьевич",
-                "lastName": "Авиков",
-                "name": "Мих.",
-                "middleName": "Терентьевич",
-                "birthDate": "1921",
-                "birthPlace": "",
-                "information": "Красноармеец, 1921. ВПП и ЗП",
-                "score": 76.78,
-                "url": "https://pamyat-naroda.ru/heroes/person-hero1996422422/"
-              },
-              {
-                "source": "pamyatNaroda",
-                "sourceLabel": "Память народа",
-                "title": "Авинов Михаил Терентьевич",
-                "lastName": "Авинов",
-                "name": "Михаил",
-                "middleName": "Терентьевич",
-                "birthDate": "",
-                "birthPlace": "",
-                "information": "Рядовой, Место службы: полевая обувная рем. автоматическая мастерская 261. Награждение",
-                "score": 70,
-                "url": "https://pamyat-naroda.ru/heroes/person-hero1534656758/"
-              },
-              {
-                "source": "pamyatNaroda",
-                "sourceLabel": "Память народа",
-                "title": "Авинов Михаил Терентьевич",
-                "lastName": "Авинов",
-                "name": "Михаил",
-                "middleName": "Терентьевич",
-                "birthDate": "",
-                "birthPlace": "",
-                "information": "Рядовой, Место службы: 584 сп. Картотека ранений",
-                "score": 70,
-                "url": "https://pamyat-naroda.ru/heroes/person-hero352775/"
-              }
-            ],
-            "searchedAt": "2026-05-05T22:32:36+00:00"
-          }
-        ],
-        "errors": []
-      }
-    }
   }
 ]
