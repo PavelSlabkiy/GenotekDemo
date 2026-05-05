@@ -1,0 +1,69 @@
+# ---------------------
+# Node.js
+# ---------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+dist/
+build/
+.cache/
+.tmp/
+coverage/
+logs/
+*.log
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# ---------------------
+# Python cache
+# ---------------------
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pdb
+*.egg
+*.egg-info/
+.eggs/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Virtual environments
+venv/
+.env/
+.env*/
+.venv/
+.venv*/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# ---------------------
+# macOS / VS Code / Editors
+# ---------------------
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ---------------------
+# OS system files
+# ---------------------
+*.bak
+*.tmp
+
+# ---------------------
+# Other build artifacts
+# ---------------------
+*.out
+*.class
+*.o
+*.so
