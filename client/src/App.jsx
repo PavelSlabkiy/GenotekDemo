@@ -68,6 +68,18 @@ const getFullName = (person) => {
 
 const getPersonLabel = (person) => getFullName(person) || person?.id || 'Без имени';
 
+const normalizeSearchValue = (value = '') => value.toLowerCase().replace(/\s+/g, ' ').trim();
+
+const isReadyForSmartSearch = (person) => {
+  return Boolean(
+    person?.lastName &&
+    person?.name &&
+    person?.middleName &&
+    person?.birthDate &&
+    person?.birthPlace
+  );
+};
+
 const pickFocalPersonId = (people, selectedPersonId) => {
   if (selectedPersonId && people[selectedPersonId]) return selectedPersonId;
 
@@ -2275,6 +2287,7 @@ const MatchVerificationModal = ({
 function App() {
   const [people, setPeople] = useState({});
   const [loading, setLoading] = useState(true);
+  const [activeSection, setActiveSection] = useState('tree');
   const [selectedPerson, setSelectedPerson] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showAddRelativeModal, setShowAddRelativeModal] = useState(false);
@@ -2300,6 +2313,13 @@ function App() {
   const [expandedSiblingGroups, setExpandedSiblingGroups] = useState({});
   const [showSmartMatchingTutorial, setShowSmartMatchingTutorial] = useState(false);
   const [tutorialStep, setTutorialStep] = useState(1);
+  const [smartSearchQuery, setSmartSearchQuery] = useState('');
+  const [selectedSmartSearchIds, setSelectedSmartSearchIds] = useState([]);
+  const [searchSources, setSearchSources] = useState({
+    pamyatNaroda: true,
+    openList: true,
+    warHeroes: true
+  });
 
   // Show notification as long as there are any unconfirmed matches (people with hasMatch = true)
   const showMatchFoundNotification = useMemo(() => {
@@ -2315,6 +2335,16 @@ function App() {
     () => buildTreeView(people, focalPersonId, expandedSiblingGroups),
     [people, focalPersonId, expandedSiblingGroups]
   );
+
+  const smartSearchPeople = useMemo(() => {
+    const query = normalizeSearchValue(smartSearchQuery);
+    return Object.values(people)
+      .filter((person) => {
+        if (!query) return true;
+        return normalizeSearchValue(getFullName(person)).includes(query);
+      })
+      .sort((a, b) => getFullName(a).localeCompare(getFullName(b), 'ru'));
+  }, [people, smartSearchQuery]);
 
   const handleZoomIn = () => {
     setZoom(prev => Math.min(prev + 0.1, 2));
@@ -2440,6 +2470,21 @@ function App() {
     setTutorialStep(1);
   };
 
+  const handleSmartSearchSelection = (personId) => {
+    setSelectedSmartSearchIds((prev) => (
+      prev.includes(personId)
+        ? prev.filter((id) => id !== personId)
+        : [...prev, personId]
+    ));
+  };
+
+  const handleSourceToggle = (sourceKey) => {
+    setSearchSources((prev) => ({
+      ...prev,
+      [sourceKey]: !prev[sourceKey]
+    }));
+  };
+
   const sidebarNav = [
     { key: 'home', label: 'Главная', icon: Home },
     { key: 'health', label: 'Здоровье', icon: HeartPulse },
@@ -2448,6 +2493,7 @@ function App() {
     { key: 'survey', label: 'Анкета', icon: ClipboardList },
     { key: 'origin', label: 'Происхождение', icon: Globe2 },
     { key: 'tree', label: 'Генеалогическое древо', icon: GitBranch },
+    { key: 'smart-search', label: 'Умный поиск', icon: Search },
     { key: 'services', label: 'Генеалогические услуги', icon: Briefcase },
     { key: 'pregnancy', label: 'Планирование беременности', icon: Baby }
   ];
@@ -2712,6 +2758,11 @@ function App() {
     return () => document.removeEventListener('click', handleClickOutside);
   }, [showNotifications, showBalancePanel]);
 
+  useEffect(() => {
+    setShowNotifications(false);
+    setShowBalancePanel(false);
+  }, [activeSection]);
+
   if (loading) {
     return (
       <div className="app">
@@ -2729,12 +2780,13 @@ function App() {
         <nav className="sidebar-nav">
           {sidebarNav.map(item => {
             const Icon = item.icon;
-            const isActive = item.key === 'tree';
+            const isActive = item.key === activeSection;
             return (
               <button 
                 key={item.key}
                 type="button"
                 className={`nav-item ${isActive ? 'active' : ''}`}
+                onClick={() => setActiveSection(item.key)}
               >
                 <Icon size={18} />
                 <span>{item.label}</span>
@@ -2745,82 +2797,79 @@ function App() {
       </aside>
 
       <div className="main-content">
-        <div className="tree-container">
-          <FamilyTree 
-            people={treeView.visiblePeople}
-            selectedPerson={selectedPerson}
-            onSelectPerson={handleSelectPerson}
-            onMatchClick={handleMatchClick}
-            zoom={zoom}
-            pan={pan}
-            onPanChange={setPan}
-            collapsedGroups={treeView.collapsedGroups}
-            onToggleGroup={handleToggleGroup}
-          />
-        </div>
+        {activeSection === 'smart-search' ? (
+          <div className="smart-search-layout">
+            <section className="smart-search-main">
+              <div className="smart-search-header">
+                <h1>Умный поиск</h1>
+                <p>Найдите нужных родственников по ФИО и выберите карточки для проверки по источникам.</p>
+              </div>
 
-        {/* Right Toolbar */}
-        <div className="right-toolbar">
-          <button className="toolbar-btn" title="Профиль">
-            <User size={18} />
-          </button>
-          
-          {/* Balance Panel */}
-          <div className="balance-wrapper">
-            <button 
-              className="toolbar-btn" 
-              title="Баланс SmartMatch"
-              onClick={() => {
-                setShowBalancePanel(!showBalancePanel);
-                setShowNotifications(false);
-              }}
-            >
-              <Coins size={18} />
-              {smartMatchBalance > 0 && (
-                <span className="balance-badge">{smartMatchBalance}</span>
-              )}
-            </button>
-            {showBalancePanel && (
-              <BalancePanel 
-                balance={smartMatchBalance}
-                onAddBalance={handleAddBalance}
-                onClose={() => setShowBalancePanel(false)}
-              />
-            )}
-          </div>
+              <label className="smart-search-input-wrapper">
+                <Search size={18} />
+                <input
+                  className="smart-search-input"
+                  type="text"
+                  value={smartSearchQuery}
+                  onChange={(event) => setSmartSearchQuery(event.target.value)}
+                  placeholder="Поиск по ФИО"
+                />
+              </label>
 
-          <div className="notifications-wrapper">
-            <button 
-              className="toolbar-btn" 
-              title="Уведомления"
-              onClick={() => {
-                setShowNotifications(!showNotifications);
-                setShowBalancePanel(false);
-              }}
-            >
-              <Bell size={18} />
-              {notifications.length > 0 && (
-                <span className="notification-badge">{notifications.length}</span>
-              )}
-            </button>
-            {showNotifications && (
-              <div className="notifications-panel">
-                <div className="notifications-header">
-                  <h4>Уведомления</h4>
-                  {notifications.length > 0 && (
-                    <button 
-                      className="clear-notifications-btn"
-                      onClick={clearNotifications}
-                    >
-                      Очистить
-                    </button>
-                  )}
+              <p className="smart-search-meta">
+                Найдено карточек: <strong>{smartSearchPeople.length}</strong> | Выбрано: <strong>{selectedSmartSearchIds.length}</strong>
+              </p>
+
+              <div className="smart-search-cards">
+                {smartSearchPeople.map((person) => {
+                  const personName = getFullName(person) || 'Без имени';
+                  const isSelected = selectedSmartSearchIds.includes(person.id);
+                  const isReady = isReadyForSmartSearch(person);
+
+                  return (
+                    <article key={person.id} className={`smart-relative-card ${isSelected ? 'selected' : ''}`}>
+                      <label className="smart-card-checkbox">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => handleSmartSearchSelection(person.id)}
+                        />
+                        <span>Выбрать</span>
+                      </label>
+
+                      {isReady && <span className="smart-ready-badge">Готово к поиску</span>}
+
+                      <h3>{personName}</h3>
+                      <p>
+                        <Calendar size={14} />
+                        {formatDate(person.birthDate)}
+                      </p>
+                      <p>
+                        <MapPin size={14} />
+                        {person.birthPlace || 'Не указано'}
+                      </p>
+                    </article>
+                  );
+                })}
+              </div>
+            </section>
+
+            <aside className="smart-search-panel">
+              <section className="smart-panel-section">
+                <h2>Баланс совпадений</h2>
+                <div className="smart-balance-value">
+                  <Coins size={16} />
+                  <span>{smartMatchBalance} SmartMatch</span>
                 </div>
-                <div className="notifications-list">
-                  {notifications.length === 0 ? (
-                    <p className="no-notifications">Нет уведомлений</p>
-                  ) : (
-                    notifications.map(notification => (
+              </section>
+
+              <section className="smart-panel-section">
+                <h2>Уведомления</h2>
+                {notifications.length === 0 ? (
+                  <p className="smart-empty-state">Нет уведомлений</p>
+                ) : (
+                  <div className="smart-notification-list">
+                    {notifications.slice(0, 5).map((notification) => (
                       <div key={notification.id} className="notification-item">
                         <div className="notification-icon">
                           <Check size={14} />
@@ -2828,44 +2877,193 @@ function App() {
                         <div className="notification-content">
                           <p className="notification-message">{notification.message}</p>
                           <span className="notification-time">
-                            {notification.timestamp.toLocaleTimeString('ru-RU', { 
-                              hour: '2-digit', 
-                              minute: '2-digit' 
+                            {notification.timestamp.toLocaleTimeString('ru-RU', {
+                              hour: '2-digit',
+                              minute: '2-digit'
                             })}
                           </span>
                         </div>
                       </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            )}
+                    ))}
+                  </div>
+                )}
+                {notifications.length > 0 && (
+                  <button type="button" className="btn btn-outline btn-sm btn-full" onClick={clearNotifications}>
+                    Очистить уведомления
+                  </button>
+                )}
+              </section>
+
+              <section className="smart-panel-section">
+                <h2>Загрузка и выгрузка</h2>
+                <button type="button" className="btn btn-outline btn-full" onClick={handleUploadClick}>
+                  <Upload size={16} />
+                  Загрузить JSON
+                </button>
+                <button type="button" className="btn btn-outline btn-full" onClick={handleDownload}>
+                  <Download size={16} />
+                  Выгрузить JSON
+                </button>
+              </section>
+
+              <section className="smart-panel-section">
+                <h2>Источники поиска</h2>
+                <label className="smart-source-item">
+                  <input
+                    type="checkbox"
+                    checked={searchSources.pamyatNaroda}
+                    onChange={() => handleSourceToggle('pamyatNaroda')}
+                  />
+                  <span>Память народа</span>
+                </label>
+                <label className="smart-source-item">
+                  <input
+                    type="checkbox"
+                    checked={searchSources.openList}
+                    onChange={() => handleSourceToggle('openList')}
+                  />
+                  <span>Открытый список</span>
+                </label>
+                <label className="smart-source-item">
+                  <input
+                    type="checkbox"
+                    checked={searchSources.warHeroes}
+                    onChange={() => handleSourceToggle('warHeroes')}
+                  />
+                  <span>Герои великой войны</span>
+                </label>
+              </section>
+
+              <button type="button" className="btn btn-primary btn-full smart-start-search-btn" disabled>
+                Начать поиск
+              </button>
+            </aside>
           </div>
-          <button className="toolbar-btn" title="Поиск">
-            <Search size={18} />
-          </button>
-          <button className="toolbar-btn" title="Где я" onClick={handleCenterTree}>
-            <Navigation size={18} />
-          </button>
-          <button className="toolbar-btn" title="Загрузить" onClick={handleUploadClick}>
-            <Upload size={18} />
-          </button>
-          <button className="toolbar-btn" title="Скачать" onClick={handleDownload}>
-            <Download size={18} />
-          </button>
-          <button className="toolbar-btn" title="Другое">
-            <MoreHorizontal size={18} />
-          </button>
-          <button className="toolbar-btn" title="Приблизить" onClick={handleZoomIn}>
-            <Plus size={18} />
-          </button>
-          <button className="toolbar-btn" title="Отдалить" onClick={handleZoomOut}>
-            <Minus size={18} />
-          </button>
-        </div>
+        ) : (
+          <>
+            <div className="tree-container">
+              <FamilyTree
+                people={treeView.visiblePeople}
+                selectedPerson={selectedPerson}
+                onSelectPerson={handleSelectPerson}
+                onMatchClick={handleMatchClick}
+                zoom={zoom}
+                pan={pan}
+                onPanChange={setPan}
+                collapsedGroups={treeView.collapsedGroups}
+                onToggleGroup={handleToggleGroup}
+              />
+            </div>
+
+            {/* Right Toolbar */}
+            <div className="right-toolbar">
+              <button className="toolbar-btn" title="Профиль">
+                <User size={18} />
+              </button>
+
+              {/* Balance Panel */}
+              <div className="balance-wrapper">
+                <button
+                  className="toolbar-btn"
+                  title="Баланс SmartMatch"
+                  onClick={() => {
+                    setShowBalancePanel(!showBalancePanel);
+                    setShowNotifications(false);
+                  }}
+                >
+                  <Coins size={18} />
+                  {smartMatchBalance > 0 && (
+                    <span className="balance-badge">{smartMatchBalance}</span>
+                  )}
+                </button>
+                {showBalancePanel && (
+                  <BalancePanel
+                    balance={smartMatchBalance}
+                    onAddBalance={handleAddBalance}
+                    onClose={() => setShowBalancePanel(false)}
+                  />
+                )}
+              </div>
+
+              <div className="notifications-wrapper">
+                <button
+                  className="toolbar-btn"
+                  title="Уведомления"
+                  onClick={() => {
+                    setShowNotifications(!showNotifications);
+                    setShowBalancePanel(false);
+                  }}
+                >
+                  <Bell size={18} />
+                  {notifications.length > 0 && (
+                    <span className="notification-badge">{notifications.length}</span>
+                  )}
+                </button>
+                {showNotifications && (
+                  <div className="notifications-panel">
+                    <div className="notifications-header">
+                      <h4>Уведомления</h4>
+                      {notifications.length > 0 && (
+                        <button
+                          className="clear-notifications-btn"
+                          onClick={clearNotifications}
+                        >
+                          Очистить
+                        </button>
+                      )}
+                    </div>
+                    <div className="notifications-list">
+                      {notifications.length === 0 ? (
+                        <p className="no-notifications">Нет уведомлений</p>
+                      ) : (
+                        notifications.map(notification => (
+                          <div key={notification.id} className="notification-item">
+                            <div className="notification-icon">
+                              <Check size={14} />
+                            </div>
+                            <div className="notification-content">
+                              <p className="notification-message">{notification.message}</p>
+                              <span className="notification-time">
+                                {notification.timestamp.toLocaleTimeString('ru-RU', {
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </span>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+              <button className="toolbar-btn" title="Поиск">
+                <Search size={18} />
+              </button>
+              <button className="toolbar-btn" title="Где я" onClick={handleCenterTree}>
+                <Navigation size={18} />
+              </button>
+              <button className="toolbar-btn" title="Загрузить" onClick={handleUploadClick}>
+                <Upload size={18} />
+              </button>
+              <button className="toolbar-btn" title="Скачать" onClick={handleDownload}>
+                <Download size={18} />
+              </button>
+              <button className="toolbar-btn" title="Другое">
+                <MoreHorizontal size={18} />
+              </button>
+              <button className="toolbar-btn" title="Приблизить" onClick={handleZoomIn}>
+                <Plus size={18} />
+              </button>
+              <button className="toolbar-btn" title="Отдалить" onClick={handleZoomOut}>
+                <Minus size={18} />
+              </button>
+            </div>
+          </>
+        )}
       </div>
 
-      {selectedPerson && !showEditModal && !showAddRelativeModal && (
+      {activeSection === 'tree' && selectedPerson && !showEditModal && !showAddRelativeModal && (
         <PersonCard
           person={selectedPerson}
           people={people}
