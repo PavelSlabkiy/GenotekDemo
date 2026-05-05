@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import hashlib
 import json
+import re
 import ssl
+import sys
 import urllib.error
 import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
+from difflib import SequenceMatcher
 from typing import Any
 
 
@@ -14,7 +18,12 @@ API_URL = "https://gwar.mil.ru/gt_data/?builder=Heroes"
 ORIGIN = "https://gwar.mil.ru"
 HEROES_URL = f"{ORIGIN}/heroes/"
 SOURCE_KEY = "gwar"
-SOURCE_LABEL = "Герои Великой войны"
+SOURCE_LABEL = "Герои великой войны"
+DEFAULT_USER_AGENT = (
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"
+)
+DEFAULT_ACCEPT_LANGUAGE = "ru,en-US;q=0.9,en;q=0.8"
 
 ENTITIES = [
     "chelovek_donesenie",
@@ -102,6 +111,80 @@ def search_gwar_once(
     accept_language: str,
     verify_tls: bool = True,
 ) -> dict[str, Any]:
+    return search_gwar_once_with_tls_fallback(
+        query=query,
+        page=page,
+        size=size,
+        timeout=timeout,
+        user_agent=user_agent,
+        accept_language=accept_language,
+        verify_tls=verify_tls,
+    )
+
+
+def search_gwar_once_with_tls_fallback(
+    query: dict[str, Any],
+    *,
+    page: int,
+    size: int,
+    timeout: float,
+    user_agent: str,
+    accept_language: str,
+    verify_tls: bool,
+) -> dict[str, Any]:
+    primary_error: urllib.error.URLError | None = None
+    try:
+        return search_gwar_raw(
+            query=query,
+            page=page,
+            size=size,
+            timeout=timeout,
+            user_agent=user_agent,
+            accept_language=accept_language,
+            verify_tls=verify_tls,
+        )
+    except urllib.error.URLError as exc:
+        primary_error = exc
+        if verify_tls and is_tls_verification_error(exc):
+            try:
+                return search_gwar_raw(
+                    query=query,
+                    page=page,
+                    size=size,
+                    timeout=timeout,
+                    user_agent=user_agent,
+                    accept_language=accept_language,
+                    verify_tls=False,
+                )
+            except urllib.error.URLError:
+                pass
+
+    if primary_error is None:
+        primary_error = urllib.error.URLError("Unknown network error")
+
+    payload = gwar_payload(query, page=page, size=size)
+    result = base_result(query, payload, utc_now())
+    result.update(
+        {
+            "status": "network_error",
+            "status_code": None,
+            "completed_at": utc_now(),
+            "error": str(primary_error.reason),
+        }
+    )
+    return result
+
+
+def search_gwar_raw(
+    query: dict[str, Any],
+    *,
+    page: int,
+    size: int,
+    timeout: float,
+    user_agent: str,
+    accept_language: str,
+    verify_tls: bool,
+) -> dict[str, Any]:
     payload = gwar_payload(query, page=page, size=size)
     started_at = utc_now()
     request = urllib.request.Request(
@@ -137,6 +220,8 @@ def search_gwar_once(
             )
             if error:
                 result["error"] = error
+            if not verify_tls:
+                result["tlsFallbackUsed"] = True
             return result
     except urllib.error.HTTPError as exc:
         body = exc.read().decode("utf-8", errors="replace")
@@ -149,18 +234,11 @@ def search_gwar_once(
                 "error": parse_json_or_text(body),
             }
         )
+        if not verify_tls:
+            result["tlsFallbackUsed"] = True
         return result
-    except urllib.error.URLError as exc:
-        result = base_result(query, payload, started_at)
-        result.update(
-            {
-                "status": "network_error",
-                "status_code": None,
-                "completed_at": utc_now(),
-                "error": str(exc.reason),
-            }
-        )
-        return result
+    except urllib.error.URLError:
+        raise
 
 
 def base_result(query: dict[str, Any], payload: dict[str, Any], started_at: str) -> dict[str, Any]:
@@ -292,6 +370,15 @@ def tls_context(verify: bool) -> ssl.SSLContext | None:
     return None if verify else ssl._create_unverified_context()
 
 
+def is_tls_verification_error(error: urllib.error.URLError) -> bool:
+    reason = getattr(error, "reason", None)
+    if isinstance(reason, ssl.SSLCertVerificationError):
+        return True
+    if isinstance(reason, ssl.SSLError):
+        return "CERTIFICATE_VERIFY_FAILED" in str(reason).upper()
+    return "CERTIFICATE_VERIFY_FAILED" in str(reason).upper()
+
+
 def parse_json_or_text(body: str) -> Any:
     try:
         return json.loads(body)
@@ -301,3 +388,312 @@ def parse_json_or_text(body: str) -> Any:
 
 def text_value(value: Any) -> str:
     return "" if value is None else str(value).strip()
+
+
+def compact_text(value: Any) -> str:
+    if value is None:
+        return ""
+    return " ".join(str(value).split()).strip()
+
+
+def birth_year_from_date(value: Any) -> str:
+    text = compact_text(value)
+    if not text:
+        return ""
+    match = re.search(r"(18|19|20)\d{2}", text)
+    return match.group(0) if match else ""
+
+
+def build_app_query_key(
+    person_id: str,
+    last_name: str,
+    first_name: str,
+    middle_name: str,
+    birth_date_from: str,
+    birth_place: str,
+) -> str:
+    digest = hashlib.sha1(
+        "|".join([last_name, first_name, middle_name, birth_date_from, birth_place]).encode("utf-8")
+    ).hexdigest()[:12]
+    return f"app-{person_id}-{digest}"
+
+
+def app_queries_from_people(people: dict[str, Any], person_ids: list[str]) -> list[dict[str, Any]]:
+    queries: list[dict[str, Any]] = []
+    for person_id in person_ids:
+        person = people.get(person_id)
+        if not isinstance(person, dict):
+            continue
+        last_name = compact_text(person.get("lastName"))
+        first_name = compact_text(person.get("name"))
+        middle_name = compact_text(person.get("middleName"))
+        if not last_name or not first_name:
+            continue
+
+        birth_date_from = birth_year_from_date(person.get("birthDate"))
+        birth_place = compact_text(person.get("birthPlace"))
+        display_name = " ".join(part for part in [last_name, first_name, middle_name] if part).strip()
+        query_key = build_app_query_key(
+            person_id,
+            last_name,
+            first_name,
+            middle_name,
+            birth_date_from,
+            birth_place,
+        )
+        queries.append(
+            {
+                "query_key": query_key,
+                "person_id": person_id,
+                "display_name": display_name,
+                "last_name": last_name,
+                "first_name": first_name,
+                "middle_name": middle_name,
+                "birth_date_from": birth_date_from,
+                "birth_place": birth_place,
+            }
+        )
+    return queries
+
+
+def normalize_lookup(value: Any) -> str:
+    return compact_text(value).lower().replace("ё", "е")
+
+
+def source_field(source: dict[str, Any], *keys: str) -> str:
+    for key in keys:
+        value = source.get(key)
+        if value is None:
+            continue
+        text = compact_text(value)
+        if text:
+            return text
+    return ""
+
+
+def source_name(source: dict[str, Any]) -> tuple[str, str, str]:
+    return (
+        source_field(source, "last_name", "family_name", "surname", "fio_last"),
+        source_field(source, "first_name", "name", "fio_name"),
+        source_field(source, "middle_name", "patronymic", "fio_middle"),
+    )
+
+
+def app_similarity_score(query: dict[str, Any], source: dict[str, Any]) -> float:
+    query_last = normalize_lookup(query.get("last_name"))
+    query_first = normalize_lookup(query.get("first_name"))
+    query_middle = normalize_lookup(query.get("middle_name"))
+    source_last, source_first, source_middle = source_name(source)
+    source_last = normalize_lookup(source_last)
+    source_first = normalize_lookup(source_first)
+    source_middle = normalize_lookup(source_middle)
+
+    name_scores: list[float] = []
+    for query_part, source_part in (
+        (query_last, source_last),
+        (query_first, source_first),
+        (query_middle, source_middle),
+    ):
+        if not query_part:
+            continue
+        if not source_part:
+            name_scores.append(0.0)
+            continue
+        name_scores.append(SequenceMatcher(None, query_part, source_part).ratio())
+    name_score = (sum(name_scores) / len(name_scores) * 100.0) if name_scores else 0.0
+
+    query_year = birth_year_from_date(query.get("birth_date_from"))
+    source_year = birth_year_from_date(source_field(source, "date_birth", "birth_date"))
+    if query_year and source_year:
+        diff = abs(int(query_year) - int(source_year))
+        birth_score = 100.0 if diff == 0 else max(0.0, 100.0 - min(diff, 25) * 4.0)
+    elif query_year:
+        birth_score = 0.0
+    else:
+        birth_score = 60.0
+
+    query_place = normalize_lookup(query.get("birth_place"))
+    source_place = normalize_lookup(source_field(source, "birth_place", "birth_location", "location"))
+    if query_place and source_place:
+        place_score = SequenceMatcher(None, query_place, source_place).ratio() * 100.0
+    elif query_place:
+        place_score = 0.0
+    else:
+        place_score = 55.0
+
+    return name_score * 0.7 + birth_score * 0.2 + place_score * 0.1
+
+
+def app_record_title(source: dict[str, Any], fallback: str) -> str:
+    last_name, first_name, middle_name = source_name(source)
+    full_name = " ".join(part for part in (last_name, first_name, middle_name) if part).strip()
+    if full_name:
+        return full_name
+    return source_field(source, "title", "name", "description") or fallback
+
+
+def app_record_information(source: dict[str, Any]) -> str:
+    parts = [
+        source_field(source, "rank"),
+        source_field(source, "event_name"),
+        source_field(source, "military_unit_name"),
+        source_field(source, "archive_short"),
+        source_field(source, "nomer_dokumenta"),
+    ]
+    return " | ".join(part for part in parts if part)
+
+
+def app_records_from_response(query: dict[str, Any], response: Any, max_records: int) -> list[dict[str, Any]]:
+    if not isinstance(response, dict):
+        return []
+    items = response.get("data")
+    if not isinstance(items, list):
+        return []
+
+    records: list[dict[str, Any]] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        source = item.get("_source") if isinstance(item.get("_source"), dict) else item
+        if not isinstance(source, dict):
+            continue
+
+        title = app_record_title(source, query.get("display_name") or "Запись")
+        birth_date = source_field(source, "date_birth", "birth_date")
+        birth_place = source_field(source, "birth_place", "birth_location", "location")
+        information = app_record_information(source)
+        url = compact_text(item.get("url"))
+        score = app_similarity_score(query, source)
+
+        if not title and not information and not url:
+            continue
+
+        records.append(
+            {
+                "source": SOURCE_KEY,
+                "sourceLabel": SOURCE_LABEL,
+                "title": title,
+                "information": information,
+                "url": url,
+                "birthDate": birth_date,
+                "birthPlace": birth_place,
+                "score": round(score, 2),
+            }
+        )
+
+    records.sort(key=lambda record: record.get("score", 0), reverse=True)
+    return records[: max(1, max_records)]
+
+
+def read_stdin_json_payload() -> dict[str, Any] | None:
+    if sys.stdin.isatty():
+        return None
+    payload = sys.stdin.read().strip()
+    if not payload:
+        return None
+    try:
+        data = json.loads(payload)
+    except json.JSONDecodeError:
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def maybe_run_app_search(payload: dict[str, Any]) -> dict[str, Any] | None:
+    people = payload.get("people")
+    if not isinstance(people, dict):
+        return None
+
+    person_ids = payload.get("personIds")
+    if not isinstance(person_ids, list) or not person_ids:
+        person_ids = list(people.keys())
+    person_ids = [str(person_id) for person_id in person_ids if str(person_id).strip()]
+
+    max_records = max(1, int(payload.get("maxRecordsPerPerson", 5)))
+    timeout = float(payload.get("timeout", 20))
+    verify_tls = not bool(payload.get("insecureTls", False))
+    user_agent = str(payload.get("userAgent") or DEFAULT_USER_AGENT)
+    accept_language = str(payload.get("acceptLanguage") or DEFAULT_ACCEPT_LANGUAGE)
+
+    queries = app_queries_from_people(people, person_ids)
+    if not queries:
+        return {
+            "source": SOURCE_KEY,
+            "sourceLabel": SOURCE_LABEL,
+            "matches": [],
+            "matchedDataIds": [],
+            "processedPersonIds": [],
+            "errors": [],
+        }
+
+    matches: list[dict[str, Any]] = []
+    matched_ids: list[str] = []
+    errors: list[dict[str, Any]] = []
+    processed_ids: list[str] = []
+
+    for query in queries:
+        person_id = str(query["person_id"])
+        processed_ids.append(person_id)
+        raw_result = search_gwar_once(
+            query,
+            page=1,
+            size=max(10, max_records * 3),
+            timeout=timeout,
+            user_agent=user_agent,
+            accept_language=accept_language,
+            verify_tls=verify_tls,
+        )
+        if raw_result.get("status") != "ok":
+            errors.append(
+                {
+                    "person_id": person_id,
+                    "message": f"Search failed with status={raw_result.get('status')}",
+                    "status_code": raw_result.get("status_code"),
+                    "details": raw_result.get("error"),
+                }
+            )
+            continue
+
+        records = app_records_from_response(query, raw_result.get("response"), max_records=max_records)
+        if not records:
+            continue
+
+        match_payload = {
+            "data_id": person_id,
+            "source": SOURCE_KEY,
+            "sourceLabel": SOURCE_LABEL,
+            "score": records[0].get("score"),
+            "person": {
+                "lastName": compact_text(query.get("last_name")),
+                "name": compact_text(query.get("first_name")),
+                "middleName": compact_text(query.get("middle_name")),
+                "birthDate": compact_text(query.get("birth_date_from")),
+                "birthPlace": compact_text(query.get("birth_place")),
+                "information": records[0].get("information", ""),
+            },
+            "records": records,
+            "searchedAt": utc_now(),
+        }
+        if raw_result.get("tlsFallbackUsed"):
+            match_payload["tlsFallbackUsed"] = True
+        matches.append(match_payload)
+        matched_ids.append(person_id)
+
+    return {
+        "source": SOURCE_KEY,
+        "sourceLabel": SOURCE_LABEL,
+        "matches": matches,
+        "matchedDataIds": sorted(set(matched_ids)),
+        "processedPersonIds": processed_ids,
+        "errors": errors,
+    }
+
+
+if __name__ == "__main__":
+    stdin_payload = read_stdin_json_payload()
+    if stdin_payload is not None:
+        app_result = maybe_run_app_search(stdin_payload)
+        if app_result is not None:
+            print(json.dumps(app_result, ensure_ascii=False))
+            raise SystemExit(0)
+    print("gwar_parser.py expects app-search JSON payload on stdin.", file=sys.stderr)
+    raise SystemExit(1)

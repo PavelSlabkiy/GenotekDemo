@@ -39,10 +39,11 @@ import {
 } from 'lucide-react';
 
 const API_URL = '/api';
-const SMART_SEARCH_SUPPORTED_SOURCE_KEYS = ['pamyatNaroda', 'openList'];
+const SMART_SEARCH_SUPPORTED_SOURCE_KEYS = ['pamyatNaroda', 'openList', 'gwar'];
 const SMART_SEARCH_SOURCE_LABELS = {
   pamyatNaroda: 'Память народа',
   openList: 'Открытый список',
+  gwar: 'Герои великой войны',
   warHeroes: 'Герои великой войны'
 };
 
@@ -2356,7 +2357,7 @@ function App() {
   const [searchSources, setSearchSources] = useState({
     pamyatNaroda: true,
     openList: true,
-    warHeroes: true
+    gwar: true
   });
   const [isSmartSearchRunning, setIsSmartSearchRunning] = useState(false);
   const [expandedSmartSearchCards, setExpandedSmartSearchCards] = useState({});
@@ -3053,8 +3054,8 @@ function App() {
                 <label className="smart-source-item">
                   <input
                     type="checkbox"
-                    checked={searchSources.warHeroes}
-                    onChange={() => handleSourceToggle('warHeroes')}
+                    checked={searchSources.gwar}
+                    onChange={() => handleSourceToggle('gwar')}
                   />
                   <span>Герои великой войны</span>
                 </label>

@@ -13,6 +13,7 @@ app.use(express.json({ limit: '20mb' }));
 const DATABASE_FILE = path.join(__dirname, '..', 'database.json');
 const PAMYAT_PARSER_SCRIPT = path.join(__dirname, '..', 'pamyat_parser.py');
 const OPENLIST_PARSER_SCRIPT = path.join(__dirname, '..', 'openlist_parser.py');
+const GWAR_PARSER_SCRIPT = path.join(__dirname, '..', 'gwar_parser.py');
 
 const getOid = (value) => {
   if (value && typeof value === 'object' && '$oid' in value) {
@@ -79,6 +80,7 @@ const liveOrDeadFromApp = (isAlive) => (isAlive ? 1 : 0);
 const unique = (values) => Array.from(new Set(values.filter(Boolean)));
 const PAMYAT_SOURCE_KEY = 'pamyatNaroda';
 const OPENLIST_SOURCE_KEY = 'openList';
+const GWAR_SOURCE_KEY = 'gwar';
 
 const relationshipTemplate = (partnerId) => ({
   with: toOidObject(partnerId),
@@ -485,6 +487,16 @@ const runOpenlistParser = ({ people, personIds }) => {
   });
 };
 
+const runGwarParser = ({ people, personIds }) => {
+  return runSourceParser({
+    scriptPath: GWAR_PARSER_SCRIPT,
+    sourceKey: GWAR_SOURCE_KEY,
+    sourceLabel: 'Герои великой войны',
+    people,
+    personIds
+  });
+};
+
 // API Routes
 
 // Get all people
@@ -802,6 +814,12 @@ const SUPPORTED_SMART_SOURCES = [
     label: 'Открытый список',
     enabledByDefault: true,
     parser: runOpenlistParser
+  },
+  {
+    key: GWAR_SOURCE_KEY,
+    label: 'Герои великой войны',
+    enabledByDefault: true,
+    parser: runGwarParser
   }
 ];
 
@@ -915,7 +933,10 @@ app.get('/api/people/:id/matches', async (req, res) => {
     }
 
     const sourceCache = state.people[personId].sourceSearchCache || {};
-    const personArchiveMatches = sourceCache[PAMYAT_SOURCE_KEY]?.matches || [];
+    const personArchiveMatches = SUPPORTED_SMART_SOURCES.flatMap((source) => {
+      const sourceEntry = sourceCache[source.key];
+      return Array.isArray(sourceEntry?.matches) ? sourceEntry.matches : [];
+    });
     
     res.json({ 
       treeMatches: [],

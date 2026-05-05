@@ -2005,13 +2005,13 @@
     ],
     "birthdate": [
       {
-        "day": 1,
-        "month": 1,
-        "year": 1892
+        "day": 23,
+        "month": 11,
+        "year": 1891
       }
     ],
     "birthplace": [
-      "Восточно-Казахстанская обл., Бельагачский р-н, Новопокровка с."
+      "г. Семипалатинск"
     ],
     "birthplaceParsed": [],
     "liveOrDead": 0,
@@ -2041,56 +2041,8 @@
         ]
       }
     ],
-    "hasMatch": true,
-    "sourceSearchCache": {
-      "openList": {
-        "searchedAt": "2026-05-05T23:08:18.988Z",
-        "status": "matches_found",
-        "source": "openList",
-        "sourceLabel": "Открытый список",
-        "matches": [
-          {
-            "data_id": "69ec7a322d2ada0deeede8f6",
-            "source": "openList",
-            "sourceLabel": "Открытый список",
-            "score": 100,
-            "person": {
-              "lastName": "Ворожейкин",
-              "name": "Александр",
-              "middleName": "Васильевич",
-              "birthDate": "",
-              "birthPlace": "Восточно-Казахстанская обл., Бельагачский р-н, Новопокровка с.",
-              "information": ""
-            },
-            "records": [
-              {
-                "source": "openList",
-                "sourceLabel": "Открытый список",
-                "title": "Ворожейкин Александр Васильевич (1892)",
-                "information": "",
-                "url": "https://ru.openlist.wiki/%D0%92%D0%BE%D1%80%D0%BE%D0%B6%D0%B5%D0%B9%D0%BA%D0%B8%D0%BD_%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B0%D0%BD%D0%B4%D1%80_%D0%92%D0%B0%D1%81%D0%B8%D0%BB%D1%8C%D0%B5%D0%B2%D0%B8%D1%87_(1892)",
-                "birthDate": "",
-                "birthPlace": "",
-                "score": 100
-              },
-              {
-                "source": "openList",
-                "sourceLabel": "Открытый список",
-                "title": "Ворожейкин Александр Васильевич (1923)",
-                "information": "",
-                "url": "https://ru.openlist.wiki/%D0%92%D0%BE%D1%80%D0%BE%D0%B6%D0%B5%D0%B9%D0%BA%D0%B8%D0%BD_%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B0%D0%BD%D0%B4%D1%80_%D0%92%D0%B0%D1%81%D0%B8%D0%BB%D1%8C%D0%B5%D0%B2%D0%B8%D1%87_(1923)",
-                "birthDate": "",
-                "birthPlace": "",
-                "score": 100
-              }
-            ],
-            "searchedAt": "2026-05-05T23:08:18+00:00",
-            "tlsFallbackUsed": true
-          }
-        ],
-        "errors": []
-      }
-    }
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -3048,6 +3000,12 @@
       "$oid": "68f36f8fda84114f6acf1ce4"
     },
     "relatives": [
+      {
+        "id": {
+          "$oid": "1778023104065tbbp"
+        },
+        "relationType": "parent"
+      },
       {
         "id": {
           "$oid": "69ec8144f361179d8a0747b2"
@@ -4690,5 +4648,54 @@
     "relationships": [],
     "hasMatch": false,
     "sourceSearchCache": {}
+  },
+  {
+    "_id": {
+      "$oid": "1778023104065tbbp"
+    },
+    "treeId": {
+      "$oid": "68f36f8fda84114f6acf1ce4"
+    },
+    "gender": "Male",
+    "relatives": [
+      {
+        "id": {
+          "$oid": "69ec813c4631143b2ca22fec"
+        },
+        "relationType": "child"
+      }
+    ],
+    "relationships": [],
+    "birthdate": [
+      {
+        "day": 1,
+        "month": 1,
+        "year": 1895
+      }
+    ],
+    "birthplace": [
+      "Тамбовская губерния"
+    ],
+    "name": [
+      "Терентий"
+    ],
+    "surname": [
+      "Авинов"
+    ],
+    "middleName": [
+      "Алексеевич"
+    ],
+    "liveOrDead": 1,
+    "hasMatch": false,
+    "sourceSearchCache": {
+      "gwar": {
+        "searchedAt": "2026-05-05T23:18:34.307Z",
+        "status": "no_matches",
+        "source": "gwar",
+        "sourceLabel": "Герои великой войны",
+        "matches": [],
+        "errors": []
+      }
+    }
   }
 ]
