@@ -331,6 +331,7 @@ body {
   left: 0;
   pointer-events: none;
   overflow: visible;
+  z-index: 1;
 }
 
 .tree-connectors line,
@@ -345,6 +346,7 @@ body {
   position: absolute;
   top: 0;
   left: 0;
+  z-index: 2;
 }
 
 .tree-group-controls {
@@ -352,6 +354,7 @@ body {
   top: 0;
   left: 0;
   pointer-events: none;
+  z-index: 3;
 }
 
 .tree-group-toggle {
@@ -379,18 +382,21 @@ body {
 .person-node {
   position: absolute;
   width: var(--card-width);
+  height: var(--card-height);
   padding: 12px 8px;
   background: var(--bg-card);
   border: 2px solid var(--border-color);
-  border-radius: 12px;
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   box-shadow: 0 4px 12px var(--shadow-color);
   transform: translate(-50%, 0);
+  z-index: 2;
 }
 
 .person-node:hover {
@@ -2080,8 +2086,8 @@ body {
   }
   
   :root {
-    --card-width: 120px;
-    --card-height: 100px;
+    --card-width: 140px;
+    --card-height: 120px;
     --horizontal-gap: 30px;
     --vertical-gap: 60px;
     --couple-gap: 40px;

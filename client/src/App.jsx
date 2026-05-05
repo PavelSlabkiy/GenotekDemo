@@ -42,11 +42,12 @@ const API_URL = '/api';
 
 // Layout constants
 const CARD_WIDTH = 140;
-const CARD_HEIGHT = 110;
-const HORIZONTAL_GAP = 50;
-const VERTICAL_GAP = 100;
+const CARD_HEIGHT = 120;
+const HORIZONTAL_GAP = 44;
+const VERTICAL_GAP = 110;
 const COUPLE_GAP = 80;
 const PADDING = 60;
+const BRANCH_GAP = 86;
 
 // Helper function to format date
 const formatDate = (dateStr) => {
@@ -176,97 +177,428 @@ const buildTreeView = (allPeople, focalPersonId, expandedSiblingGroups) => {
 class TreeLayoutEngine {
   constructor(people) {
     this.people = people;
-    this.positions = new Map(); // personId -> { x, y }
-    this.generations = new Map(); // 0 = oldest generation
+    this.positions = new Map();
+    this.generations = new Map();
+    this.units = new Map();
+    this.unitByPerson = new Map();
+    this.unitGenerations = new Map();
+    this.unitLayouts = new Map();
+    this.childrenByUnit = new Map();
+    this.parentsByUnit = new Map();
+    this.familyEdges = [];
+  }
+
+  getBirthYear(person) {
+    const match = String(person?.birthDate || '').match(/^\d{4}/);
+    return match ? Number(match[0]) : Infinity;
+  }
+
+  comparePersonIds(a, b) {
+    const personA = this.people[a];
+    const personB = this.people[b];
+    const genderRank = (person) => {
+      if (person?.gender === 'male') return 0;
+      if (person?.gender === 'female') return 1;
+      return 2;
+    };
+
+    const genderDelta = genderRank(personA) - genderRank(personB);
+    if (genderDelta !== 0) return genderDelta;
+
+    const yearDelta = this.getBirthYear(personA) - this.getBirthYear(personB);
+    if (Number.isFinite(yearDelta) && yearDelta !== 0) return yearDelta;
+
+    return getPersonLabel(personA).localeCompare(getPersonLabel(personB), 'ru');
+  }
+
+  compareUnitIds(a, b) {
+    const firstA = this.units.get(a)?.[0];
+    const firstB = this.units.get(b)?.[0];
+    return this.comparePersonIds(firstA, firstB);
+  }
+
+  getUnitWidth(unitId) {
+    const personCount = this.units.get(unitId)?.length || 1;
+    return personCount * CARD_WIDTH + Math.max(0, personCount - 1) * COUPLE_GAP;
+  }
+
+  getPersonOffset(personId) {
+    const unitId = this.unitByPerson.get(personId);
+    const personIds = this.units.get(unitId) || [];
+    const index = personIds.indexOf(personId);
+    if (index === -1) return 0;
+
+    return -this.getUnitWidth(unitId) / 2 + CARD_WIDTH / 2 + index * (CARD_WIDTH + COUPLE_GAP);
+  }
+
+  buildUnits() {
+    const ids = Object.keys(this.people);
+    const parent = new Map(ids.map(id => [id, id]));
+
+    const find = (id) => {
+      if (!parent.has(id)) return null;
+      const current = parent.get(id);
+      if (current === id) return id;
+      const root = find(current);
+      parent.set(id, root);
+      return root;
+    };
+
+    const union = (a, b) => {
+      const rootA = find(a);
+      const rootB = find(b);
+      if (!rootA || !rootB || rootA === rootB) return;
+
+      const keep = this.comparePersonIds(rootA, rootB) <= 0 ? rootA : rootB;
+      const move = keep === rootA ? rootB : rootA;
+      parent.set(move, keep);
+    };
+
+    const parentsByChild = new Map();
+    const addParentForChild = (childId, parentId) => {
+      if (!this.people[childId] || !this.people[parentId]) return;
+      if (!parentsByChild.has(childId)) parentsByChild.set(childId, new Set());
+      parentsByChild.get(childId).add(parentId);
+    };
+
+    Object.values(this.people).forEach((person) => {
+      if (person.partnerId && this.people[person.partnerId]) {
+        union(person.id, person.partnerId);
+      }
+
+      addParentForChild(person.id, person.fatherId);
+      addParentForChild(person.id, person.motherId);
+
+      (person.children || []).forEach((childId) => {
+        addParentForChild(childId, person.id);
+      });
+    });
+
+    parentsByChild.forEach((parentIds) => {
+      const idsToUnify = Array.from(parentIds);
+      idsToUnify.slice(1).forEach(parentId => union(idsToUnify[0], parentId));
+    });
+
+    const grouped = new Map();
+    ids.forEach((id) => {
+      const root = find(id);
+      if (!root) return;
+      if (!grouped.has(root)) grouped.set(root, []);
+      grouped.get(root).push(id);
+    });
+
+    grouped.forEach((personIds, unitId) => {
+      const orderedPersonIds = [...personIds].sort((a, b) => this.comparePersonIds(a, b));
+      this.units.set(unitId, orderedPersonIds);
+      this.childrenByUnit.set(unitId, new Set());
+      this.parentsByUnit.set(unitId, new Set());
+
+      orderedPersonIds.forEach((personId) => {
+        this.unitByPerson.set(personId, unitId);
+      });
+    });
+  }
+
+  addFamilyEdge(parentUnitId, childPersonId, seenEdges) {
+    const childUnitId = this.unitByPerson.get(childPersonId);
+    if (!parentUnitId || !childUnitId || parentUnitId === childUnitId) return;
+
+    const key = `${parentUnitId}->${childPersonId}`;
+    if (seenEdges.has(key)) return;
+    seenEdges.add(key);
+
+    this.familyEdges.push({ parentUnitId, childUnitId, childPersonId });
+    this.childrenByUnit.get(parentUnitId)?.add(childUnitId);
+    this.parentsByUnit.get(childUnitId)?.add(parentUnitId);
+  }
+
+  buildGraph() {
+    this.buildUnits();
+
+    const seenEdges = new Set();
+    Object.values(this.people).forEach((person) => {
+      [person.fatherId, person.motherId].forEach((parentId) => {
+        const parentUnitId = this.unitByPerson.get(parentId);
+        this.addFamilyEdge(parentUnitId, person.id, seenEdges);
+      });
+
+      const parentUnitId = this.unitByPerson.get(person.id);
+      (person.children || []).forEach((childId) => {
+        if (!this.people[childId]) return;
+        this.addFamilyEdge(parentUnitId, childId, seenEdges);
+      });
+    });
   }
 
   calculateGenerations() {
-    const peopleArray = Object.values(this.people);
-    if (peopleArray.length === 0) return;
+    this.buildGraph();
 
-    peopleArray.forEach((person) => this.generations.set(person.id, 0));
+    const unitIds = Array.from(this.units.keys());
+    const indegree = new Map(unitIds.map(unitId => [unitId, this.parentsByUnit.get(unitId)?.size || 0]));
+    const queue = unitIds
+      .filter(unitId => (indegree.get(unitId) || 0) === 0)
+      .sort((a, b) => this.compareUnitIds(a, b));
+    const processed = new Set();
 
-    for (let i = 0; i < peopleArray.length * 2; i++) {
-      let changed = false;
-      peopleArray.forEach((person) => {
-        const personGen = this.generations.get(person.id) || 0;
-        (person.children || []).forEach((childId) => {
-          if (!this.people[childId]) return;
-          const childGen = this.generations.get(childId) || 0;
-          const nextChildGen = Math.max(childGen, personGen + 1);
-          if (nextChildGen !== childGen) {
-            this.generations.set(childId, nextChildGen);
-            changed = true;
-          }
+    unitIds.forEach(unitId => this.unitGenerations.set(unitId, 0));
+
+    while (queue.length > 0) {
+      const unitId = queue.shift();
+      processed.add(unitId);
+
+      const nextGeneration = (this.unitGenerations.get(unitId) || 0) + 1;
+      const children = Array.from(this.childrenByUnit.get(unitId) || [])
+        .sort((a, b) => this.compareUnitIds(a, b));
+
+      children.forEach((childUnitId) => {
+        const currentGeneration = this.unitGenerations.get(childUnitId) || 0;
+        this.unitGenerations.set(childUnitId, Math.max(currentGeneration, nextGeneration));
+        indegree.set(childUnitId, Math.max(0, (indegree.get(childUnitId) || 0) - 1));
+        if ((indegree.get(childUnitId) || 0) === 0 && !processed.has(childUnitId)) {
+          queue.push(childUnitId);
+          queue.sort((a, b) => this.compareUnitIds(a, b));
+        }
+      });
+    }
+
+    unitIds
+      .filter(unitId => !processed.has(unitId))
+      .sort((a, b) => this.compareUnitIds(a, b))
+      .forEach((unitId) => {
+        const parentGenerations = Array.from(this.parentsByUnit.get(unitId) || [])
+          .map(parentUnitId => this.unitGenerations.get(parentUnitId))
+          .filter(generation => typeof generation === 'number');
+        if (parentGenerations.length > 0) {
+          this.unitGenerations.set(unitId, Math.max(...parentGenerations) + 1);
+        }
+      });
+
+    const minGeneration = Math.min(0, ...Array.from(this.unitGenerations.values()));
+    this.unitGenerations.forEach((generation, unitId) => {
+      this.unitGenerations.set(unitId, generation - minGeneration);
+    });
+
+    this.unitByPerson.forEach((unitId, personId) => {
+      this.generations.set(personId, this.unitGenerations.get(unitId) || 0);
+    });
+  }
+
+  buildLayerOrders() {
+    const layers = new Map();
+    this.unitGenerations.forEach((generation, unitId) => {
+      if (!layers.has(generation)) layers.set(generation, []);
+      layers.get(generation).push(unitId);
+    });
+
+    layers.forEach((unitIds) => {
+      unitIds.sort((a, b) => this.compareUnitIds(a, b));
+    });
+
+    const generationKeys = Array.from(layers.keys()).sort((a, b) => a - b);
+
+    const makeOrderIndex = () => {
+      const index = new Map();
+      generationKeys.forEach((generation) => {
+        (layers.get(generation) || []).forEach((unitId, unitIndex) => {
+          index.set(unitId, unitIndex);
         });
       });
-      if (!changed) break;
+      return index;
+    };
+
+    const barycenter = (neighborIds, orderIndex) => {
+      const indexes = Array.from(neighborIds || [])
+        .map(neighborId => orderIndex.get(neighborId))
+        .filter(index => typeof index === 'number');
+      if (indexes.length === 0) return null;
+      return indexes.reduce((sum, index) => sum + index, 0) / indexes.length;
+    };
+
+    for (let pass = 0; pass < 6; pass++) {
+      let orderIndex = makeOrderIndex();
+      generationKeys.slice(1).forEach((generation) => {
+        const currentLayer = layers.get(generation) || [];
+        const stableIndex = new Map(currentLayer.map((unitId, index) => [unitId, index]));
+        currentLayer.sort((a, b) => {
+          const centerA = barycenter(this.parentsByUnit.get(a), orderIndex);
+          const centerB = barycenter(this.parentsByUnit.get(b), orderIndex);
+          if (centerA !== null && centerB !== null && centerA !== centerB) return centerA - centerB;
+          if (centerA !== null && centerB === null) return -1;
+          if (centerA === null && centerB !== null) return 1;
+          return stableIndex.get(a) - stableIndex.get(b);
+        });
+      });
+
+      orderIndex = makeOrderIndex();
+      generationKeys.slice(0, -1).reverse().forEach((generation) => {
+        const currentLayer = layers.get(generation) || [];
+        const stableIndex = new Map(currentLayer.map((unitId, index) => [unitId, index]));
+        currentLayer.sort((a, b) => {
+          const centerA = barycenter(this.childrenByUnit.get(a), orderIndex);
+          const centerB = barycenter(this.childrenByUnit.get(b), orderIndex);
+          if (centerA !== null && centerB !== null && centerA !== centerB) return centerA - centerB;
+          if (centerA !== null && centerB === null) return -1;
+          if (centerA === null && centerB !== null) return 1;
+          return stableIndex.get(a) - stableIndex.get(b);
+        });
+      });
     }
 
-    for (let i = 0; i < peopleArray.length; i++) {
-      let changed = false;
-      peopleArray.forEach((person) => {
-        if (!person.partnerId || !this.people[person.partnerId]) return;
-        const personGen = this.generations.get(person.id) || 0;
-        const partnerGen = this.generations.get(person.partnerId) || 0;
-        const maxGen = Math.max(personGen, partnerGen);
-        if (personGen !== maxGen) {
-          this.generations.set(person.id, maxGen);
-          changed = true;
-        }
-        if (partnerGen !== maxGen) {
-          this.generations.set(person.partnerId, maxGen);
-          changed = true;
-        }
-      });
-      if (!changed) break;
+    return { layers, generationKeys };
+  }
+
+  getLayerGap(leftUnitId, rightUnitId) {
+    const leftParents = this.parentsByUnit.get(leftUnitId) || new Set();
+    const rightParents = this.parentsByUnit.get(rightUnitId) || new Set();
+    const shareParent = Array.from(leftParents).some(parentId => rightParents.has(parentId));
+
+    const leftChildren = this.childrenByUnit.get(leftUnitId) || new Set();
+    const rightChildren = this.childrenByUnit.get(rightUnitId) || new Set();
+    const shareChild = Array.from(leftChildren).some(childId => rightChildren.has(childId));
+
+    return shareParent || shareChild ? HORIZONTAL_GAP : BRANCH_GAP;
+  }
+
+  placeLayer(unitIds, desiredCenters, existingCenters = new Map()) {
+    const centers = new Map();
+
+    unitIds.forEach((unitId, index) => {
+      const unitWidth = this.getUnitWidth(unitId);
+      const desired = desiredCenters.get(unitId);
+      const fallback = existingCenters.get(unitId);
+      const previousUnitId = unitIds[index - 1];
+      const previousCenter = previousUnitId ? centers.get(previousUnitId) : null;
+      const previousWidth = previousUnitId ? this.getUnitWidth(previousUnitId) : 0;
+      const gap = previousUnitId ? this.getLayerGap(previousUnitId, unitId) : 0;
+
+      let ideal = Number.isFinite(desired) ? desired : fallback;
+      if (!Number.isFinite(ideal)) {
+        ideal = previousCenter === null
+          ? unitWidth / 2
+          : previousCenter + previousWidth / 2 + gap + unitWidth / 2;
+      }
+
+      const minimumCenter = previousCenter === null
+        ? ideal
+        : previousCenter + previousWidth / 2 + gap + unitWidth / 2;
+      centers.set(unitId, Math.max(ideal, minimumCenter));
+    });
+
+    for (let index = unitIds.length - 2; index >= 0; index--) {
+      const unitId = unitIds[index];
+      const nextUnitId = unitIds[index + 1];
+      const currentCenter = centers.get(unitId);
+      const desired = desiredCenters.get(unitId);
+      const ideal = Number.isFinite(desired) ? desired : existingCenters.get(unitId);
+      if (!Number.isFinite(ideal) || currentCenter <= ideal) continue;
+
+      const gap = this.getLayerGap(unitId, nextUnitId);
+      const maximumCenter = centers.get(nextUnitId) - this.getUnitWidth(nextUnitId) / 2 - gap - this.getUnitWidth(unitId) / 2;
+      const previousUnitId = unitIds[index - 1];
+      const previousBound = previousUnitId
+        ? centers.get(previousUnitId) + this.getUnitWidth(previousUnitId) / 2 + this.getLayerGap(previousUnitId, unitId) + this.getUnitWidth(unitId) / 2
+        : -Infinity;
+
+      if (maximumCenter >= previousBound) {
+        const targetCenter = Math.max(previousBound, Math.min(ideal, maximumCenter));
+        centers.set(unitId, Math.min(currentCenter, targetCenter));
+      }
     }
+
+    return centers;
+  }
+
+  calculateCoordinates(layers, generationKeys) {
+    const centers = new Map();
+
+    generationKeys.forEach((generation) => {
+      const layerCenters = this.placeLayer(layers.get(generation) || [], new Map(), centers);
+      layerCenters.forEach((center, unitId) => centers.set(unitId, center));
+    });
+
+    const getParentDesiredCenters = (generation) => {
+      const desired = new Map();
+      const counts = new Map();
+      const layerUnits = new Set(layers.get(generation) || []);
+
+      this.familyEdges.forEach((edge) => {
+        if (!layerUnits.has(edge.childUnitId)) return;
+        const parentCenter = centers.get(edge.parentUnitId);
+        if (!Number.isFinite(parentCenter)) return;
+
+        const targetCenter = parentCenter - this.getPersonOffset(edge.childPersonId);
+        desired.set(edge.childUnitId, (desired.get(edge.childUnitId) || 0) + targetCenter);
+        counts.set(edge.childUnitId, (counts.get(edge.childUnitId) || 0) + 1);
+      });
+
+      counts.forEach((count, unitId) => {
+        desired.set(unitId, desired.get(unitId) / count);
+      });
+
+      return desired;
+    };
+
+    const getChildDesiredCenters = (generation) => {
+      const desired = new Map();
+      const counts = new Map();
+      const layerUnits = new Set(layers.get(generation) || []);
+
+      this.familyEdges.forEach((edge) => {
+        if (!layerUnits.has(edge.parentUnitId)) return;
+        const childCenter = centers.get(edge.childUnitId);
+        if (!Number.isFinite(childCenter)) return;
+
+        const targetCenter = childCenter + this.getPersonOffset(edge.childPersonId);
+        desired.set(edge.parentUnitId, (desired.get(edge.parentUnitId) || 0) + targetCenter);
+        counts.set(edge.parentUnitId, (counts.get(edge.parentUnitId) || 0) + 1);
+      });
+
+      counts.forEach((count, unitId) => {
+        desired.set(unitId, desired.get(unitId) / count);
+      });
+
+      return desired;
+    };
+
+    for (let pass = 0; pass < 5; pass++) {
+      generationKeys.slice(1).forEach((generation) => {
+        const layerCenters = this.placeLayer(layers.get(generation) || [], getParentDesiredCenters(generation), centers);
+        layerCenters.forEach((center, unitId) => centers.set(unitId, center));
+      });
+
+      generationKeys.slice(0, -1).reverse().forEach((generation) => {
+        const layerCenters = this.placeLayer(layers.get(generation) || [], getChildDesiredCenters(generation), centers);
+        layerCenters.forEach((center, unitId) => centers.set(unitId, center));
+      });
+    }
+
+    return centers;
   }
 
   calculateLayout() {
     this.calculateGenerations();
-    const generationGroups = new Map();
-    Object.values(this.people).forEach((person) => {
-      const gen = this.generations.get(person.id) || 0;
-      if (!generationGroups.has(gen)) generationGroups.set(gen, []);
-      generationGroups.get(gen).push(person);
-    });
+    const { layers, generationKeys } = this.buildLayerOrders();
+    const centers = this.calculateCoordinates(layers, generationKeys);
 
-    const sortedGenerations = Array.from(generationGroups.keys()).sort((a, b) => a - b);
-    const spacing = CARD_WIDTH + Math.max(24, HORIZONTAL_GAP * 0.6);
-    const levelCenterTargets = new Map();
+    generationKeys.forEach((generation) => {
+      const y = PADDING + generation * (CARD_HEIGHT + VERTICAL_GAP);
+      (layers.get(generation) || []).forEach((unitId) => {
+        const unitCenter = centers.get(unitId) || 0;
+        const personIds = this.units.get(unitId) || [];
+        this.unitLayouts.set(unitId, {
+          x: unitCenter,
+          y,
+          width: this.getUnitWidth(unitId),
+          generation,
+          personIds
+        });
 
-    sortedGenerations.forEach((generation, index) => {
-      const peopleInGen = generationGroups.get(generation) || [];
-      const y = PADDING + index * (CARD_HEIGHT + VERTICAL_GAP);
-
-      const ordered = [...peopleInGen].sort((a, b) => {
-        const aChildren = (a.children || []).length;
-        const bChildren = (b.children || []).length;
-        if (aChildren !== bChildren) return bChildren - aChildren;
-        return getPersonLabel(a).localeCompare(getPersonLabel(b), 'ru');
-      });
-
-      const desiredCenters = ordered.map((person, idx) => {
-        const parentCenters = [person.fatherId, person.motherId]
-          .map(parentId => levelCenterTargets.get(parentId))
-          .filter(value => typeof value === 'number');
-        if (parentCenters.length > 0) {
-          return parentCenters.reduce((sum, value) => sum + value, 0) / parentCenters.length;
-        }
-        return idx * spacing;
-      });
-
-      const sortedByDesired = ordered
-        .map((person, idx) => ({ person, desired: desiredCenters[idx] }))
-        .sort((a, b) => a.desired - b.desired);
-
-      let currentX = PADDING + CARD_WIDTH / 2;
-      sortedByDesired.forEach(({ person, desired }) => {
-        const targetX = Math.max(currentX, desired + PADDING + CARD_WIDTH / 2);
-        this.positions.set(person.id, { x: targetX, y });
-        levelCenterTargets.set(person.id, targetX);
-        currentX = targetX + spacing;
+        personIds.forEach((personId) => {
+          this.positions.set(personId, {
+            x: unitCenter + this.getPersonOffset(personId),
+            y
+          });
+        });
       });
     });
   }
@@ -275,10 +607,19 @@ class TreeLayoutEngine {
     this.calculateLayout();
     
     if (this.positions.size === 0) {
-      return { positions: new Map(), canvasWidth: PADDING * 2, canvasHeight: PADDING * 2 };
+      return {
+        positions: new Map(),
+        canvasWidth: PADDING * 2,
+        canvasHeight: PADDING * 2,
+        units: new Map(),
+        unitByPerson: new Map(),
+        unitLayouts: new Map(),
+        childrenByUnit: new Map(),
+        parentsByUnit: new Map(),
+        familyEdges: []
+      };
     }
 
-    // Normalize positions
     let minX = Infinity;
     let minY = Infinity;
     
@@ -298,6 +639,15 @@ class TreeLayoutEngine {
       });
     });
 
+    const normalizedUnitLayouts = new Map();
+    this.unitLayouts.forEach((layout, unitId) => {
+      normalizedUnitLayouts.set(unitId, {
+        ...layout,
+        x: layout.x + offsetX,
+        y: layout.y + offsetY
+      });
+    });
+
     let maxX = 0;
     let maxY = 0;
     
@@ -309,7 +659,13 @@ class TreeLayoutEngine {
     return {
       positions: normalizedPositions,
       canvasWidth: maxX + PADDING,
-      canvasHeight: maxY + PADDING
+      canvasHeight: maxY + PADDING,
+      units: this.units,
+      unitByPerson: this.unitByPerson,
+      unitLayouts: normalizedUnitLayouts,
+      childrenByUnit: this.childrenByUnit,
+      parentsByUnit: this.parentsByUnit,
+      familyEdges: this.familyEdges
     };
   }
 }
@@ -318,187 +674,118 @@ class TreeLayoutEngine {
 // CONNECTOR LINES COMPONENT
 // ============================================
 
-const TreeConnectors = ({ people, positions, width, height }) => {
-  const lines = useMemo(() => {
-    const connectorLines = [];
-    const processedCouples = new Set();
-    const processedParentChild = new Set();
+const TreeConnectors = ({ positions, layout, width, height }) => {
+  const paths = useMemo(() => {
+    const connectorPaths = [];
+    const units = layout?.units || new Map();
+    const unitLayouts = layout?.unitLayouts || new Map();
+    const familyEdges = layout?.familyEdges || [];
 
-    Object.values(people).forEach(person => {
-      const personPos = positions.get(person.id);
-      if (!personPos) return;
+    units.forEach((personIds, unitId) => {
+      if (personIds.length < 2) return;
 
-      // Partner connection line
-      if (person.partnerId && people[person.partnerId]) {
-        const coupleKey = [person.id, person.partnerId].sort().join('-');
-        if (!processedCouples.has(coupleKey)) {
-          processedCouples.add(coupleKey);
-          
-          const partnerPos = positions.get(person.partnerId);
-          if (partnerPos) {
-            const y = personPos.y + CARD_HEIGHT / 2;
-            connectorLines.push({
-              type: 'couple',
-              key: `couple-${coupleKey}`,
-              x1: Math.min(personPos.x, partnerPos.x),
-              y1: y,
-              x2: Math.max(personPos.x, partnerPos.x),
-              y2: y
-            });
+      const orderedPositions = personIds
+        .map(personId => positions.get(personId))
+        .filter(Boolean)
+        .sort((a, b) => a.x - b.x);
 
-            // Children connector from couple
-            const partner = people[person.partnerId];
-            const childrenIds = new Set([
-              ...(person.children || []),
-              ...(partner.children || [])
-            ]);
-
-            const children = Array.from(childrenIds)
-              .map(id => people[id])
-              .filter(child => child && positions.has(child.id));
-
-            if (children.length > 0) {
-              const coupleCenterX = (personPos.x + partnerPos.x) / 2;
-              const coupleCenterY = y;
-              const childY = Math.min(...children.map(c => positions.get(c.id).y));
-              const branchY = coupleCenterY + (childY - coupleCenterY - CARD_HEIGHT) / 2 + CARD_HEIGHT / 2;
-
-              // Vertical line from couple to branch point
-              connectorLines.push({
-                type: 'vertical',
-                key: `couple-down-${coupleKey}`,
-                x1: coupleCenterX,
-                y1: coupleCenterY,
-                x2: coupleCenterX,
-                y2: branchY
-              });
-
-              if (children.length === 1) {
-                // Single child - straight line down
-                const childPos = positions.get(children[0].id);
-                connectorLines.push({
-                  type: 'vertical',
-                  key: `child-${children[0].id}`,
-                  x1: coupleCenterX,
-                  y1: branchY,
-                  x2: childPos.x,
-                  y2: childPos.y
-                });
-              } else {
-                // Multiple children - horizontal branch then down to each
-                const childXPositions = children.map(c => positions.get(c.id).x);
-                const leftX = Math.min(...childXPositions);
-                const rightX = Math.max(...childXPositions);
-
-                // Horizontal branch line
-                connectorLines.push({
-                  type: 'horizontal',
-                  key: `branch-${coupleKey}`,
-                  x1: leftX,
-                  y1: branchY,
-                  x2: rightX,
-                  y2: branchY
-                });
-
-                // Vertical lines to each child
-                children.forEach(child => {
-                  const childPos = positions.get(child.id);
-                  const pKey = `parent-child-${coupleKey}-${child.id}`;
-                  if (!processedParentChild.has(pKey)) {
-                    processedParentChild.add(pKey);
-                    connectorLines.push({
-                      type: 'vertical',
-                      key: `to-child-${child.id}`,
-                      x1: childPos.x,
-                      y1: branchY,
-                      x2: childPos.x,
-                      y2: childPos.y
-                    });
-                  }
-                });
-              }
-            }
-          }
-        }
-      } else if (!person.partnerId) {
-        // Single parent with children
-        const children = (person.children || [])
-          .map(id => people[id])
-          .filter(child => child && positions.has(child.id));
-
-        if (children.length > 0) {
-          const parentKey = `single-${person.id}`;
-          if (!processedCouples.has(parentKey)) {
-            processedCouples.add(parentKey);
-
-            const parentCenterY = personPos.y + CARD_HEIGHT / 2;
-            const childY = Math.min(...children.map(c => positions.get(c.id).y));
-            const branchY = parentCenterY + (childY - parentCenterY - CARD_HEIGHT) / 2 + CARD_HEIGHT / 2;
-
-            // Vertical line from parent to branch
-            connectorLines.push({
-              type: 'vertical',
-              key: `single-down-${person.id}`,
-              x1: personPos.x,
-              y1: personPos.y + CARD_HEIGHT,
-              x2: personPos.x,
-              y2: branchY
-            });
-
-            if (children.length === 1) {
-              const childPos = positions.get(children[0].id);
-              connectorLines.push({
-                type: 'vertical',
-                key: `single-child-${children[0].id}`,
-                x1: personPos.x,
-                y1: branchY,
-                x2: childPos.x,
-                y2: childPos.y
-              });
-            } else {
-              const childXPositions = children.map(c => positions.get(c.id).x);
-              const leftX = Math.min(...childXPositions);
-              const rightX = Math.max(...childXPositions);
-
-              connectorLines.push({
-                type: 'horizontal',
-                key: `single-branch-${person.id}`,
-                x1: leftX,
-                y1: branchY,
-                x2: rightX,
-                y2: branchY
-              });
-
-              children.forEach(child => {
-                const childPos = positions.get(child.id);
-                connectorLines.push({
-                  type: 'vertical',
-                  key: `single-to-child-${child.id}`,
-                  x1: childPos.x,
-                  y1: branchY,
-                  x2: childPos.x,
-                  y2: childPos.y
-                });
-              });
-            }
-          }
-        }
+      for (let index = 0; index < orderedPositions.length - 1; index++) {
+        const left = orderedPositions[index];
+        const right = orderedPositions[index + 1];
+        const y = left.y + CARD_HEIGHT / 2;
+        connectorPaths.push({
+          key: `partners-${unitId}-${index}`,
+          type: 'partner',
+          d: `M ${left.x + CARD_WIDTH / 2} ${y} H ${right.x - CARD_WIDTH / 2}`
+        });
       }
     });
 
-    return connectorLines;
-  }, [people, positions]);
+    const edgesByParent = new Map();
+    familyEdges.forEach((edge) => {
+      if (!unitLayouts.has(edge.parentUnitId) || !positions.has(edge.childPersonId)) return;
+      if (!edgesByParent.has(edge.parentUnitId)) edgesByParent.set(edge.parentUnitId, []);
+      edgesByParent.get(edge.parentUnitId).push(edge);
+    });
+
+    edgesByParent.forEach((edges, parentUnitId) => {
+      const parentLayout = unitLayouts.get(parentUnitId);
+      const parentPersonIds = units.get(parentUnitId) || [];
+      const childAnchors = edges
+        .map((edge) => {
+          const childPosition = positions.get(edge.childPersonId);
+          if (!childPosition) return null;
+          return {
+            childPersonId: edge.childPersonId,
+            x: childPosition.x,
+            y: childPosition.y
+          };
+        })
+        .filter(Boolean)
+        .sort((a, b) => a.x - b.x);
+
+      if (!parentLayout || childAnchors.length === 0) return;
+
+      const parentPosition = parentPersonIds.length === 1
+        ? positions.get(parentPersonIds[0])
+        : null;
+      const startX = parentPersonIds.length === 1 && parentPosition
+        ? parentPosition.x
+        : parentLayout.x;
+      const parentBottomY = parentLayout.y + CARD_HEIGHT;
+      const startY = parentPersonIds.length === 1
+        ? parentBottomY
+        : parentLayout.y + CARD_HEIGHT / 2;
+      const childTopY = Math.min(...childAnchors.map(anchor => anchor.y));
+      const branchY = childTopY > parentBottomY
+        ? parentBottomY + (childTopY - parentBottomY) / 2
+        : parentBottomY + 28;
+
+      connectorPaths.push({
+        key: `parent-stem-${parentUnitId}`,
+        type: 'parent',
+        d: `M ${startX} ${startY} V ${branchY}`
+      });
+
+      if (childAnchors.length === 1) {
+        const child = childAnchors[0];
+        connectorPaths.push({
+          key: `parent-child-${parentUnitId}-${child.childPersonId}`,
+          type: 'child',
+          d: `M ${startX} ${branchY} H ${child.x} V ${child.y}`
+        });
+        return;
+      }
+
+      const leftX = Math.min(...childAnchors.map(anchor => anchor.x));
+      const rightX = Math.max(...childAnchors.map(anchor => anchor.x));
+      connectorPaths.push({
+        key: `children-branch-${parentUnitId}`,
+        type: 'child',
+        d: `M ${leftX} ${branchY} H ${rightX}`
+      });
+
+      childAnchors.forEach((child) => {
+        connectorPaths.push({
+          key: `parent-child-${parentUnitId}-${child.childPersonId}`,
+          type: 'child',
+          d: `M ${child.x} ${branchY} V ${child.y}`
+        });
+      });
+    });
+
+    return connectorPaths;
+  }, [positions, layout]);
 
   return (
     <svg className="tree-connectors" width={width} height={height}>
-      {lines.map(line => (
-        <line
-          key={line.key}
-          x1={line.x1}
-          y1={line.y1}
-          x2={line.x2}
-          y2={line.y2}
+      {paths.map(path => (
+        <path
+          key={path.key}
+          className={`tree-connector ${path.type}`}
+          d={path.d}
           strokeLinecap="round"
+          strokeLinejoin="round"
         />
       ))}
     </svg>
@@ -632,8 +919,8 @@ const FamilyTree = ({
         }}
       >
         <TreeConnectors 
-          people={people}
           positions={layout.positions}
+          layout={layout}
           width={layout.canvasWidth}
           height={layout.canvasHeight}
         />
