@@ -1,0 +1,104 @@
+{
+  "tree_id": {
+    "tree001": {
+      "tree_owner": "Авинов Иван Иванович",
+      "people": {
+        "12341324545": {
+          "id": "12341324545",
+          "name": "Анастасия",
+          "lastName": "Авинова",
+          "middleName": "Михайловна",
+          "gender": "female",
+          "fatherId": "349589283754",
+          "motherId": "9327459872349",
+          "partnerId": null,
+          "children": [],
+          "isAlive": true,
+          "birthDate": "1945-07",
+          "birthPlace": "Астана",
+          "information": "Тестовое описание"
+        },
+        "349589283754": {
+          "id": "349589283754",
+          "name": "Михаил",
+          "lastName": "Авинов",
+          "middleName": "Терентьевич",
+          "gender": "male",
+          "fatherId": null,
+          "motherId": null,
+          "partnerId": "9327459872349",
+          "children": ["12341324545"],
+          "isAlive": false,
+          "birthDate": "1921",
+          "birthPlace": "Алтайский край",
+          "information": ""
+        },
+        "9327459872349": {
+          "id": "9327459872349",
+          "name": "Елена",
+          "lastName": "Авинова",
+          "middleName": "Олеговна",
+          "gender": "female",
+          "fatherId": null,
+          "motherId": null,
+          "partnerId": "349589283754",
+          "children": ["12341324545"],
+          "isAlive": false,
+          "birthDate": "1920-05-03",
+          "birthPlace": "Казахстан",
+          "information": ""
+        }
+      }
+    },
+    "tree002": {
+      "tree_owner": "Васильков Петр Петрович",
+      "people": {
+        "111222333": {
+          "id": "111222333",
+          "name": "Олег",
+          "lastName": "Васильков",
+          "middleName": "Геннадьевич",
+          "gender": "male",
+          "fatherId": "444555666",
+          "motherId": "777888999",
+          "partnerId": null,
+          "children": [],
+          "isAlive": true,
+          "birthDate": "1945-01",
+          "birthPlace": "Москва",
+          "information": "Тестовое описание"
+        },
+        "444555666": {
+          "id": "444555666",
+          "name": "Василий",
+          "lastName": "Васильков",
+          "middleName": "Евпатьевич",
+          "gender": "male",
+          "fatherId": null,
+          "motherId": null,
+          "partnerId": "777888999",
+          "children": ["111222333"],
+          "isAlive": false,
+          "birthDate": "1910-01-01",
+          "birthPlace": "Казахстан",
+          "information": "Тестовое описание"
+        },
+        "777888999": {
+          "id": "777888999",
+          "name": "Алена",
+          "lastName": "Василькова",
+          "middleName": "Антоновна",
+          "gender": "female",
+          "fatherId": null,
+          "motherId": null,
+          "partnerId": "444555666",
+          "children": ["111222333"],
+          "isAlive": false,
+          "birthDate": "1911-01-01",
+          "birthPlace": "Казахстан",
+          "information": "Тестовое описание"
+        }
+      }
+    }
+  }
+}
