@@ -7,50 +7,378 @@ const { spawn } = require('child_process');
 const app = express();
 const PORT = 3001;
 
-// Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '20mb' }));
 
-// Path to data files
-const DATA_FILE = path.join(__dirname, '..', 'data.json');
 const DATABASE_FILE = path.join(__dirname, '..', 'database.json');
 const SMART_MATCHING_SCRIPT = path.join(__dirname, '..', 'smart_matching.py');
 const PAMYAT_NARODA_SCRIPT = path.join(__dirname, '..', 'pamyat_naroda.py');
 
-// Helper functions
-const readData = () => {
+const getOid = (value) => {
+  if (value && typeof value === 'object' && '$oid' in value) {
+    return String(value.$oid);
+  }
+  if (value === null || value === undefined) {
+    return null;
+  }
+  return String(value);
+};
+
+const toOidObject = (value) => ({ $oid: String(value) });
+
+const firstString = (value) => {
+  if (Array.isArray(value)) return value[0] || '';
+  if (typeof value === 'string') return value;
+  return '';
+};
+
+const normalizeGenderToApp = (gender) => {
+  if (!gender) return 'male';
+  const normalized = String(gender).toLowerCase();
+  if (normalized.startsWith('f')) return 'female';
+  return 'male';
+};
+
+const normalizeGenderToStorage = (gender) => (
+  String(gender).toLowerCase() === 'female' ? 'Female' : 'Male'
+);
+
+const birthDateToApp = (birthdate) => {
+  if (!Array.isArray(birthdate) || birthdate.length === 0) return '';
+  const raw = birthdate[0] || {};
+  const year = raw.year;
+  const month = raw.month;
+  const day = raw.day;
+
+  if (!year) return '';
+  if (!month) return String(year);
+  if (!day) return `${String(year)}-${String(month).padStart(2, '0')}`;
+  return `${String(year)}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+};
+
+const birthDateToStorage = (birthDate) => {
+  if (!birthDate) return [];
+  const parts = String(birthDate).split('-');
+  const year = Number(parts[0]) || null;
+  const month = parts[1] ? Number(parts[1]) : null;
+  const day = parts[2] ? Number(parts[2]) : null;
+
+  if (!year) return [];
+  return [{ day, month, year }];
+};
+
+const isAliveFromStorage = (raw) => {
+  if (raw === undefined || raw === null) return true;
+  if (typeof raw === 'boolean') return raw;
+  if (typeof raw === 'number') return raw !== 0;
+  return String(raw) !== '0';
+};
+
+const liveOrDeadFromApp = (isAlive) => (isAlive ? 1 : 0);
+
+const unique = (values) => Array.from(new Set(values.filter(Boolean)));
+
+const relationshipTemplate = (partnerId) => ({
+  with: toOidObject(partnerId),
+  type: 'official',
+  finished: null,
+  from: [{ day: null, month: null, year: null }],
+  to: [{ day: null, month: null, year: null }]
+});
+
+const deriveTreeOwner = (entries) => {
+  if (!entries.length) return 'Unknown';
+  const ownerWithPatient = entries.find(entry => entry.patientId);
+  const source = ownerWithPatient || entries[0];
+  return [firstString(source.surname), firstString(source.name), firstString(source.middleName)]
+    .filter(Boolean)
+    .join(' ')
+    .trim() || 'Unknown';
+};
+
+const parseLegacyPeopleMapToEntries = (peopleMap, treeId = 'tree-main') => {
+  const people = Object.values(peopleMap || {});
+  return people.map((person) => {
+    const relatives = [];
+    if (person.fatherId) relatives.push({ id: toOidObject(person.fatherId), relationType: 'parent' });
+    if (person.motherId) relatives.push({ id: toOidObject(person.motherId), relationType: 'parent' });
+    if (person.partnerId) relatives.push({ id: toOidObject(person.partnerId), relationType: 'spouse' });
+    (person.children || []).forEach(childId => {
+      relatives.push({ id: toOidObject(childId), relationType: 'child' });
+    });
+
+    const entry = {
+      _id: toOidObject(person.id),
+      treeId: toOidObject(treeId),
+      gender: normalizeGenderToStorage(person.gender),
+      relatives,
+      relationships: person.partnerId ? [relationshipTemplate(person.partnerId)] : [],
+      birthdate: birthDateToStorage(person.birthDate),
+      birthplace: person.birthPlace ? [person.birthPlace] : [],
+      name: person.name ? [person.name] : [],
+      surname: person.lastName ? [person.lastName] : [],
+      middleName: person.middleName ? [person.middleName] : [],
+      liveOrDead: liveOrDeadFromApp(person.isAlive !== false)
+    };
+
+    if (person.information) {
+      entry.information = person.information;
+    }
+    return entry;
+  });
+};
+
+const parseDatabaseFile = () => {
   try {
-    const data = fs.readFileSync(DATA_FILE, 'utf8');
-    return JSON.parse(data);
+    const data = fs.readFileSync(DATABASE_FILE, 'utf8');
+    const parsed = JSON.parse(data);
+
+    if (Array.isArray(parsed)) {
+      return parsed;
+    }
+
+    if (parsed?.people) {
+      const converted = parseLegacyPeopleMapToEntries(parsed.people, 'tree-main');
+      fs.writeFileSync(DATABASE_FILE, JSON.stringify(converted, null, 2), 'utf8');
+      return converted;
+    }
+
+    if (parsed?.tree_id) {
+      const entries = [];
+      Object.entries(parsed.tree_id).forEach(([treeId, treeData]) => {
+        const treeEntries = parseLegacyPeopleMapToEntries(treeData.people || {}, treeId);
+        entries.push(...treeEntries);
+      });
+      fs.writeFileSync(DATABASE_FILE, JSON.stringify(entries, null, 2), 'utf8');
+      return entries;
+    }
+
+    return [];
   } catch (error) {
-    console.error('Error reading data file:', error);
-    return { people: {} };
+    console.error('Error reading database file:', error);
+    return [];
   }
 };
 
-const writeData = (data) => {
+const groupEntriesByTree = (entries) => {
+  const grouped = {};
+  entries.forEach((entry) => {
+    const treeId = getOid(entry.treeId) || 'tree-main';
+    if (!grouped[treeId]) grouped[treeId] = [];
+    grouped[treeId].push(entry);
+  });
+  return grouped;
+};
+
+const detectCurrentTreeId = (groupedTrees) => {
+  const treeIds = Object.keys(groupedTrees);
+  if (treeIds.length === 0) return 'tree-main';
+  const withPatient = treeIds.find(treeId =>
+    (groupedTrees[treeId] || []).some(entry => entry.patientId)
+  );
+  return withPatient || treeIds[0];
+};
+
+const buildPeopleFromEntries = (entries) => {
+  const people = {};
+  const parentCandidates = {};
+  const childCandidates = {};
+  const partnerCandidates = {};
+
+  entries.forEach((entry) => {
+    const id = getOid(entry._id);
+    if (!id) return;
+
+    people[id] = {
+      id,
+      name: firstString(entry.name),
+      lastName: firstString(entry.surname),
+      middleName: firstString(entry.middleName),
+      gender: normalizeGenderToApp(entry.gender),
+      fatherId: null,
+      motherId: null,
+      partnerId: null,
+      children: [],
+      isAlive: isAliveFromStorage(entry.liveOrDead),
+      birthDate: birthDateToApp(entry.birthdate),
+      birthPlace: firstString(entry.birthplace),
+      hasMatch: Boolean(entry.hasMatch),
+      information: entry.information || ''
+    };
+  });
+
+  entries.forEach((entry) => {
+    const id = getOid(entry._id);
+    if (!id || !Array.isArray(entry.relatives)) return;
+
+    entry.relatives.forEach((relative) => {
+      const relativeId = getOid(relative?.id);
+      if (!relativeId || !people[relativeId]) return;
+      const relationType = relative.relationType;
+
+      if (relationType === 'parent') {
+        if (!parentCandidates[id]) parentCandidates[id] = [];
+        parentCandidates[id].push(relativeId);
+      } else if (relationType === 'child') {
+        if (!childCandidates[id]) childCandidates[id] = [];
+        childCandidates[id].push(relativeId);
+      } else if (relationType === 'spouse') {
+        partnerCandidates[id] = relativeId;
+      }
+    });
+  });
+
+  Object.entries(parentCandidates).forEach(([personId, parentIds]) => {
+    const person = people[personId];
+    const uniqueParents = unique(parentIds);
+
+    uniqueParents.forEach((parentId) => {
+      const parent = people[parentId];
+      if (!parent) return;
+
+      if (parent.gender === 'male' && !person.fatherId) {
+        person.fatherId = parentId;
+        return;
+      }
+      if (parent.gender === 'female' && !person.motherId) {
+        person.motherId = parentId;
+        return;
+      }
+      if (!person.fatherId) {
+        person.fatherId = parentId;
+        return;
+      }
+      if (!person.motherId) {
+        person.motherId = parentId;
+      }
+    });
+  });
+
+  Object.entries(childCandidates).forEach(([personId, childIds]) => {
+    people[personId].children = unique(childIds);
+  });
+
+  Object.entries(partnerCandidates).forEach(([personId, partnerId]) => {
+    if (!people[personId] || !people[partnerId]) return;
+    people[personId].partnerId = partnerId;
+  });
+
+  Object.values(people).forEach((person) => {
+    if (person.fatherId && people[person.fatherId]) {
+      people[person.fatherId].children = unique([...(people[person.fatherId].children || []), person.id]);
+    }
+    if (person.motherId && people[person.motherId]) {
+      people[person.motherId].children = unique([...(people[person.motherId].children || []), person.id]);
+    }
+    if (person.partnerId && people[person.partnerId] && !people[person.partnerId].partnerId) {
+      people[person.partnerId].partnerId = person.id;
+    }
+  });
+
+  return people;
+};
+
+const buildSmartMatchingDatabase = (groupedTrees, currentTreeId) => {
+  const treeData = {};
+  Object.entries(groupedTrees).forEach(([treeId, entries]) => {
+    if (treeId === currentTreeId) return;
+    treeData[treeId] = {
+      tree_owner: deriveTreeOwner(entries),
+      people: buildPeopleFromEntries(entries)
+    };
+  });
+  return { tree_id: treeData };
+};
+
+const readDatabaseState = () => {
+  const entries = parseDatabaseFile();
+  const groupedTrees = groupEntriesByTree(entries);
+  const currentTreeId = detectCurrentTreeId(groupedTrees);
+  const currentEntries = groupedTrees[currentTreeId] || [];
+
+  return {
+    entries,
+    groupedTrees,
+    currentTreeId,
+    currentEntries,
+    people: buildPeopleFromEntries(currentEntries),
+    smartMatchingDatabase: buildSmartMatchingDatabase(groupedTrees, currentTreeId)
+  };
+};
+
+const buildRelativesFromPerson = (person) => {
+  const relatives = [];
+  if (person.fatherId) relatives.push({ id: toOidObject(person.fatherId), relationType: 'parent' });
+  if (person.motherId) relatives.push({ id: toOidObject(person.motherId), relationType: 'parent' });
+  if (person.partnerId) relatives.push({ id: toOidObject(person.partnerId), relationType: 'spouse' });
+  (person.children || []).forEach((childId) => {
+    relatives.push({ id: toOidObject(childId), relationType: 'child' });
+  });
+
+  const seen = new Set();
+  return relatives.filter((relative) => {
+    const key = `${getOid(relative.id)}-${relative.relationType}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+};
+
+const convertPeopleToEntries = (people, treeId, existingEntries = []) => {
+  const existingById = {};
+  existingEntries.forEach((entry) => {
+    const id = getOid(entry._id);
+    if (id) existingById[id] = entry;
+  });
+
+  return Object.values(people).map((person) => {
+    const base = existingById[person.id] ? { ...existingById[person.id] } : {};
+    const entry = {
+      ...base,
+      _id: toOidObject(person.id),
+      treeId: toOidObject(treeId),
+      gender: normalizeGenderToStorage(person.gender),
+      relatives: buildRelativesFromPerson(person),
+      relationships: person.partnerId ? [relationshipTemplate(person.partnerId)] : [],
+      birthdate: birthDateToStorage(person.birthDate),
+      birthplace: person.birthPlace ? [person.birthPlace] : [],
+      name: person.name ? [person.name] : [],
+      surname: person.lastName ? [person.lastName] : [],
+      middleName: person.middleName ? [person.middleName] : [],
+      liveOrDead: liveOrDeadFromApp(person.isAlive !== false),
+      hasMatch: Boolean(person.hasMatch)
+    };
+
+    if (person.information) {
+      entry.information = person.information;
+    } else {
+      delete entry.information;
+    }
+
+    return entry;
+  });
+};
+
+const writeDatabaseEntries = (entries) => {
   try {
-    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf8');
+    fs.writeFileSync(DATABASE_FILE, JSON.stringify(entries, null, 2), 'utf8');
     return true;
   } catch (error) {
-    console.error('Error writing data file:', error);
+    console.error('Error writing database file:', error);
     return false;
   }
 };
 
-const generateId = () => {
-  return Date.now().toString();
+const writeCurrentPeople = (people) => {
+  const state = readDatabaseState();
+  const otherEntries = state.entries.filter(
+    entry => (getOid(entry.treeId) || 'tree-main') !== state.currentTreeId
+  );
+  const currentEntries = convertPeopleToEntries(people, state.currentTreeId, state.currentEntries);
+  return writeDatabaseEntries([...otherEntries, ...currentEntries]);
 };
 
-const readDatabase = () => {
-  try {
-    const data = fs.readFileSync(DATABASE_FILE, 'utf8');
-    return JSON.parse(data);
-  } catch (error) {
-    console.error('Error reading database file:', error);
-    return { tree_id: {} };
-  }
-};
+const generateId = () => `${Date.now()}${Math.random().toString(36).slice(2, 6)}`;
 
 // Run smart-matching Python script
 const runSmartMatching = (dataJson, databaseJson) => {
@@ -144,14 +472,14 @@ const runPamyatNaroda = (dataJson) => {
 
 // Get all people
 app.get('/api/people', (req, res) => {
-  const data = readData();
-  res.json(data.people);
+  const state = readDatabaseState();
+  res.json(state.people);
 });
 
 // Get single person by ID
 app.get('/api/people/:id', (req, res) => {
-  const data = readData();
-  const person = data.people[req.params.id];
+  const state = readDatabaseState();
+  const person = state.people[req.params.id];
   
   if (!person) {
     return res.status(404).json({ error: 'Person not found' });
@@ -162,7 +490,8 @@ app.get('/api/people/:id', (req, res) => {
 
 // Create new person
 app.post('/api/people', (req, res) => {
-  const data = readData();
+  const state = readDatabaseState();
+  const people = { ...state.people };
   const newPerson = {
     id: req.body.id || generateId(),
     name: req.body.name || '',
@@ -178,10 +507,10 @@ app.post('/api/people', (req, res) => {
     birthPlace: req.body.birthPlace || '',
     hasMatch: req.body.hasMatch || false
   };
-  
-  data.people[newPerson.id] = newPerson;
-  
-  if (writeData(data)) {
+
+  people[newPerson.id] = newPerson;
+
+  if (writeCurrentPeople(people)) {
     res.status(201).json(newPerson);
   } else {
     res.status(500).json({ error: 'Failed to save data' });
@@ -190,8 +519,9 @@ app.post('/api/people', (req, res) => {
 
 // Update person
 app.put('/api/people/:id', (req, res) => {
-  const data = readData();
-  const person = data.people[req.params.id];
+  const state = readDatabaseState();
+  const people = { ...state.people };
+  const person = people[req.params.id];
   
   if (!person) {
     return res.status(404).json({ error: 'Person not found' });
@@ -204,9 +534,9 @@ app.put('/api/people/:id', (req, res) => {
     id: req.params.id // Ensure ID doesn't change
   };
   
-  data.people[req.params.id] = updatedPerson;
-  
-  if (writeData(data)) {
+  people[req.params.id] = updatedPerson;
+
+  if (writeCurrentPeople(people)) {
     res.json(updatedPerson);
   } else {
     res.status(500).json({ error: 'Failed to save data' });
@@ -215,16 +545,17 @@ app.put('/api/people/:id', (req, res) => {
 
 // Delete person
 app.delete('/api/people/:id', (req, res) => {
-  const data = readData();
+  const state = readDatabaseState();
+  const people = { ...state.people };
   const personId = req.params.id;
-  const person = data.people[personId];
+  const person = people[personId];
   
   if (!person) {
     return res.status(404).json({ error: 'Person not found' });
   }
   
   // Remove references to this person from other people
-  Object.values(data.people).forEach((p) => {
+  Object.values(people).forEach((p) => {
     // Remove from partner
     if (p.partnerId === personId) {
       p.partnerId = null;
@@ -245,9 +576,9 @@ app.delete('/api/people/:id', (req, res) => {
   });
   
   // Delete the person
-  delete data.people[personId];
-  
-  if (writeData(data)) {
+  delete people[personId];
+
+  if (writeCurrentPeople(people)) {
     res.json({ success: true, message: 'Person deleted successfully' });
   } else {
     res.status(500).json({ error: 'Failed to save data' });
@@ -256,9 +587,10 @@ app.delete('/api/people/:id', (req, res) => {
 
 // Add relative to a person
 app.post('/api/people/:id/relative', (req, res) => {
-  const data = readData();
+  const state = readDatabaseState();
+  const people = { ...state.people };
   const personId = req.params.id;
-  const person = data.people[personId];
+  const person = people[personId];
   const { relationType, relativeData } = req.body;
   
   if (!person) {
@@ -297,9 +629,9 @@ app.post('/api/people/:id/relative', (req, res) => {
       }
       person.fatherId = newRelativeId;
       // If mother exists, link father as partner
-      if (person.motherId && data.people[person.motherId]) {
+      if (person.motherId && people[person.motherId]) {
         newRelative.partnerId = person.motherId;
-        data.people[person.motherId].partnerId = newRelativeId;
+        people[person.motherId].partnerId = newRelativeId;
       }
       break;
       
@@ -310,9 +642,9 @@ app.post('/api/people/:id/relative', (req, res) => {
       }
       person.motherId = newRelativeId;
       // If father exists, link mother as partner
-      if (person.fatherId && data.people[person.fatherId]) {
+      if (person.fatherId && people[person.fatherId]) {
         newRelative.partnerId = person.fatherId;
-        data.people[person.fatherId].partnerId = newRelativeId;
+        people[person.fatherId].partnerId = newRelativeId;
       }
       break;
       
@@ -322,16 +654,16 @@ app.post('/api/people/:id/relative', (req, res) => {
         newRelative.fatherId = personId;
         if (person.partnerId) {
           newRelative.motherId = person.partnerId;
-          if (data.people[person.partnerId]) {
-            data.people[person.partnerId].children.push(newRelativeId);
+          if (people[person.partnerId]) {
+            people[person.partnerId].children.push(newRelativeId);
           }
         }
       } else {
         newRelative.motherId = personId;
         if (person.partnerId) {
           newRelative.fatherId = person.partnerId;
-          if (data.people[person.partnerId]) {
-            data.people[person.partnerId].children.push(newRelativeId);
+          if (people[person.partnerId]) {
+            people[person.partnerId].children.push(newRelativeId);
           }
         }
       }
@@ -344,16 +676,16 @@ app.post('/api/people/:id/relative', (req, res) => {
         newRelative.fatherId = personId;
         if (person.partnerId) {
           newRelative.motherId = person.partnerId;
-          if (data.people[person.partnerId]) {
-            data.people[person.partnerId].children.push(newRelativeId);
+          if (people[person.partnerId]) {
+            people[person.partnerId].children.push(newRelativeId);
           }
         }
       } else {
         newRelative.motherId = personId;
         if (person.partnerId) {
           newRelative.fatherId = person.partnerId;
-          if (data.people[person.partnerId]) {
-            data.people[person.partnerId].children.push(newRelativeId);
+          if (people[person.partnerId]) {
+            people[person.partnerId].children.push(newRelativeId);
           }
         }
       }
@@ -364,10 +696,10 @@ app.post('/api/people/:id/relative', (req, res) => {
       return res.status(400).json({ error: 'Invalid relation type' });
   }
   
-  data.people[newRelativeId] = newRelative;
-  data.people[personId] = person;
-  
-  if (writeData(data)) {
+  people[newRelativeId] = newRelative;
+  people[personId] = person;
+
+  if (writeCurrentPeople(people)) {
     res.status(201).json({ person, newRelative });
   } else {
     res.status(500).json({ error: 'Failed to save data' });
@@ -376,8 +708,9 @@ app.post('/api/people/:id/relative', (req, res) => {
 
 // Get person with full family info (for card display)
 app.get('/api/people/:id/family', (req, res) => {
-  const data = readData();
-  const person = data.people[req.params.id];
+  const state = readDatabaseState();
+  const people = state.people;
+  const person = people[req.params.id];
   
   if (!person) {
     return res.status(404).json({ error: 'Person not found' });
@@ -389,7 +722,7 @@ app.get('/api/people/:id/family', (req, res) => {
   };
   
   const getPersonInfo = (id) => {
-    const p = data.people[id];
+    const p = people[id];
     if (!p) return null;
     return {
       id: p.id,
@@ -400,7 +733,7 @@ app.get('/api/people/:id/family', (req, res) => {
   
   // Get siblings (people with same parents)
   const siblings = [];
-  Object.values(data.people).forEach(p => {
+  Object.values(people).forEach(p => {
     if (p.id !== person.id) {
       const samefather = person.fatherId && p.fatherId === person.fatherId;
       const sameMother = person.motherId && p.motherId === person.motherId;
@@ -426,8 +759,9 @@ app.get('/api/people/:id/family', (req, res) => {
 // Combined matching endpoint (smart-matching + pamyat-naroda)
 app.post('/api/smart-matching', async (req, res) => {
   try {
-    const data = readData();
-    const database = readDatabase();
+    const state = readDatabaseState();
+    const data = { people: state.people };
+    const database = state.smartMatchingDatabase;
     
     // Run both searches in parallel
     const [smartResult, archiveResult] = await Promise.all([
@@ -454,8 +788,8 @@ app.post('/api/smart-matching', async (req, res) => {
     Object.keys(data.people).forEach(id => {
       data.people[id].hasMatch = allMatchedIds.includes(id);
     });
-    
-    writeData(data);
+
+    writeCurrentPeople(data.people);
     
     res.json({
       treeMatches: validTreeMatches,
@@ -471,8 +805,9 @@ app.post('/api/smart-matching', async (req, res) => {
 // Get matches for a specific person (both tree and archive)
 app.get('/api/people/:id/matches', async (req, res) => {
   try {
-    const data = readData();
-    const database = readDatabase();
+    const state = readDatabaseState();
+    const data = { people: state.people };
+    const database = state.smartMatchingDatabase;
     const personId = req.params.id;
     
     if (!data.people[personId]) {
@@ -509,9 +844,10 @@ app.get('/api/people/:id/matches', async (req, res) => {
 
 // Confirm match and add fragment to tree
 app.post('/api/people/:id/confirm-match', (req, res) => {
-  const data = readData();
+  const state = readDatabaseState();
+  const people = { ...state.people };
   const personId = req.params.id;
-  const person = data.people[personId];
+  const person = people[personId];
   const { match } = req.body; // Contains the full match object including people fragment
   
   if (!person) {
@@ -554,7 +890,7 @@ app.post('/api/people/:id/confirm-match', (req, res) => {
       }
       // Mark match as confirmed
       person.hasMatch = false;
-      data.people[personId] = person;
+      people[personId] = person;
       return;
     }
     
@@ -578,11 +914,11 @@ app.post('/api/people/:id/confirm-match', (req, res) => {
       hasMatch: false
     };
     
-    data.people[newId] = newPerson;
+    people[newId] = newPerson;
   });
-  
-  if (writeData(data)) {
-    res.json({ success: true, message: 'Match confirmed and relatives added', people: data.people });
+
+  if (writeCurrentPeople(people)) {
+    res.json({ success: true, message: 'Match confirmed and relatives added', people });
   } else {
     res.status(500).json({ error: 'Failed to save data' });
   }
@@ -590,9 +926,10 @@ app.post('/api/people/:id/confirm-match', (req, res) => {
 
 // Confirm archive match (add information to person's card)
 app.post('/api/people/:id/confirm-archive-match', (req, res) => {
-  const data = readData();
+  const state = readDatabaseState();
+  const people = { ...state.people };
   const personId = req.params.id;
-  const person = data.people[personId];
+  const person = people[personId];
   const { match } = req.body; // Contains the archive match with person data
   
   if (!person) {
@@ -617,13 +954,44 @@ app.post('/api/people/:id/confirm-archive-match', (req, res) => {
   // Reset hasMatch flag (check if there are still other matches)
   person.hasMatch = false;
   
-  data.people[personId] = person;
-  
-  if (writeData(data)) {
+  people[personId] = person;
+
+  if (writeCurrentPeople(people)) {
     res.json({ success: true, message: 'Archive information added', person: person });
   } else {
     res.status(500).json({ error: 'Failed to save data' });
   }
+});
+
+app.post('/api/database/upload', (req, res) => {
+  const payload = req.body;
+  let entries = [];
+
+  if (Array.isArray(payload)) {
+    entries = payload;
+  } else if (payload?.data && Array.isArray(payload.data)) {
+    entries = payload.data;
+  } else {
+    return res.status(400).json({ error: 'Payload must be a JSON array in example.json format' });
+  }
+
+  if (!writeDatabaseEntries(entries)) {
+    return res.status(500).json({ error: 'Failed to save uploaded database' });
+  }
+
+  const state = readDatabaseState();
+  res.json({
+    success: true,
+    people: state.people,
+    records: entries.length
+  });
+});
+
+app.get('/api/database/export', (req, res) => {
+  const entries = parseDatabaseFile();
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Content-Disposition', 'attachment; filename="database.json"');
+  res.send(JSON.stringify(entries, null, 2));
 });
 
 app.listen(PORT, () => {

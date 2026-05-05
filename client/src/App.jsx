@@ -28,6 +28,7 @@ import {
   Minus,
   Search,
   Download,
+  Upload,
   Navigation,
   MoreHorizontal,
   Lock,
@@ -1979,6 +1980,7 @@ function App() {
   // Use refs for matches to ensure synchronous access
   const allTreeMatchesRef = useRef([]);
   const allArchiveMatchesRef = useRef([]);
+  const uploadInputRef = useRef(null);
   const [showSmartMatchingTutorial, setShowSmartMatchingTutorial] = useState(false);
   const [tutorialStep, setTutorialStep] = useState(1);
 
@@ -1998,6 +2000,76 @@ function App() {
   const handleCenterTree = () => {
     setPan({ x: 0, y: 0 });
     setZoom(1);
+  };
+
+  const handleUploadClick = () => {
+    uploadInputRef.current?.click();
+  };
+
+  const handleFileUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const raw = await file.text();
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) {
+        throw new Error('Некорректный формат');
+      }
+
+      const response = await fetch(`${API_URL}/database/upload`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data: parsed })
+      });
+
+      if (!response.ok) {
+        throw new Error('Ошибка загрузки на сервер');
+      }
+
+      const data = await response.json();
+      const nextPeople = data.people || {};
+
+      setPeople(nextPeople);
+      setSelectedPerson(null);
+      setShowMatchModal(false);
+      setMatchPerson(null);
+      setTreeMatches([]);
+      setArchiveMatches([]);
+      allTreeMatchesRef.current = [];
+      allArchiveMatchesRef.current = [];
+      showToast('Новый JSON загружен, прежние данные заменены');
+
+      if (Object.keys(nextPeople).length > 0) {
+        await runSmartMatching();
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      showToast('Ошибка загрузки JSON', 'error');
+    } finally {
+      event.target.value = '';
+    }
+  };
+
+  const handleDownload = async () => {
+    try {
+      const response = await fetch(`${API_URL}/database/export`);
+      if (!response.ok) {
+        throw new Error('Ошибка выгрузки');
+      }
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'database.json';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Download error:', error);
+      showToast('Ошибка скачивания JSON', 'error');
+    }
   };
 
   const handleAddBalance = (amount) => {
@@ -2438,7 +2510,10 @@ function App() {
           <button className="toolbar-btn" title="Где я" onClick={handleCenterTree}>
             <Navigation size={18} />
           </button>
-          <button className="toolbar-btn" title="Скачать">
+          <button className="toolbar-btn" title="Загрузить" onClick={handleUploadClick}>
+            <Upload size={18} />
+          </button>
+          <button className="toolbar-btn" title="Скачать" onClick={handleDownload}>
             <Download size={18} />
           </button>
           <button className="toolbar-btn" title="Другое">
@@ -2507,6 +2582,14 @@ function App() {
         onSpendBalance={handleSpendBalance}
         grantedAccessIds={grantedAccessIds}
         onGrantAccess={handleGrantAccess}
+      />
+
+      <input
+        ref={uploadInputRef}
+        type="file"
+        accept=".json,application/json"
+        style={{ display: 'none' }}
+        onChange={handleFileUpload}
       />
 
       {/* SmartMatching Found Notification */}

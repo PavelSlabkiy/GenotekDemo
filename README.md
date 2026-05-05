@@ -10,7 +10,7 @@
 - ✏️ Редактирование данных (ФИО, дата и место рождения, описание)
 - ➕ Добавление родственников (партнёр, отец, мать, сын, дочь)
 - 🗑️ Удаление записей с автоматическим обновлением связей
-- 💾 Автоматическое сохранение в data.json
+- 💾 Единое хранение в database.json (формат example.json)
 
 ### 🔄 SmartMatching — Умный поиск родственников
 - Поиск совпадений с деревьями других пользователей
@@ -57,8 +57,7 @@ ett/
 │   └── package.json
 ├── smart_matching.py          # Модуль SmartMatching (Python)
 ├── pamyat_naroda.py           # Модуль Память Народа (Python)
-├── data.json                  # Данные семейного древа пользователя
-├── database.json              # База деревьев других пользователей
+├── database.json              # Единое хранилище в формате example.json
 └── README.md
 ```
 
@@ -150,19 +149,22 @@ npm run dev
 }
 ```
 
-### База данных других деревьев (database.json)
+### Единое хранилище (database.json)
 
 ```json
-{
-  "tree_id": {
-    "tree001": {
-      "tree_owner": "Иванов Иван Иванович",
-      "people": {
-        "person_id": { ... }
-      }
-    }
+[
+  {
+    "_id": { "$oid": "..." },
+    "treeId": { "$oid": "..." },
+    "gender": "Male|Female",
+    "name": ["..."],
+    "surname": ["..."],
+    "middleName": ["..."],
+    "birthdate": [{ "day": 1, "month": 1, "year": 1990 }],
+    "birthplace": ["..."],
+    "relatives": [{ "id": { "$oid": "..." }, "relationType": "parent|child|spouse" }]
   }
-}
+]
 ```
 
 ### Результат SmartMatching
