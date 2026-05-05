@@ -740,7 +740,8 @@ def maybe_run_app_search(payload: dict[str, Any]) -> dict[str, Any] | None:
     timeout = float(payload.get("timeout", 25))
     verify_tls = not bool(payload.get("insecureTls", False))
 
-    queries = app_queries_from_people(people, person_ids)
+    search_criteria = normalize_search_criteria(payload.get("searchCriteria"))
+    queries = app_queries_from_people(people, person_ids, search_criteria)
     if not queries:
         return {
             "source": APP_SOURCE_KEY,
@@ -837,22 +838,43 @@ def maybe_run_app_search(payload: dict[str, Any]) -> dict[str, Any] | None:
     }
 
 
-def app_queries_from_people(people: dict[str, Any], person_ids: list[str]) -> list[dict[str, Any]]:
+def normalize_search_criteria(raw: Any) -> dict[str, bool]:
+    criteria = raw if isinstance(raw, dict) else {}
+    return {
+        "fullName": criteria.get("fullName") is not False,
+        "birthDate": criteria.get("birthDate") is not False,
+        "birthPlace": criteria.get("birthPlace") is not False,
+    }
+
+
+def app_queries_from_people(
+    people: dict[str, Any],
+    person_ids: list[str],
+    search_criteria: dict[str, bool],
+) -> list[dict[str, Any]]:
     queries: list[dict[str, Any]] = []
     for person_id in person_ids:
         person = people.get(person_id)
         if not isinstance(person, dict):
             continue
-        last_name = compact_text(person.get("lastName"))
-        first_name = compact_text(person.get("name"))
-        middle_name = compact_text(person.get("middleName"))
-        if not last_name or not first_name:
+        full_name_enabled = bool(search_criteria.get("fullName"))
+        birth_date_enabled = bool(search_criteria.get("birthDate"))
+        birth_place_enabled = bool(search_criteria.get("birthPlace"))
+
+        last_name = compact_text(person.get("lastName")) if full_name_enabled else ""
+        first_name = compact_text(person.get("name")) if full_name_enabled else ""
+        middle_name = compact_text(person.get("middleName")) if full_name_enabled else ""
+        if full_name_enabled and (not last_name or not first_name):
             continue
 
-        birth_year = birth_year_from_date(person.get("birthDate"))
+        birth_year = birth_year_from_date(person.get("birthDate")) if birth_date_enabled else None
         birth_date_from = str(birth_year) if birth_year else ""
-        birth_place = compact_text(person.get("birthPlace"))
+        birth_place = compact_text(person.get("birthPlace")) if birth_place_enabled else ""
+        if not any((last_name, first_name, middle_name, birth_date_from, birth_place)):
+            continue
         display_name = " ".join(part for part in [last_name, first_name, middle_name] if part).strip()
+        if not display_name:
+            display_name = compact_text(person.get("id")) or person_id
         query_key = build_app_query_key(person_id, last_name, first_name, middle_name, birth_date_from, birth_place)
         queries.append(
             {
@@ -864,6 +886,7 @@ def app_queries_from_people(people: dict[str, Any], person_ids: list[str]) -> li
                 "middle_name": middle_name,
                 "birth_date_from": birth_date_from,
                 "birth_place": birth_place,
+                "search_criteria": search_criteria,
             }
         )
     return queries
@@ -933,42 +956,49 @@ def response_data_rows(response: Any) -> list[dict[str, Any]]:
 
 
 def app_similarity_score(query: dict[str, Any], source: dict[str, Any]) -> float:
-    name_scores = []
-    for query_key, source_key in (
-        ("last_name", "last_name"),
-        ("first_name", "first_name"),
-        ("middle_name", "middle_name"),
-    ):
-        query_part = normalize_lookup(compact_text(query.get(query_key)))
-        source_part = normalize_lookup(compact_text(source.get(source_key)))
-        if not query_part:
-            continue
-        if not source_part:
-            name_scores.append(0.0)
-            continue
-        name_scores.append(SequenceMatcher(None, query_part, source_part).ratio())
+    search_criteria = normalize_search_criteria(query.get("search_criteria"))
+    weighted_scores: list[tuple[float, float]] = []
 
-    name_score = (sum(name_scores) / len(name_scores) * 100.0) if name_scores else 0.0
+    if search_criteria.get("fullName"):
+        name_scores = []
+        for query_key, source_key in (
+            ("last_name", "last_name"),
+            ("first_name", "first_name"),
+            ("middle_name", "middle_name"),
+        ):
+            query_part = normalize_lookup(compact_text(query.get(query_key)))
+            source_part = normalize_lookup(compact_text(source.get(source_key)))
+            if not query_part:
+                continue
+            if not source_part:
+                name_scores.append(0.0)
+                continue
+            name_scores.append(SequenceMatcher(None, query_part, source_part).ratio())
+        name_score = (sum(name_scores) / len(name_scores) * 100.0) if name_scores else 0.0
+        weighted_scores.append((name_score, 0.7))
 
-    query_year = birth_year_from_date(query.get("birth_date_from"))
-    source_year = birth_year_from_date(source.get("date_birth"))
-    if query_year and source_year:
-        birth_score = 100.0 if query_year == source_year else max(0.0, 100.0 - min(abs(query_year - source_year), 25) * 4.0)
-    elif query_year:
-        birth_score = 0.0
-    else:
-        birth_score = 60.0
+    if search_criteria.get("birthDate"):
+        query_year = birth_year_from_date(query.get("birth_date_from"))
+        source_year = birth_year_from_date(source.get("date_birth"))
+        if query_year and source_year:
+            birth_score = 100.0 if query_year == source_year else max(0.0, 100.0 - min(abs(query_year - source_year), 25) * 4.0)
+        else:
+            birth_score = 0.0
+        weighted_scores.append((birth_score, 0.2))
 
-    query_place = normalize_lookup(compact_text(query.get("birth_place")))
-    source_place = normalize_lookup(compact_text(source.get("place_birth")))
-    if query_place and source_place:
-        place_score = SequenceMatcher(None, query_place, source_place).ratio() * 100.0
-    elif query_place:
-        place_score = 0.0
-    else:
-        place_score = 55.0
+    if search_criteria.get("birthPlace"):
+        query_place = normalize_lookup(compact_text(query.get("birth_place")))
+        source_place = normalize_lookup(compact_text(source.get("place_birth")))
+        if query_place and source_place:
+            place_score = SequenceMatcher(None, query_place, source_place).ratio() * 100.0
+        else:
+            place_score = 0.0
+        weighted_scores.append((place_score, 0.1))
 
-    return name_score * 0.7 + birth_score * 0.2 + place_score * 0.1
+    if not weighted_scores:
+        return 0.0
+    total_weight = sum(weight for _, weight in weighted_scores)
+    return sum(score * weight for score, weight in weighted_scores) / total_weight
 
 
 def app_result_title(source: dict[str, Any]) -> str:

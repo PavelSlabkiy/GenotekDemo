@@ -81,6 +81,25 @@ const unique = (values) => Array.from(new Set(values.filter(Boolean)));
 const PAMYAT_SOURCE_KEY = 'pamyatNaroda';
 const OPENLIST_SOURCE_KEY = 'openList';
 const GWAR_SOURCE_KEY = 'gwar';
+const DEFAULT_SMART_SEARCH_CRITERIA = {
+  fullName: true,
+  birthDate: true,
+  birthPlace: true
+};
+
+const normalizeSearchCriteria = (rawCriteria = {}) => ({
+  fullName: rawCriteria?.fullName !== false,
+  birthDate: rawCriteria?.birthDate !== false,
+  birthPlace: rawCriteria?.birthPlace !== false
+});
+
+const areSearchCriteriaEqual = (left, right) => {
+  const normalizedLeft = normalizeSearchCriteria(left);
+  const normalizedRight = normalizeSearchCriteria(right);
+  return normalizedLeft.fullName === normalizedRight.fullName
+    && normalizedLeft.birthDate === normalizedRight.birthDate
+    && normalizedLeft.birthPlace === normalizedRight.birthPlace;
+};
 
 const relationshipTemplate = (partnerId) => ({
   with: toOidObject(partnerId),
@@ -403,7 +422,7 @@ const buildEmptySourceResult = ({ sourceKey, sourceLabel, personIds }) => ({
   errors: []
 });
 
-const runSourceParser = ({ scriptPath, sourceKey, sourceLabel, people, personIds }) => {
+const runSourceParser = ({ scriptPath, sourceKey, sourceLabel, people, personIds, searchCriteria }) => {
   return new Promise((resolve, reject) => {
     const python = spawn('python3', [scriptPath], {
       timeout: 120000
@@ -458,6 +477,7 @@ const runSourceParser = ({ scriptPath, sourceKey, sourceLabel, people, personIds
     const input = JSON.stringify({
       people,
       personIds,
+      searchCriteria: normalizeSearchCriteria(searchCriteria),
       maxRecordsPerPerson: 5,
       scoreThreshold: 70
     });
@@ -467,33 +487,36 @@ const runSourceParser = ({ scriptPath, sourceKey, sourceLabel, people, personIds
 };
 
 // Run pamyat parser in app-search mode
-const runPamyatParser = ({ people, personIds }) => {
+const runPamyatParser = ({ people, personIds, searchCriteria }) => {
   return runSourceParser({
     scriptPath: PAMYAT_PARSER_SCRIPT,
     sourceKey: PAMYAT_SOURCE_KEY,
     sourceLabel: 'Память народа',
     people,
-    personIds
+    personIds,
+    searchCriteria
   });
 };
 
-const runOpenlistParser = ({ people, personIds }) => {
+const runOpenlistParser = ({ people, personIds, searchCriteria }) => {
   return runSourceParser({
     scriptPath: OPENLIST_PARSER_SCRIPT,
     sourceKey: OPENLIST_SOURCE_KEY,
     sourceLabel: 'Открытый список',
     people,
-    personIds
+    personIds,
+    searchCriteria
   });
 };
 
-const runGwarParser = ({ people, personIds }) => {
+const runGwarParser = ({ people, personIds, searchCriteria }) => {
   return runSourceParser({
     scriptPath: GWAR_PARSER_SCRIPT,
     sourceKey: GWAR_SOURCE_KEY,
     sourceLabel: 'Герои великой войны',
     people,
-    personIds
+    personIds,
+    searchCriteria
   });
 };
 
@@ -785,11 +808,12 @@ app.get('/api/people/:id/family', (req, res) => {
   res.json(familyInfo);
 });
 
-const sourceCacheEntry = ({ sourceKey, sourceLabel, matches, errors = [] }) => ({
+const sourceCacheEntry = ({ sourceKey, sourceLabel, matches, errors = [], searchCriteria }) => ({
   searchedAt: new Date().toISOString(),
   status: matches.length > 0 ? 'matches_found' : 'no_matches',
   source: sourceKey,
   sourceLabel,
+  searchCriteria: normalizeSearchCriteria(searchCriteria),
   matches,
   errors
 });
@@ -830,6 +854,7 @@ app.post('/api/smart-matching', async (req, res) => {
     const data = { people: state.people };
     const personIds = normalizePersonIds(req.body?.personIds, data.people);
     const sources = req.body?.sources || {};
+    const searchCriteria = normalizeSearchCriteria(req.body?.searchCriteria || DEFAULT_SMART_SEARCH_CRITERIA);
 
     const enabledSources = SUPPORTED_SMART_SOURCES.filter(
       source => sources[source.key] !== false
@@ -842,7 +867,10 @@ app.post('/api/smart-matching', async (req, res) => {
         const person = data.people[personId];
         if (!person) return;
         const sourceCache = person.sourceSearchCache?.[source.key];
-        if (sourceCache && Array.isArray(sourceCache.matches)) {
+        const hasMatchingCriteria = sourceCache
+          && typeof sourceCache === 'object'
+          && areSearchCriteriaEqual(sourceCache.searchCriteria, searchCriteria);
+        if (hasMatchingCriteria && Array.isArray(sourceCache.matches)) {
           cachedMatches.push(...sourceCache.matches);
         } else {
           peopleToSearch.push(personId);
@@ -857,7 +885,8 @@ app.post('/api/smart-matching', async (req, res) => {
       if (peopleToSearch.length > 0) {
         parserResult = await source.parser({
           people: data.people,
-          personIds: peopleToSearch
+          personIds: peopleToSearch,
+          searchCriteria
         });
       }
 
@@ -880,7 +909,10 @@ app.post('/api/smart-matching', async (req, res) => {
         const person = data.people[personId];
         if (!person) return;
         const existingCache = person.sourceSearchCache?.[source.key];
-        if (existingCache && Array.isArray(existingCache.matches)) {
+        const hasMatchingCriteria = existingCache
+          && typeof existingCache === 'object'
+          && areSearchCriteriaEqual(existingCache.searchCriteria, searchCriteria);
+        if (hasMatchingCriteria && Array.isArray(existingCache.matches)) {
           person.hasMatch = calculatePersonHasMatch(person);
           return;
         }
@@ -891,7 +923,8 @@ app.post('/api/smart-matching', async (req, res) => {
           sourceKey: source.key,
           sourceLabel: source.label,
           matches: personMatches,
-          errors: personErrors
+          errors: personErrors,
+          searchCriteria
         });
         person.hasMatch = calculatePersonHasMatch(person);
       });
@@ -914,7 +947,8 @@ app.post('/api/smart-matching', async (req, res) => {
       archiveMatches: allSourceMatches,
       matchedDataIds,
       processedPersonIds: personIds,
-      sources: enabledSources.map(source => ({ key: source.key, label: source.label }))
+      sources: enabledSources.map(source => ({ key: source.key, label: source.label })),
+      searchCriteria
     });
   } catch (error) {
     console.error('Source search error:', error);

@@ -3002,7 +3002,7 @@
     "relatives": [
       {
         "id": {
-          "$oid": "1778023104065tbbp"
+          "$oid": "17780241463027ba9"
         },
         "relationType": "parent"
       },
@@ -4651,7 +4651,7 @@
   },
   {
     "_id": {
-      "$oid": "1778023104065tbbp"
+      "$oid": "17780241463027ba9"
     },
     "treeId": {
       "$oid": "68f36f8fda84114f6acf1ce4"
@@ -4666,16 +4666,8 @@
       }
     ],
     "relationships": [],
-    "birthdate": [
-      {
-        "day": 1,
-        "month": 1,
-        "year": 1895
-      }
-    ],
-    "birthplace": [
-      "Тамбовская губерния"
-    ],
+    "birthdate": [],
+    "birthplace": [],
     "name": [
       "Терентий"
     ],
@@ -4686,14 +4678,143 @@
       "Алексеевич"
     ],
     "liveOrDead": 1,
-    "hasMatch": false,
+    "hasMatch": true,
     "sourceSearchCache": {
-      "gwar": {
-        "searchedAt": "2026-05-05T23:18:34.307Z",
+      "pamyatNaroda": {
+        "searchedAt": "2026-05-05T23:36:06.298Z",
         "status": "no_matches",
+        "source": "pamyatNaroda",
+        "sourceLabel": "Память народа",
+        "searchCriteria": {
+          "fullName": true,
+          "birthDate": true,
+          "birthPlace": true
+        },
+        "matches": [],
+        "errors": []
+      },
+      "openList": {
+        "searchedAt": "2026-05-05T23:36:07.921Z",
+        "status": "matches_found",
+        "source": "openList",
+        "sourceLabel": "Открытый список",
+        "searchCriteria": {
+          "fullName": true,
+          "birthDate": true,
+          "birthPlace": true
+        },
+        "matches": [
+          {
+            "data_id": "17780241463027ba9",
+            "source": "openList",
+            "sourceLabel": "Открытый список",
+            "score": 70.00000000000001,
+            "person": {
+              "lastName": "Авинов",
+              "name": "Терентий",
+              "middleName": "Алексеевич",
+              "birthDate": "",
+              "birthPlace": "",
+              "information": ""
+            },
+            "records": [
+              {
+                "source": "openList",
+                "sourceLabel": "Открытый список",
+                "title": "Авинов Терентий Алексеевич (1892)",
+                "information": "",
+                "url": "https://ru.openlist.wiki/%D0%90%D0%B2%D0%B8%D0%BD%D0%BE%D0%B2_%D0%A2%D0%B5%D1%80%D0%B5%D0%BD%D1%82%D0%B8%D0%B9_%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B5%D0%B5%D0%B2%D0%B8%D1%87_(1892)",
+                "birthDate": "",
+                "birthPlace": "",
+                "score": 70.00000000000001
+              }
+            ],
+            "searchedAt": "2026-05-05T23:36:07+00:00",
+            "tlsFallbackUsed": true
+          }
+        ],
+        "errors": []
+      },
+      "gwar": {
+        "searchedAt": "2026-05-05T23:36:09.494Z",
+        "status": "matches_found",
         "source": "gwar",
         "sourceLabel": "Герои великой войны",
-        "matches": [],
+        "searchCriteria": {
+          "fullName": true,
+          "birthDate": true,
+          "birthPlace": true
+        },
+        "matches": [
+          {
+            "data_id": "17780241463027ba9",
+            "source": "gwar",
+            "sourceLabel": "Герои великой войны",
+            "score": 70,
+            "person": {
+              "lastName": "Авинов",
+              "name": "Терентий",
+              "middleName": "Алексеевич",
+              "birthDate": "",
+              "birthPlace": "",
+              "information": "рядовой | 294-й Грязовецкий полк | РГВИА"
+            },
+            "records": [
+              {
+                "source": "gwar",
+                "sourceLabel": "Герои великой войны",
+                "title": "Авинов Терентий Алексеевич",
+                "information": "рядовой | 294-й Грязовецкий полк | РГВИА",
+                "url": "https://gwar.mil.ru/heroes/chelovek_gospital22805775/",
+                "birthDate": "",
+                "birthPlace": "",
+                "score": 70
+              },
+              {
+                "source": "gwar",
+                "sourceLabel": "Герои великой войны",
+                "title": "Авинов (Авенов) Терентий Алексеевич",
+                "information": "рядовой | 296-й пехотный Грязовецкий полк | РГВИА",
+                "url": "https://gwar.mil.ru/heroes/chelovek_gospital225568/",
+                "birthDate": "",
+                "birthPlace": "Томская губ., Бийский округ, Сростинская вол., д. Сростки",
+                "score": 60
+              },
+              {
+                "source": "gwar",
+                "sourceLabel": "Герои великой войны",
+                "title": "Овинов (Авинов) Терентий Алексеевич",
+                "information": "296-й пехотный Грязовецкий полк | РГВИА",
+                "url": "https://gwar.mil.ru/heroes/chelovek_plen30891497/",
+                "birthDate": "1891-01-01",
+                "birthPlace": "",
+                "score": 60
+              },
+              {
+                "source": "gwar",
+                "sourceLabel": "Герои великой войны",
+                "title": "Авивов Тимофей Андреевич",
+                "information": "рядовой | 171-й пехотный Кобринский полк | РГВИА",
+                "url": "https://gwar.mil.ru/heroes/chelovek_donesenie11895437/",
+                "birthDate": "",
+                "birthPlace": "Казанская губ., Тетюшский уезд, Колунецкая вол., д. Удельное",
+                "score": 43.51
+              },
+              {
+                "source": "gwar",
+                "sourceLabel": "Герои великой войны",
+                "title": "Авелов (Авилов) Тихон Антонович",
+                "information": "мл. унтер-офицер | 308-й транспорт 68-й обозный батальон | РГВИА",
+                "url": "https://gwar.mil.ru/heroes/chelovek_gospital22805731/",
+                "birthDate": "",
+                "birthPlace": "Бакинская губ., Кубинский уезд",
+                "score": 28.12
+              }
+            ],
+            "searchedAt": "2026-05-05T23:36:09+00:00",
+            "tlsFallbackUsed": true
+          }
+        ],
         "errors": []
       }
     }

@@ -46,6 +46,11 @@ const SMART_SEARCH_SOURCE_LABELS = {
   gwar: 'Герои великой войны',
   warHeroes: 'Герои великой войны'
 };
+const DEFAULT_SMART_SEARCH_CRITERIA = {
+  fullName: true,
+  birthDate: true,
+  birthPlace: true
+};
 
 // Layout constants
 const CARD_WIDTH = 140;
@@ -77,13 +82,19 @@ const getPersonLabel = (person) => getFullName(person) || person?.id || 'Без 
 
 const normalizeSearchValue = (value = '') => value.toLowerCase().replace(/\s+/g, ' ').trim();
 
-const isReadyForSmartSearch = (person) => {
+const isReadyForSmartSearch = (person, searchCriteria = DEFAULT_SMART_SEARCH_CRITERIA) => {
+  const requiresFullName = searchCriteria.fullName !== false;
+  const requiresBirthDate = searchCriteria.birthDate !== false;
+  const requiresBirthPlace = searchCriteria.birthPlace !== false;
+
+  if (!requiresFullName && !requiresBirthDate && !requiresBirthPlace) {
+    return false;
+  }
+
   return Boolean(
-    person?.lastName &&
-    person?.name &&
-    person?.middleName &&
-    person?.birthDate &&
-    person?.birthPlace
+    (!requiresFullName || (person?.lastName && person?.name && person?.middleName)) &&
+    (!requiresBirthDate || person?.birthDate) &&
+    (!requiresBirthPlace || person?.birthPlace)
   );
 };
 
@@ -2359,6 +2370,7 @@ function App() {
     openList: true,
     gwar: true
   });
+  const [searchCriteria, setSearchCriteria] = useState(DEFAULT_SMART_SEARCH_CRITERIA);
   const [isSmartSearchRunning, setIsSmartSearchRunning] = useState(false);
   const [expandedSmartSearchCards, setExpandedSmartSearchCards] = useState({});
 
@@ -2519,6 +2531,13 @@ function App() {
     setSearchSources((prev) => ({
       ...prev,
       [sourceKey]: !prev[sourceKey]
+    }));
+  };
+
+  const handleCriteriaToggle = (criteriaKey) => {
+    setSearchCriteria((prev) => ({
+      ...prev,
+      [criteriaKey]: !prev[criteriaKey]
     }));
   };
 
@@ -2692,7 +2711,8 @@ function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           personIds,
-          sources: searchSources
+          sources: searchSources,
+          searchCriteria
         })
       });
       
@@ -2722,6 +2742,11 @@ function App() {
     const hasSupportedSource = SMART_SEARCH_SUPPORTED_SOURCE_KEYS.some((sourceKey) => searchSources[sourceKey]);
     if (!hasSupportedSource) {
       showToast('Выберите хотя бы один доступный источник поиска', 'error');
+      return;
+    }
+    const hasSelectedCriteria = Object.values(searchCriteria).some(Boolean);
+    if (!hasSelectedCriteria) {
+      showToast('Выберите хотя бы один критерий поиска', 'error');
       return;
     }
 
@@ -2877,7 +2902,7 @@ function App() {
                 {smartSearchPeople.map((person) => {
                   const personName = getFullName(person) || 'Без имени';
                   const isSelected = selectedSmartSearchIds.includes(person.id);
-                  const isReady = isReadyForSmartSearch(person);
+                  const isReady = isReadyForSmartSearch(person, searchCriteria);
                   const statusSourceKeys = SMART_SEARCH_SUPPORTED_SOURCE_KEYS.filter((sourceKey) => searchSources[sourceKey]);
                   const visibleSourceKeys = statusSourceKeys.length > 0
                     ? statusSourceKeys
@@ -3061,6 +3086,34 @@ function App() {
                 </label>
               </section>
 
+              <section className="smart-panel-section">
+                <h2>Критерии поиска</h2>
+                <label className="smart-source-item">
+                  <input
+                    type="checkbox"
+                    checked={searchCriteria.fullName}
+                    onChange={() => handleCriteriaToggle('fullName')}
+                  />
+                  <span>ФИО</span>
+                </label>
+                <label className="smart-source-item">
+                  <input
+                    type="checkbox"
+                    checked={searchCriteria.birthDate}
+                    onChange={() => handleCriteriaToggle('birthDate')}
+                  />
+                  <span>Дата рождения</span>
+                </label>
+                <label className="smart-source-item">
+                  <input
+                    type="checkbox"
+                    checked={searchCriteria.birthPlace}
+                    onChange={() => handleCriteriaToggle('birthPlace')}
+                  />
+                  <span>Место рождения</span>
+                </label>
+              </section>
+
               <button
                 type="button"
                 className="btn btn-primary btn-full smart-start-search-btn"
@@ -3068,6 +3121,7 @@ function App() {
                   isSmartSearchRunning
                   || selectedSmartSearchIds.length === 0
                   || !SMART_SEARCH_SUPPORTED_SOURCE_KEYS.some((sourceKey) => searchSources[sourceKey])
+                  || !Object.values(searchCriteria).some(Boolean)
                 }
                 onClick={handleStartSmartSearch}
               >
