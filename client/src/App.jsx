@@ -2825,21 +2825,28 @@ function App() {
                   const personName = getFullName(person) || 'Без имени';
                   const isSelected = selectedSmartSearchIds.includes(person.id);
                   const isReady = isReadyForSmartSearch(person);
+                  const personGenderClass = person.gender === 'male'
+                    ? 'male'
+                    : person.gender === 'female'
+                      ? 'female'
+                      : '';
 
                   return (
                     <article key={person.id} className={`smart-relative-card ${isSelected ? 'selected' : ''}`}>
-                      <label className="smart-card-checkbox">
-                        <input
-                          type="checkbox"
-                          checked={isSelected}
-                          onChange={() => handleSmartSearchSelection(person.id)}
-                        />
-                        <span>Выбрать</span>
-                      </label>
+                      <div className="smart-relative-card-header">
+                        <h3 className={`smart-person-name-block ${personGenderClass}`}>{personName}</h3>
+                        <div className="smart-card-controls">
+                          {isReady && <span className="smart-ready-badge">Готово к поиску</span>}
+                          <label className="smart-card-checkbox" title="Выбрать карточку">
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => handleSmartSearchSelection(person.id)}
+                            />
+                          </label>
+                        </div>
+                      </div>
 
-                      {isReady && <span className="smart-ready-badge">Готово к поиску</span>}
-
-                      <h3>{personName}</h3>
                       <p>
                         <Calendar size={14} />
                         {formatDate(person.birthDate)}
