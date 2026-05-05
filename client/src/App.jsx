@@ -80,6 +80,38 @@ const isReadyForSmartSearch = (person) => {
   );
 };
 
+const getSourceMatches = (person, sourceKey) => {
+  if (!person?.sourceSearchCache || !person.sourceSearchCache[sourceKey]) {
+    return [];
+  }
+  const sourceEntry = person.sourceSearchCache[sourceKey];
+  return Array.isArray(sourceEntry.matches) ? sourceEntry.matches : [];
+};
+
+const getSourceRecords = (person, sourceKey) => {
+  const records = [];
+  getSourceMatches(person, sourceKey).forEach((match) => {
+    const sourceLabel = match.sourceLabel || 'Память народа';
+    if (Array.isArray(match.records) && match.records.length > 0) {
+      match.records.forEach((record) => {
+        records.push({
+          ...record,
+          sourceLabel: record.sourceLabel || sourceLabel
+        });
+      });
+      return;
+    }
+    if (match.person) {
+      records.push({
+        ...match.person,
+        sourceLabel,
+        score: match.score
+      });
+    }
+  });
+  return records;
+};
+
 const pickFocalPersonId = (people, selectedPersonId) => {
   if (selectedPersonId && people[selectedPersonId]) return selectedPersonId;
 
@@ -2320,6 +2352,8 @@ function App() {
     openList: true,
     warHeroes: true
   });
+  const [isSmartSearchRunning, setIsSmartSearchRunning] = useState(false);
+  const [expandedSmartSearchCards, setExpandedSmartSearchCards] = useState({});
 
   // Show notification as long as there are any unconfirmed matches (people with hasMatch = true)
   const showMatchFoundNotification = useMemo(() => {
@@ -2404,10 +2438,6 @@ function App() {
       allTreeMatchesRef.current = [];
       allArchiveMatchesRef.current = [];
       showToast('Новый JSON загружен, прежние данные заменены');
-
-      if (Object.keys(nextPeople).length > 0) {
-        await runSmartMatching();
-      }
     } catch (error) {
       console.error('Upload error:', error);
       showToast('Ошибка загрузки JSON', 'error');
@@ -2564,8 +2594,6 @@ function App() {
         setSelectedPerson(updatedPerson);
         setShowEditModal(false);
         showToast('Изменения сохранены');
-        // Run smart matching after edit
-        runSmartMatching();
       }
     } catch (error) {
       console.error('Error updating person:', error);
@@ -2592,8 +2620,6 @@ function App() {
         await fetchPeople();
         setShowAddRelativeModal(false);
         showToast('Родственник добавлен');
-        // Run smart matching after adding relative
-        runSmartMatching();
       }
     } catch (error) {
       console.error('Error adding relative:', error);
@@ -2649,11 +2675,18 @@ function App() {
     }
   };
 
-  // Run smart matching
-  const runSmartMatching = async () => {
+  // Run source search for selected people
+  const runSmartMatching = async (personIds = selectedSmartSearchIds) => {
+    if (!personIds.length) return false;
+    setIsSmartSearchRunning(true);
     try {
       const response = await fetch(`${API_URL}/smart-matching`, {
-        method: 'POST'
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          personIds,
+          sources: searchSources
+        })
       });
       
       if (response.ok) {
@@ -2663,9 +2696,32 @@ function App() {
         allArchiveMatchesRef.current = data.archiveMatches || [];
         
         await fetchPeople(); // Refresh to get updated hasMatch flags
+        return true;
       }
+      return false;
     } catch (error) {
       console.error('Smart matching error:', error);
+      return false;
+    } finally {
+      setIsSmartSearchRunning(false);
+    }
+  };
+
+  const handleStartSmartSearch = async () => {
+    if (selectedSmartSearchIds.length === 0) {
+      showToast('Выберите хотя бы одну карточку', 'error');
+      return;
+    }
+    if (!searchSources.pamyatNaroda) {
+      showToast('Для текущей версии включите источник "Память народа"', 'error');
+      return;
+    }
+
+    const success = await runSmartMatching(selectedSmartSearchIds);
+    if (success) {
+      showToast('Поиск по выбранным карточкам завершён');
+    } else {
+      showToast('Не удалось выполнить поиск', 'error');
     }
   };
 
@@ -2698,8 +2754,6 @@ function App() {
         setTreeMatches([]);
         setArchiveMatches([]);
         showToast('Совпадение подтверждено, родственники добавлены');
-        // Run smart matching again to find new matches
-        await runSmartMatching();
       }
     } catch (error) {
       console.error('Error confirming match:', error);
@@ -2728,21 +2782,12 @@ function App() {
         setTreeMatches([]);
         setArchiveMatches([]);
         showToast('Информация из архива добавлена');
-        // Run smart matching again
-        await runSmartMatching();
       }
     } catch (error) {
       console.error('Error confirming archive match:', error);
       showToast('Ошибка подтверждения', 'error');
     }
   };
-
-  // Run smart matching on initial load and after changes
-  useEffect(() => {
-    if (!loading && Object.keys(people).length > 0) {
-      runSmartMatching();
-    }
-  }, [loading]);
 
   // Close notifications/balance panel when clicking outside
   useEffect(() => {
@@ -2825,6 +2870,25 @@ function App() {
                   const personName = getFullName(person) || 'Без имени';
                   const isSelected = selectedSmartSearchIds.includes(person.id);
                   const isReady = isReadyForSmartSearch(person);
+                  const pamyatMatches = getSourceMatches(person, 'pamyatNaroda');
+                  const pamyatRecords = getSourceRecords(person, 'pamyatNaroda');
+                  const hasMatches = pamyatMatches.length > 0;
+                  const sourceCache = person.sourceSearchCache?.pamyatNaroda || null;
+                  const expanded = Boolean(expandedSmartSearchCards[person.id]);
+                  const statusLabel = hasMatches
+                    ? 'Найдены совпадения'
+                    : sourceCache?.status === 'no_matches'
+                      ? 'Совпадений не найдено'
+                      : isReady
+                        ? 'Готово к поиску'
+                        : 'Недостаточно данных';
+                  const statusClass = hasMatches
+                    ? 'found'
+                    : sourceCache?.status === 'no_matches'
+                      ? 'empty'
+                      : isReady
+                        ? 'ready'
+                        : 'pending';
                   const personGenderClass = person.gender === 'male'
                     ? 'male'
                     : person.gender === 'female'
@@ -2836,7 +2900,21 @@ function App() {
                       <div className="smart-relative-card-header">
                         <h3 className={`smart-person-name-block ${personGenderClass}`}>{personName}</h3>
                         <div className="smart-card-controls">
-                          {isReady && <span className="smart-ready-badge">Готово к поиску</span>}
+                          <span className={`smart-ready-badge ${statusClass}`}>{statusLabel}</span>
+                          {hasMatches && (
+                            <button
+                              type="button"
+                              className="btn btn-outline btn-sm smart-explore-btn"
+                              onClick={() => {
+                                setExpandedSmartSearchCards((prev) => ({
+                                  ...prev,
+                                  [person.id]: !prev[person.id]
+                                }));
+                              }}
+                            >
+                              {expanded ? 'Скрыть' : 'Изучить'}
+                            </button>
+                          )}
                           <label className="smart-card-checkbox" title="Выбрать карточку">
                             <input
                               type="checkbox"
@@ -2855,6 +2933,32 @@ function App() {
                         <MapPin size={14} />
                         {person.birthPlace || 'Не указано'}
                       </p>
+                      {expanded && (
+                        <div className="smart-source-results">
+                          {pamyatRecords.map((record, index) => (
+                            <article key={`${person.id}-${index}`} className="smart-source-result-item">
+                              <div className="smart-source-result-header">
+                                <span className="smart-source-name">{record.sourceLabel || 'Память народа'}</span>
+                                {typeof record.score === 'number' && (
+                                  <span className="smart-source-score">{record.score.toFixed(1)}%</span>
+                                )}
+                              </div>
+                              <p className="smart-source-title">
+                                {record.title || getPersonLabel(record)}
+                              </p>
+                              {record.birthDate && (
+                                <p className="smart-source-meta">Дата рождения: {record.birthDate}</p>
+                              )}
+                              {record.birthPlace && (
+                                <p className="smart-source-meta">Место рождения: {record.birthPlace}</p>
+                              )}
+                              {record.information && (
+                                <p className="smart-source-meta">{record.information}</p>
+                              )}
+                            </article>
+                          ))}
+                        </div>
+                      )}
                     </article>
                   );
                 })}
@@ -2941,8 +3045,13 @@ function App() {
                 </label>
               </section>
 
-              <button type="button" className="btn btn-primary btn-full smart-start-search-btn" disabled>
-                Начать поиск
+              <button
+                type="button"
+                className="btn btn-primary btn-full smart-start-search-btn"
+                disabled={isSmartSearchRunning || selectedSmartSearchIds.length === 0 || !searchSources.pamyatNaroda}
+                onClick={handleStartSmartSearch}
+              >
+                {isSmartSearchRunning ? 'Идёт поиск...' : 'Начать поиск'}
               </button>
             </aside>
           </div>

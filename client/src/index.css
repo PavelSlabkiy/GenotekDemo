@@ -422,6 +422,25 @@ body {
   font-weight: 600;
 }
 
+.smart-ready-badge.found {
+  background: rgba(37, 99, 235, 0.14);
+  color: #1d4ed8;
+}
+
+.smart-ready-badge.empty {
+  background: rgba(245, 158, 11, 0.16);
+  color: #b45309;
+}
+
+.smart-ready-badge.pending {
+  background: rgba(148, 163, 184, 0.16);
+  color: #475569;
+}
+
+.smart-explore-btn {
+  white-space: nowrap;
+}
+
 .smart-person-name-block {
   margin: 0;
   padding: 8px 12px;
@@ -454,6 +473,53 @@ body {
 .smart-relative-card p svg {
   color: var(--text-muted);
   flex-shrink: 0;
+}
+
+.smart-source-results {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.smart-source-result-item {
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 10px;
+  background: var(--bg-secondary);
+}
+
+.smart-source-result-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.smart-source-name {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #1d4ed8;
+}
+
+.smart-source-score {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.smart-source-title {
+  margin: 0 0 4px;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.smart-source-meta {
+  margin: 2px 0;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
 }
 
 .smart-search-panel {

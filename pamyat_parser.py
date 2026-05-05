@@ -3,9 +3,11 @@ from __future__ import annotations
 
 import argparse
 import base64
+import hashlib
 import json
 import os
 import random
+import re
 import ssl
 import subprocess
 import sys
@@ -16,10 +18,16 @@ import urllib.request
 from http.cookiejar import CookieJar
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Any, Iterable
 
-from gedcom_parser import build_tree, default_gedcom_path, parse_gedcom
+try:
+    from gedcom_parser import build_tree, default_gedcom_path, parse_gedcom  # type: ignore[import-not-found]
+except ImportError:
+    build_tree = None
+    default_gedcom_path = None
+    parse_gedcom = None
 
 
 API_URL = "https://pamyat-naroda.ru/entrypoint/api/"
@@ -31,6 +39,8 @@ DEFAULT_USER_AGENT = (
     "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
 )
 DEFAULT_ACCEPT_LANGUAGE = "ru,en-US;q=0.9,en;q=0.8"
+APP_SOURCE_KEY = "pamyatNaroda"
+APP_SOURCE_LABEL = "Память народа"
 
 EMPTY_ARRAY_FILTERS = {
     "birth_place_ids": [],
@@ -125,9 +135,10 @@ def bootstrap_config(
         )
     except ValueError as exc:
         previous_error = str(exc)
-        if "Servicepipe anti-bot challenge" not in previous_error:
-            raise
-        ensure_chrome_devtools_fallback_available()
+        try:
+            ensure_chrome_devtools_fallback_available()
+        except ValueError:
+            raise ValueError(previous_error) from exc
         return SearchConfig(
             cookie="",
             csrf_token="",
@@ -317,6 +328,8 @@ def cookie_header(cookie_jar: CookieJar) -> str:
 
 
 def load_tree(gedcom_path: Path | None) -> dict[str, Any]:
+    if build_tree is None or parse_gedcom is None or default_gedcom_path is None:
+        raise ValueError("GEDCOM parser helpers are unavailable in this environment.")
     path = gedcom_path or default_gedcom_path()
     if path is None:
         raise ValueError("Provide a GEDCOM path, or run in a directory with exactly one .ged file.")
@@ -699,6 +712,311 @@ def extract_result_count(response: Any) -> int | None:
     return None
 
 
+def read_stdin_json_payload() -> dict[str, Any] | None:
+    if sys.stdin.isatty():
+        return None
+    payload = sys.stdin.read().strip()
+    if not payload:
+        return None
+    try:
+        data = json.loads(payload)
+    except json.JSONDecodeError:
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def maybe_run_app_search(payload: dict[str, Any]) -> dict[str, Any] | None:
+    people = payload.get("people")
+    if not isinstance(people, dict):
+        return None
+
+    person_ids = payload.get("personIds")
+    if not isinstance(person_ids, list) or not person_ids:
+        person_ids = list(people.keys())
+    person_ids = [str(person_id) for person_id in person_ids if str(person_id).strip()]
+
+    score_threshold = float(payload.get("scoreThreshold", 70))
+    max_records = int(payload.get("maxRecordsPerPerson", 5))
+    timeout = float(payload.get("timeout", 25))
+    verify_tls = not bool(payload.get("insecureTls", False))
+
+    queries = app_queries_from_people(people, person_ids)
+    if not queries:
+        return {
+            "source": APP_SOURCE_KEY,
+            "sourceLabel": APP_SOURCE_LABEL,
+            "matches": [],
+            "matchedDataIds": [],
+            "processedPersonIds": [],
+            "errors": [],
+        }
+
+    try:
+        config = load_config(DEFAULT_CONFIG_PATH, required=False)
+        if config is None:
+            first_query = queries[0]
+            config = bootstrap_config(
+                first_query,
+                user_agent=os.environ.get("PAMYAT_USER_AGENT") or DEFAULT_USER_AGENT,
+                accept_language=os.environ.get("PAMYAT_ACCEPT_LANGUAGE") or DEFAULT_ACCEPT_LANGUAGE,
+                timeout=timeout,
+                verify_tls=verify_tls,
+            )
+    except ValueError as exc:
+        message = str(exc)
+        return {
+            "source": APP_SOURCE_KEY,
+            "sourceLabel": APP_SOURCE_LABEL,
+            "matches": [],
+            "matchedDataIds": [],
+            "processedPersonIds": [],
+            "errors": [{"person_id": None, "message": message}],
+            "fatalError": message,
+        }
+
+    matches: list[dict[str, Any]] = []
+    matched_ids: list[str] = []
+    errors: list[dict[str, Any]] = []
+    processed_ids: list[str] = []
+
+    for query in queries:
+        person_id = str(query["person_id"])
+        processed_ids.append(person_id)
+        raw_result = search_once(
+            config,
+            query,
+            page=1,
+            size=max(10, max_records * 2),
+            timeout=timeout,
+            verify_tls=verify_tls,
+        )
+        if raw_result.get("status") != "ok":
+            errors.append(
+                {
+                    "person_id": person_id,
+                    "message": f"Search failed with status={raw_result.get('status')}",
+                    "status_code": raw_result.get("status_code"),
+                    "details": raw_result.get("error"),
+                }
+            )
+            continue
+
+        documents = app_documents_from_response(query, raw_result.get("response"), score_threshold=score_threshold)
+        if not documents:
+            continue
+
+        documents = documents[: max(1, max_records)]
+        top_document = documents[0]
+        matches.append(
+            {
+                "data_id": person_id,
+                "source": APP_SOURCE_KEY,
+                "sourceLabel": APP_SOURCE_LABEL,
+                "score": top_document.get("score"),
+                "person": {
+                    "lastName": top_document.get("lastName", ""),
+                    "name": top_document.get("name", ""),
+                    "middleName": top_document.get("middleName", ""),
+                    "birthDate": top_document.get("birthDate", ""),
+                    "birthPlace": top_document.get("birthPlace", ""),
+                    "information": top_document.get("information", ""),
+                },
+                "records": documents,
+                "searchedAt": utc_now(),
+            }
+        )
+        matched_ids.append(person_id)
+
+    return {
+        "source": APP_SOURCE_KEY,
+        "sourceLabel": APP_SOURCE_LABEL,
+        "matches": matches,
+        "matchedDataIds": sorted(set(matched_ids)),
+        "processedPersonIds": processed_ids,
+        "errors": errors,
+    }
+
+
+def app_queries_from_people(people: dict[str, Any], person_ids: list[str]) -> list[dict[str, Any]]:
+    queries: list[dict[str, Any]] = []
+    for person_id in person_ids:
+        person = people.get(person_id)
+        if not isinstance(person, dict):
+            continue
+        last_name = compact_text(person.get("lastName"))
+        first_name = compact_text(person.get("name"))
+        middle_name = compact_text(person.get("middleName"))
+        if not last_name or not first_name:
+            continue
+
+        birth_year = birth_year_from_date(person.get("birthDate"))
+        birth_date_from = str(birth_year) if birth_year else ""
+        birth_place = compact_text(person.get("birthPlace"))
+        display_name = " ".join(part for part in [last_name, first_name, middle_name] if part).strip()
+        query_key = build_app_query_key(person_id, last_name, first_name, middle_name, birth_date_from, birth_place)
+        queries.append(
+            {
+                "query_key": query_key,
+                "person_id": person_id,
+                "display_name": display_name,
+                "last_name": last_name,
+                "first_name": first_name,
+                "middle_name": middle_name,
+                "birth_date_from": birth_date_from,
+                "birth_place": birth_place,
+            }
+        )
+    return queries
+
+
+def build_app_query_key(
+    person_id: str,
+    last_name: str,
+    first_name: str,
+    middle_name: str,
+    birth_date_from: str,
+    birth_place: str,
+) -> str:
+    digest = hashlib.sha1(
+        "|".join([last_name, first_name, middle_name, birth_date_from, birth_place]).encode("utf-8")
+    ).hexdigest()[:12]
+    return f"app-{person_id}-{digest}"
+
+
+def app_documents_from_response(
+    query: dict[str, Any],
+    response: Any,
+    *,
+    score_threshold: float,
+) -> list[dict[str, Any]]:
+    documents: list[dict[str, Any]] = []
+    for row in response_data_rows(response):
+        source = row.get("_source") if isinstance(row, dict) and isinstance(row.get("_source"), dict) else row
+        if not isinstance(source, dict):
+            continue
+
+        score = app_similarity_score(query, source)
+        if score < score_threshold:
+            continue
+
+        information = compact_text(source.get("short_desc"))
+        birth_date = compact_text(source.get("date_birth"))
+        birth_place = compact_text(source.get("place_birth"))
+        document = {
+            "source": APP_SOURCE_KEY,
+            "sourceLabel": APP_SOURCE_LABEL,
+            "title": app_result_title(source),
+            "lastName": compact_text(source.get("last_name")),
+            "name": compact_text(source.get("first_name")),
+            "middleName": compact_text(source.get("middle_name")),
+            "birthDate": normalize_birth_date_for_app(birth_date),
+            "birthPlace": birth_place,
+            "information": information,
+            "score": round(score, 2),
+            "url": app_result_url(source),
+        }
+        documents.append(document)
+
+    documents.sort(key=lambda item: item.get("score", 0), reverse=True)
+    return documents
+
+
+def response_data_rows(response: Any) -> list[dict[str, Any]]:
+    if isinstance(response, dict):
+        data = response.get("data")
+        if isinstance(data, list):
+            return [row for row in data if isinstance(row, dict)]
+        return []
+    if isinstance(response, list):
+        return [row for row in response if isinstance(row, dict)]
+    return []
+
+
+def app_similarity_score(query: dict[str, Any], source: dict[str, Any]) -> float:
+    name_scores = []
+    for query_key, source_key in (
+        ("last_name", "last_name"),
+        ("first_name", "first_name"),
+        ("middle_name", "middle_name"),
+    ):
+        query_part = normalize_lookup(compact_text(query.get(query_key)))
+        source_part = normalize_lookup(compact_text(source.get(source_key)))
+        if not query_part:
+            continue
+        if not source_part:
+            name_scores.append(0.0)
+            continue
+        name_scores.append(SequenceMatcher(None, query_part, source_part).ratio())
+
+    name_score = (sum(name_scores) / len(name_scores) * 100.0) if name_scores else 0.0
+
+    query_year = birth_year_from_date(query.get("birth_date_from"))
+    source_year = birth_year_from_date(source.get("date_birth"))
+    if query_year and source_year:
+        birth_score = 100.0 if query_year == source_year else max(0.0, 100.0 - min(abs(query_year - source_year), 25) * 4.0)
+    elif query_year:
+        birth_score = 0.0
+    else:
+        birth_score = 60.0
+
+    query_place = normalize_lookup(compact_text(query.get("birth_place")))
+    source_place = normalize_lookup(compact_text(source.get("place_birth")))
+    if query_place and source_place:
+        place_score = SequenceMatcher(None, query_place, source_place).ratio() * 100.0
+    elif query_place:
+        place_score = 0.0
+    else:
+        place_score = 55.0
+
+    return name_score * 0.7 + birth_score * 0.2 + place_score * 0.1
+
+
+def app_result_title(source: dict[str, Any]) -> str:
+    return " ".join(
+        part
+        for part in (
+            compact_text(source.get("last_name")),
+            compact_text(source.get("first_name")),
+            compact_text(source.get("middle_name")),
+        )
+        if part
+    ).strip()
+
+
+def app_result_url(source: dict[str, Any]) -> str:
+    guid = compact_text(source.get("guid"))
+    if guid:
+        return f"{ORIGIN}/heroes/person-hero{guid}/"
+    entity_id = compact_text(source.get("id"))
+    if entity_id:
+        return f"{ORIGIN}/heroes/person-hero{entity_id}/"
+    return ""
+
+
+def normalize_birth_date_for_app(value: str) -> str:
+    if not value:
+        return ""
+    normalized = value.replace("__.", "").replace("__. ", "").strip()
+    return normalized
+
+
+def birth_year_from_date(value: Any) -> int | None:
+    text = compact_text(value)
+    if not text:
+        return None
+    match = re.search(r"(18|19|20)\d{2}", text)
+    if not match:
+        return None
+    year = int(match.group(0))
+    return year
+
+
+def compact_text(value: Any) -> str:
+    if value is None:
+        return ""
+    return " ".join(str(value).split())
+
+
 def write_plan(queries: list[dict[str, Any]], output_path: Path | None) -> None:
     output = {"count": len(queries), "queries": queries}
     if output_path:
@@ -836,4 +1154,11 @@ def run_with_retries(config: SearchConfig, query: dict[str, Any], args: argparse
 
 
 if __name__ == "__main__":
+    stdin_payload = read_stdin_json_payload()
+    if stdin_payload is not None:
+        app_result = maybe_run_app_search(stdin_payload)
+        if app_result is not None:
+            print(json.dumps(app_result, ensure_ascii=False))
+            raise SystemExit(0 if not app_result.get("fatalError") else 1)
+
     raise SystemExit(main())

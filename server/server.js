@@ -11,8 +11,8 @@ app.use(cors());
 app.use(express.json({ limit: '20mb' }));
 
 const DATABASE_FILE = path.join(__dirname, '..', 'database.json');
-const SMART_MATCHING_SCRIPT = path.join(__dirname, '..', 'smart_matching.py');
-const PAMYAT_NARODA_SCRIPT = path.join(__dirname, '..', 'pamyat_naroda.py');
+const PAMYAT_PARSER_SCRIPT = path.join(__dirname, '..', 'pamyat_parser.py');
+const debugLog = () => {};
 
 const getOid = (value) => {
   if (value && typeof value === 'object' && '$oid' in value) {
@@ -77,6 +77,7 @@ const isAliveFromStorage = (raw) => {
 const liveOrDeadFromApp = (isAlive) => (isAlive ? 1 : 0);
 
 const unique = (values) => Array.from(new Set(values.filter(Boolean)));
+const PAMYAT_SOURCE_KEY = 'pamyatNaroda';
 
 const relationshipTemplate = (partnerId) => ({
   with: toOidObject(partnerId),
@@ -85,6 +86,13 @@ const relationshipTemplate = (partnerId) => ({
   from: [{ day: null, month: null, year: null }],
   to: [{ day: null, month: null, year: null }]
 });
+
+const calculatePersonHasMatch = (person) => {
+  const sourceSearchCache = person?.sourceSearchCache || {};
+  return Object.values(sourceSearchCache).some((cacheEntry) => (
+    cacheEntry && typeof cacheEntry === 'object' && Array.isArray(cacheEntry.matches) && cacheEntry.matches.length > 0
+  ));
+};
 
 const deriveTreeOwner = (entries) => {
   if (!entries.length) return 'Unknown';
@@ -203,8 +211,10 @@ const buildPeopleFromEntries = (entries) => {
       birthDate: birthDateToApp(entry.birthdate),
       birthPlace: firstString(entry.birthplace),
       hasMatch: Boolean(entry.hasMatch),
+      sourceSearchCache: entry.sourceSearchCache || {},
       information: entry.information || ''
     };
+    people[id].hasMatch = calculatePersonHasMatch(people[id]) || people[id].hasMatch;
   });
 
   entries.forEach((entry) => {
@@ -346,7 +356,8 @@ const convertPeopleToEntries = (people, treeId, existingEntries = []) => {
       surname: person.lastName ? [person.lastName] : [],
       middleName: person.middleName ? [person.middleName] : [],
       liveOrDead: liveOrDeadFromApp(person.isAlive !== false),
-      hasMatch: Boolean(person.hasMatch)
+      hasMatch: calculatePersonHasMatch(person) || Boolean(person.hasMatch),
+      sourceSearchCache: person.sourceSearchCache || base.sourceSearchCache || {}
     };
 
     if (person.information) {
@@ -380,51 +391,17 @@ const writeCurrentPeople = (people) => {
 
 const generateId = () => `${Date.now()}${Math.random().toString(36).slice(2, 6)}`;
 
-// Run smart-matching Python script
-const runSmartMatching = (dataJson, databaseJson) => {
+// Run pamyat parser in app-search mode
+const runPamyatParser = ({ people, personIds }) => {
   return new Promise((resolve, reject) => {
-    const python = spawn('python3', [SMART_MATCHING_SCRIPT]);
-    
-    let stdout = '';
-    let stderr = '';
-    
-    python.stdout.on('data', (data) => {
-      stdout += data.toString();
+    const runId = `pamyat-parser-${Date.now()}`;
+    debugLog(runId, 'H6', 'server.js:runPamyatParser:spawn', 'Spawning python parser process', {
+      scriptPath: PAMYAT_PARSER_SCRIPT,
+      personCount: Array.isArray(personIds) ? personIds.length : 0
     });
-    
-    python.stderr.on('data', (data) => {
-      stderr += data.toString();
-    });
-    
-    python.on('close', (code) => {
-      if (code !== 0) {
-        console.error('Smart matching stderr:', stderr);
-        reject(new Error(`Smart matching failed with code ${code}`));
-        return;
-      }
-      try {
-        const result = JSON.parse(stdout);
-        resolve(result);
-      } catch (e) {
-        reject(new Error('Failed to parse smart matching output'));
-      }
-    });
-    
-    // Send input to Python script
-    const input = JSON.stringify({
-      data: JSON.stringify(dataJson),
-      db: JSON.stringify(databaseJson)
-    });
-    python.stdin.write(input);
-    python.stdin.end();
-  });
-};
 
-// Run pamyat-naroda Python script (with longer timeout for archive search)
-const runPamyatNaroda = (dataJson) => {
-  return new Promise((resolve, reject) => {
-    const python = spawn('python3', [PAMYAT_NARODA_SCRIPT], {
-      timeout: 60000 // 60 second timeout for archive search
+    const python = spawn('python3', [PAMYAT_PARSER_SCRIPT], {
+      timeout: 120000
     });
     
     let stdout = '';
@@ -436,32 +413,72 @@ const runPamyatNaroda = (dataJson) => {
     
     python.stderr.on('data', (data) => {
       stderr += data.toString();
+      debugLog(runId, 'H6', 'server.js:runPamyatParser:stderr', 'Received python stderr chunk', {
+        chunkPreview: data.toString().slice(0, 300)
+      });
     });
     
     python.on('close', (code) => {
+      debugLog(runId, 'H6', 'server.js:runPamyatParser:close', 'Python process closed', {
+        code,
+        stdoutLength: stdout.length,
+        stderrLength: stderr.length,
+        stdoutPreview: stdout.slice(0, 300),
+        stderrPreview: stderr.slice(0, 300)
+      });
+
+      const fallback = {
+        source: PAMYAT_SOURCE_KEY,
+        sourceLabel: 'Память народа',
+        matches: [],
+        matchedDataIds: [],
+        processedPersonIds: personIds || [],
+        errors: []
+      };
+
+      let parsedStdout = null;
+      if (stdout.trim()) {
+        try {
+          parsedStdout = JSON.parse(stdout);
+        } catch (error) {
+          parsedStdout = null;
+        }
+      }
+
       if (code !== 0) {
-        console.error('Pamyat Naroda stderr:', stderr);
-        // Return empty result instead of rejecting (archive might be unavailable)
-        resolve({ matches: [], matchedDataIds: [] });
+        console.error('Pamyat parser stderr:', stderr || '(empty)');
+        if (parsedStdout && typeof parsedStdout === 'object') {
+          resolve(parsedStdout);
+          return;
+        }
+        fallback.errors.push({ person_id: null, message: `Parser failed with code ${code}` });
+        resolve(fallback);
         return;
       }
-      try {
-        const result = JSON.parse(stdout);
-        resolve(result);
-      } catch (e) {
-        console.error('Failed to parse pamyat naroda output:', stdout);
-        resolve({ matches: [], matchedDataIds: [] });
+
+      if (parsedStdout && typeof parsedStdout === 'object') {
+        resolve(parsedStdout);
+      } else {
+        console.error('Failed to parse pamyat parser output:', stdout);
+        fallback.errors.push({ person_id: null, message: 'Failed to parse parser output JSON' });
+        resolve(fallback);
       }
     });
     
     python.on('error', (err) => {
-      console.error('Pamyat Naroda error:', err);
-      resolve({ matches: [], matchedDataIds: [] });
+      console.error('Pamyat parser error:', err);
+      debugLog(runId, 'H6', 'server.js:runPamyatParser:error', 'Failed to start or run python process', {
+        error: err.message
+      });
+      reject(err);
     });
     
     // Send input to Python script
     const input = JSON.stringify({
-      data: JSON.stringify(dataJson)
+      people,
+      personIds,
+      maxRecordsPerPerson: 5,
+      scoreThreshold: 70
     });
     python.stdin.write(input);
     python.stdin.end();
@@ -756,84 +773,127 @@ app.get('/api/people/:id/family', (req, res) => {
   res.json(familyInfo);
 });
 
-// Combined matching endpoint (smart-matching + pamyat-naroda)
+const sourceCacheEntry = (matches, errors = []) => ({
+  searchedAt: new Date().toISOString(),
+  status: matches.length > 0 ? 'matches_found' : 'no_matches',
+  source: PAMYAT_SOURCE_KEY,
+  sourceLabel: 'Память народа',
+  matches,
+  errors
+});
+
+const normalizePersonIds = (personIds, people) => {
+  if (!Array.isArray(personIds) || personIds.length === 0) {
+    return Object.keys(people);
+  }
+  const peopleSet = new Set(Object.keys(people));
+  return [...new Set(personIds.map(String).filter(id => peopleSet.has(id)))];
+};
+
+// Source search endpoint (currently Pamyat Naroda only)
 app.post('/api/smart-matching', async (req, res) => {
   try {
     const state = readDatabaseState();
     const data = { people: state.people };
-    const database = state.smartMatchingDatabase;
-    
-    // Run both searches in parallel
-    const [smartResult, archiveResult] = await Promise.all([
-      runSmartMatching(data, database),
-      runPamyatNaroda(data)
-    ]);
-    
-    // Filter smart matches to only include those with actual relatives to add
-    const validTreeMatches = (smartResult.matches || []).filter(match => {
-      if (!match.people) return false;
-      const fragmentPeopleCount = Object.keys(match.people).length;
-      return fragmentPeopleCount > 1;
+    const personIds = normalizePersonIds(req.body?.personIds, data.people);
+    const sources = req.body?.sources || {};
+    const shouldSearchPamyat = sources.pamyatNaroda !== false;
+
+    const peopleToSearch = [];
+    const cachedMatches = [];
+    personIds.forEach((personId) => {
+      const person = data.people[personId];
+      if (!person) return;
+      const sourceCache = person.sourceSearchCache?.[PAMYAT_SOURCE_KEY];
+      if (sourceCache && Array.isArray(sourceCache.matches)) {
+        cachedMatches.push(...sourceCache.matches);
+      } else {
+        peopleToSearch.push(personId);
+      }
     });
-    
-    // Archive matches are already filtered (only people without information)
-    const validArchiveMatches = archiveResult.matches || [];
-    
-    // Combine matched IDs from both sources
-    const treeMatchedIds = [...new Set(validTreeMatches.map(m => m.data_id))];
-    const archiveMatchedIds = archiveResult.matchedDataIds || [];
-    const allMatchedIds = [...new Set([...treeMatchedIds, ...archiveMatchedIds])];
-    
-    // Reset all hasMatch flags, then set true for people with any valid matches
-    Object.keys(data.people).forEach(id => {
-      data.people[id].hasMatch = allMatchedIds.includes(id);
+
+    let parserResult = {
+      source: PAMYAT_SOURCE_KEY,
+      sourceLabel: 'Память народа',
+      matches: [],
+      matchedDataIds: [],
+      processedPersonIds: [],
+      errors: []
+    };
+    if (shouldSearchPamyat && peopleToSearch.length > 0) {
+      parserResult = await runPamyatParser({
+        people: data.people,
+        personIds: peopleToSearch
+      });
+    }
+
+    const matchesByPersonId = {};
+    [...cachedMatches, ...(parserResult.matches || [])].forEach((match) => {
+      const personId = String(match.data_id);
+      if (!matchesByPersonId[personId]) matchesByPersonId[personId] = [];
+      matchesByPersonId[personId].push(match);
+    });
+
+    const errorsByPersonId = {};
+    (parserResult.errors || []).forEach((entry) => {
+      const personId = entry?.person_id ? String(entry.person_id) : null;
+      if (!personId) return;
+      if (!errorsByPersonId[personId]) errorsByPersonId[personId] = [];
+      errorsByPersonId[personId].push(entry);
+    });
+
+    personIds.forEach((personId) => {
+      const person = data.people[personId];
+      if (!person || !shouldSearchPamyat) return;
+      const existingCache = person.sourceSearchCache?.[PAMYAT_SOURCE_KEY];
+      if (existingCache && Array.isArray(existingCache.matches)) {
+        person.hasMatch = calculatePersonHasMatch(person);
+        return;
+      }
+      const personMatches = matchesByPersonId[personId] || [];
+      const personErrors = errorsByPersonId[personId] || [];
+      person.sourceSearchCache = person.sourceSearchCache || {};
+      person.sourceSearchCache[PAMYAT_SOURCE_KEY] = sourceCacheEntry(personMatches, personErrors);
+      person.hasMatch = calculatePersonHasMatch(person);
     });
 
     writeCurrentPeople(data.people);
-    
+
+    const allSourceMatches = personIds.flatMap((personId) => {
+      const cacheEntry = data.people[personId]?.sourceSearchCache?.[PAMYAT_SOURCE_KEY];
+      return cacheEntry?.matches || [];
+    });
+    const matchedDataIds = [...new Set(allSourceMatches.map(match => String(match.data_id)))];
+
     res.json({
-      treeMatches: validTreeMatches,
-      archiveMatches: validArchiveMatches,
-      matchedDataIds: allMatchedIds
+      treeMatches: [],
+      archiveMatches: allSourceMatches,
+      matchedDataIds,
+      processedPersonIds: personIds,
+      source: PAMYAT_SOURCE_KEY,
+      sourceLabel: 'Память народа'
     });
   } catch (error) {
-    console.error('Smart matching error:', error);
-    res.status(500).json({ error: 'Smart matching failed', details: error.message });
+    console.error('Source search error:', error);
+    res.status(500).json({ error: 'Source search failed', details: error.message });
   }
 });
 
-// Get matches for a specific person (both tree and archive)
+// Get cached source matches for a specific person
 app.get('/api/people/:id/matches', async (req, res) => {
   try {
     const state = readDatabaseState();
-    const data = { people: state.people };
-    const database = state.smartMatchingDatabase;
     const personId = req.params.id;
     
-    if (!data.people[personId]) {
+    if (!state.people[personId]) {
       return res.status(404).json({ error: 'Person not found' });
     }
-    
-    // Run both searches in parallel
-    const [smartResult, archiveResult] = await Promise.all([
-      runSmartMatching(data, database),
-      runPamyatNaroda(data)
-    ]);
-    
-    // Filter tree matches for this person with relatives to add
-    const personTreeMatches = (smartResult.matches || []).filter(m => {
-      if (m.data_id !== personId) return false;
-      if (!m.people) return false;
-      return Object.keys(m.people).length > 1;
-    });
-    
-    // Filter archive matches for this person
-    const personArchiveMatches = (archiveResult.matches || []).filter(m => 
-      m.data_id === personId
-    );
+
+    const sourceCache = state.people[personId].sourceSearchCache || {};
+    const personArchiveMatches = sourceCache[PAMYAT_SOURCE_KEY]?.matches || [];
     
     res.json({ 
-      treeMatches: personTreeMatches,
+      treeMatches: [],
       archiveMatches: personArchiveMatches
     });
   } catch (error) {

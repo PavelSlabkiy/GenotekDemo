@@ -1,8 +1,24 @@
 import requests
 import json
 import sys
+from datetime import datetime
 from bs4 import BeautifulSoup
 from smart_matching import SmartMatching
+
+DEBUG_LOG_PATH = "/Users/pavelslabkiy/Projects/Genotek/.cursor/debug-10f686.log"
+
+def emit_debug_log(hypothesis_id, location, message, data=None, run_id="pre-fix"):
+    payload = {
+        "sessionId": "10f686",
+        "runId": run_id,
+        "hypothesisId": hypothesis_id,
+        "location": location,
+        "message": message,
+        "data": data or {},
+        "timestamp": int(datetime.utcnow().timestamp() * 1000),
+    }
+    with open(DEBUG_LOG_PATH, "a", encoding="utf-8") as fh:
+        fh.write(json.dumps(payload, ensure_ascii=False) + "\n")
 
 class PamyatNarodaParser:
 
@@ -19,6 +35,9 @@ class PamyatNarodaParser:
         '''
         Инициализируем сессию, получаем токен и куки
         '''
+        # region agent log
+        emit_debug_log("H2", "pamyat_naroda.py:setup_session:start", "Starting session bootstrap", {})
+        # endregion
         session = requests.Session()
         url_search_page = "https://pamyat-naroda.ru/heroes/"
         response = session.get(url_search_page)
@@ -29,6 +48,9 @@ class PamyatNarodaParser:
         csrf_token = csrf_input["value"] if csrf_input else None
 
         if not csrf_token:
+            # region agent log
+            emit_debug_log("H2", "pamyat_naroda.py:setup_session:csrf", "CSRF token missing on search page", {"status_code": response.status_code})
+            # endregion
             raise Exception("Не удалось получить CSRF токен")
 
         session.headers.update({
@@ -190,6 +212,9 @@ class PamyatNarodaParser:
 # ------------------------------------------------------------------------------
 if __name__ == "__main__":
     payload = sys.stdin.read()
+    # region agent log
+    emit_debug_log("H3", "pamyat_naroda.py:main:stdin", "Received stdin payload", {"payloadLength": len(payload or "")})
+    # endregion
     if not payload:
         print(json.dumps({"matches": [], "matchedDataIds": []}))
         sys.exit(0)
@@ -197,11 +222,23 @@ if __name__ == "__main__":
     try:
         obj = json.loads(payload)
         data = obj.get("data")
+        # region agent log
+        emit_debug_log("H3", "pamyat_naroda.py:main:json", "Parsed stdin JSON", {"hasDataField": "data" in obj, "dataType": type(data).__name__})
+        # endregion
         
         PN = PamyatNarodaParser(init_session=True, trashhold=90)
+        # region agent log
+        emit_debug_log("H2_H3", "pamyat_naroda.py:main:parser_init", "Parser initialized", {"sessionInitialized": PN.session is not None})
+        # endregion
         result = PN.archive_search(data)
+        # region agent log
+        emit_debug_log("H4", "pamyat_naroda.py:main:result", "Archive search completed", {"matches": len(result.get("matches", [])), "matchedDataIds": len(result.get("matchedDataIds", []))})
+        # endregion
         
         print(json.dumps(result))
     except Exception as e:
+        # region agent log
+        emit_debug_log("H2_H3_H4", "pamyat_naroda.py:main:exception", "Unhandled exception in main", {"errorType": type(e).__name__, "error": str(e)})
+        # endregion
         print(json.dumps({"matches": [], "matchedDataIds": [], "error": str(e)}))
         sys.exit(1)
