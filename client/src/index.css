@@ -137,13 +137,13 @@ body {
 
 /* Right Toolbar */
 .right-toolbar {
-  position: absolute;
+  position: fixed;
   top: 20px;
   right: 20px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  z-index: 100;
+  z-index: 220;
 }
 
 .toolbar-btn {
@@ -345,6 +345,34 @@ body {
   position: absolute;
   top: 0;
   left: 0;
+}
+
+.tree-group-controls {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+.tree-group-toggle {
+  position: absolute;
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  font-size: 0.72rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #1e293b;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+}
+
+.tree-group-toggle:hover {
+  border-color: #1b3463;
+  color: #1b3463;
 }
 
 /* Person Node */
