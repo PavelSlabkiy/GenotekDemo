@@ -516,6 +516,16 @@ body {
   font-weight: 600;
 }
 
+.smart-source-link {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.smart-source-link:hover {
+  color: #1d4ed8;
+}
+
 .smart-source-meta {
   margin: 2px 0;
   color: var(--text-secondary);

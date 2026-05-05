@@ -2985,7 +2985,19 @@ function App() {
                                 )}
                               </div>
                               <p className="smart-source-title">
-                                {record.title || getPersonLabel(record)}
+                                {record.url ? (
+                                  <a
+                                    href={record.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="smart-source-link"
+                                    title="Открыть документ в источнике"
+                                  >
+                                    {record.title || getPersonLabel(record)}
+                                  </a>
+                                ) : (
+                                  record.title || getPersonLabel(record)
+                                )}
                               </p>
                               {record.birthDate && (
                                 <p className="smart-source-meta">Дата рождения: {record.birthDate}</p>
