@@ -67,3 +67,11 @@ Thumbs.db
 *.class
 *.o
 *.so
+
+# ---------------------
+# Local data and IDE artifacts
+# ---------------------
+database.json
+example.json
+trees/
+.cursor/

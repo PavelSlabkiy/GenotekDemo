@@ -20,11 +20,11 @@
 - Система подписок для доступа к данным других пользователей
 - Запрос доступа к приватным деревьям
 
-### 📜 Память Народа — Поиск в архивах
-- Интеграция с архивом «Память народа» (pamyat-naroda.ru)
-- Автоматический поиск информации о родственниках в военных архивах
-- AI-суммаризация найденных данных (Llama 3.3 через OpenRouter)
-- Добавление архивной информации в карточку человека
+### 📜 Архивные парсеры
+- Интеграция с архивом «Память народа» (`pamyat_parser.py`)
+- Интеграция с «Герои великой войны» (`gwar_parser.py`)
+- Интеграция с «Открытый список» (`openlist_parser.py`)
+- Единый формат архивных совпадений для UI
 
 ### 🎨 Современный UX/UI
 - Интерактивное древо с drag-and-drop навигацией
@@ -38,26 +38,16 @@
 ## Структура проекта
 
 ```
-ett/
+qhp/
 ├── server/                    # Backend (Node.js + Express)
-│   ├── server.js              # API сервер с маршрутами
-│   └── package.json
 ├── client/                    # Frontend (React + Vite)
-│   ├── src/
-│   │   ├── App.jsx            # Главный компонент с логикой приложения
-│   │   ├── main.jsx           # Точка входа React
-│   │   └── index.css          # Стили (CSS Variables, анимации)
-│   ├── public/
-│   │   └── assets/            # Статические ресурсы
-│   │       ├── instruction_1.gif
-│   │       ├── instruction_2.gif
-│   │       └── instruction_3.gif
-│   ├── index.html
-│   ├── vite.config.js
-│   └── package.json
 ├── smart_matching.py          # Модуль SmartMatching (Python)
-├── pamyat_naroda.py           # Модуль Память Народа (Python)
-├── database.json              # Единое хранилище в формате example.json
+├── pamyat_parser.py           # Парсер Память Народа
+├── gwar_parser.py             # Парсер Герои Великой войны
+├── openlist_parser.py         # Парсер Открытый список
+├── trees/                     # Локальные GEDCOM-файлы (gitignored)
+├── database.json              # Локальное хранилище (gitignored)
+├── example.json               # Локальный пример данных (gitignored)
 └── README.md
 ```
 
@@ -84,7 +74,7 @@ npm install
 
 #### Python зависимости:
 ```bash
-pip install rapidfuzz requests beautifulsoup4
+pip install rapidfuzz
 ```
 
 ### 2. Запуск приложения
@@ -216,9 +206,15 @@ npm run dev
 
 ### Python модули
 - **RapidFuzz** — нечёткое сравнение строк
-- **BeautifulSoup4** — парсинг HTML
-- **Requests** — HTTP запросы
-- **OpenRouter API** — AI суммаризация (Llama 3.3)
+- **urllib/json/ssl/re** — сетевые запросы и парсинг ответов архивов
+
+## Локальные файлы (не в Git)
+
+В `.gitignore` добавлены локальные артефакты разработки:
+- `database.json`
+- `example.json`
+- `trees/`
+- `.cursor/`
 
 ## Алгоритм SmartMatching
 
