@@ -4817,6 +4817,26 @@
         ],
         "errors": []
       }
-    }
+    },
+    "documents": [
+      {
+        "sourceLabel": "Открытый список",
+        "title": "Авинов Терентий Алексеевич (1892)",
+        "url": "https://ru.openlist.wiki/%D0%90%D0%B2%D0%B8%D0%BD%D0%BE%D0%B2_%D0%A2%D0%B5%D1%80%D0%B5%D0%BD%D1%82%D0%B8%D0%B9_%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B5%D0%B5%D0%B2%D0%B8%D1%87_(1892)",
+        "birthDate": "",
+        "birthPlace": "",
+        "information": "",
+        "score": 70.00000000000001
+      },
+      {
+        "sourceLabel": "Герои великой войны",
+        "title": "Авинов (Авенов) Терентий Алексеевич",
+        "url": "https://gwar.mil.ru/heroes/chelovek_gospital225568/",
+        "birthDate": "",
+        "birthPlace": "Томская губ., Бийский округ, Сростинская вол., д. Сростки",
+        "information": "рядовой | 296-й пехотный Грязовецкий полк | РГВИА",
+        "score": 60
+      }
+    ]
   }
 ]

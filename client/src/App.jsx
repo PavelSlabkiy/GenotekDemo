@@ -130,6 +130,39 @@ const getSourceRecords = (person, sourceKey) => {
   return records;
 };
 
+const getDocumentKey = (document = {}) => {
+  const keyParts = [
+    document.id,
+    document.sourceLabel,
+    document.url,
+    document.title,
+    document.birthDate,
+    document.birthPlace,
+    document.information
+  ];
+  return keyParts
+    .filter((part) => part !== undefined && part !== null && String(part).trim())
+    .join('|');
+};
+
+const normalizeDocumentRecord = (record = {}) => ({
+  sourceLabel: record.sourceLabel || 'Источник',
+  title: record.title || getPersonLabel(record),
+  url: record.url || '',
+  birthDate: record.birthDate || '',
+  birthPlace: record.birthPlace || '',
+  information: record.information || '',
+  score: typeof record.score === 'number' ? record.score : null
+});
+
+const getDocumentSourceClass = (sourceLabel = '') => {
+  const normalized = String(sourceLabel).toLowerCase();
+  if (normalized.includes('память народа')) return 'source-pamyat';
+  if (normalized.includes('открытый список')) return 'source-openlist';
+  if (normalized.includes('герои великой войны')) return 'source-gwar';
+  return '';
+};
+
 const pickFocalPersonId = (people, selectedPersonId) => {
   if (selectedPersonId && people[selectedPersonId]) return selectedPersonId;
 
@@ -1175,7 +1208,8 @@ const EditModal = ({ isOpen, person, onSave, onClose }) => {
     middleName: '',
     birthDate: '',
     birthPlace: '',
-    information: ''
+    information: '',
+    documents: []
   });
 
   useEffect(() => {
@@ -1186,7 +1220,8 @@ const EditModal = ({ isOpen, person, onSave, onClose }) => {
         middleName: person.middleName || '',
         birthDate: person.birthDate || '',
         birthPlace: person.birthPlace || '',
-        information: person.information || ''
+        information: person.information || '',
+        documents: Array.isArray(person.documents) ? person.documents : []
       });
     }
   }, [person]);
@@ -1269,6 +1304,63 @@ const EditModal = ({ isOpen, person, onSave, onClose }) => {
                 placeholder="Введите описание"
                 rows={4}
               />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Документы</label>
+              {formData.documents.length === 0 ? (
+                <p className="form-help-text">Нет добавленных документов</p>
+              ) : (
+                <div className="edit-documents-list">
+                  {formData.documents.map((document, index) => (
+                    <article key={`${getDocumentKey(document)}-${index}`} className="smart-source-result-item">
+                      <div className="smart-source-result-header">
+                        <div className="smart-source-header-left">
+                          <button
+                            type="button"
+                            className="smart-source-remove-btn"
+                            title="Удалить документ"
+                            onClick={() => {
+                              setFormData((prev) => ({
+                                ...prev,
+                                documents: prev.documents.filter((_, itemIndex) => itemIndex !== index)
+                              }));
+                            }}
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                          <span className={`smart-source-name ${getDocumentSourceClass(document.sourceLabel)}`.trim()}>
+                            {document.sourceLabel || 'Источник'}
+                          </span>
+                        </div>
+                      </div>
+                      <p className="smart-source-title">
+                        {document.url ? (
+                          <a
+                            href={document.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="smart-source-link"
+                            title="Открыть документ в источнике"
+                          >
+                            {document.title || 'Документ'}
+                          </a>
+                        ) : (
+                          document.title || 'Документ'
+                        )}
+                      </p>
+                      {document.birthDate && (
+                        <p className="smart-source-meta">Дата рождения: {document.birthDate}</p>
+                      )}
+                      {document.birthPlace && (
+                        <p className="smart-source-meta">Место рождения: {document.birthPlace}</p>
+                      )}
+                      {document.information && (
+                        <p className="smart-source-meta">{document.information}</p>
+                      )}
+                    </article>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
           <div className="edit-modal-actions">
@@ -1454,6 +1546,7 @@ const PersonCard = ({ person, people, onClose, onEdit, onAddRelative, onDelete, 
   const father = person.fatherId ? people[person.fatherId] : null;
   const mother = person.motherId ? people[person.motherId] : null;
   const children = (person.children || []).map(id => people[id]).filter(Boolean);
+  const documents = Array.isArray(person.documents) ? person.documents : [];
   
   // Get siblings
   const siblings = Object.values(people).filter(p => {
@@ -1631,6 +1724,47 @@ const PersonCard = ({ person, people, onClose, onEdit, onAddRelative, onDelete, 
             <div className="card-section">
               <h4 className="card-section-title">Описание</h4>
               <p className="card-description">{person.information}</p>
+            </div>
+          )}
+
+          {documents.length > 0 && (
+            <div className="card-section">
+              <h4 className="card-section-title">Документы</h4>
+              <div className="card-documents-list">
+                {documents.map((document, index) => (
+                  <article key={`${getDocumentKey(document)}-${index}`} className="smart-source-result-item">
+                    <div className="smart-source-result-header">
+                      <span className={`smart-source-name ${getDocumentSourceClass(document.sourceLabel)}`.trim()}>
+                        {document.sourceLabel || 'Источник'}
+                      </span>
+                    </div>
+                    <p className="smart-source-title">
+                      {document.url ? (
+                        <a
+                          href={document.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="smart-source-link"
+                          title="Открыть документ в источнике"
+                        >
+                          {document.title || 'Документ'}
+                        </a>
+                      ) : (
+                        document.title || 'Документ'
+                      )}
+                    </p>
+                    {document.birthDate && (
+                      <p className="smart-source-meta">Дата рождения: {document.birthDate}</p>
+                    )}
+                    {document.birthPlace && (
+                      <p className="smart-source-meta">Место рождения: {document.birthPlace}</p>
+                    )}
+                    {document.information && (
+                      <p className="smart-source-meta">{document.information}</p>
+                    )}
+                  </article>
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -2373,6 +2507,7 @@ function App() {
   const [searchCriteria, setSearchCriteria] = useState(DEFAULT_SMART_SEARCH_CRITERIA);
   const [isSmartSearchRunning, setIsSmartSearchRunning] = useState(false);
   const [expandedSmartSearchCards, setExpandedSmartSearchCards] = useState({});
+  const [selectedSmartSearchDocuments, setSelectedSmartSearchDocuments] = useState({});
 
   // Show notification as long as there are any unconfirmed matches (people with hasMatch = true)
   const showMatchFoundNotification = useMemo(() => {
@@ -2539,6 +2674,96 @@ function App() {
       ...prev,
       [criteriaKey]: !prev[criteriaKey]
     }));
+  };
+
+  const handleSourceDocumentToggle = (personId, record) => {
+    const recordKey = getDocumentKey(record);
+    if (!recordKey) return;
+    setSelectedSmartSearchDocuments((prev) => {
+      const currentKeys = prev[personId] || [];
+      const exists = currentKeys.includes(recordKey);
+      return {
+        ...prev,
+        [personId]: exists
+          ? currentKeys.filter((key) => key !== recordKey)
+          : [...currentKeys, recordKey]
+      };
+    });
+  };
+
+  const savePersonDocuments = async (personId, documents, successMessage) => {
+    const response = await fetch(`${API_URL}/people/${personId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ documents })
+    });
+    if (!response.ok) {
+      throw new Error('Не удалось сохранить документы');
+    }
+    const updatedPerson = await response.json();
+    setPeople((prev) => ({
+      ...prev,
+      [updatedPerson.id]: updatedPerson
+    }));
+    setSelectedPerson((prev) => (prev?.id === updatedPerson.id ? updatedPerson : prev));
+    if (successMessage) {
+      showToast(successMessage);
+    }
+    return updatedPerson;
+  };
+
+  const handleAddDocumentsToPersonCard = async (person, sourceRecords) => {
+    const selectedKeys = selectedSmartSearchDocuments[person.id] || [];
+    if (!selectedKeys.length) {
+      showToast('Выберите хотя бы один документ', 'error');
+      return;
+    }
+
+    const selectedRecords = sourceRecords.filter((record) => selectedKeys.includes(getDocumentKey(record)));
+    if (!selectedRecords.length) {
+      showToast('Выбранные документы не найдены', 'error');
+      return;
+    }
+
+    const existingDocuments = Array.isArray(person.documents) ? person.documents : [];
+    const mergedMap = new Map();
+    existingDocuments.forEach((document) => {
+      const key = getDocumentKey(document);
+      if (!key) return;
+      mergedMap.set(key, normalizeDocumentRecord(document));
+    });
+    selectedRecords.forEach((record) => {
+      const normalized = normalizeDocumentRecord(record);
+      const key = getDocumentKey(normalized);
+      if (!key) return;
+      mergedMap.set(key, normalized);
+    });
+    const nextDocuments = Array.from(mergedMap.values());
+
+    try {
+      await savePersonDocuments(person.id, nextDocuments, 'Документы добавлены в карточку');
+      setSelectedSmartSearchDocuments((prev) => ({
+        ...prev,
+        [person.id]: []
+      }));
+    } catch (error) {
+      console.error('Error adding documents:', error);
+      showToast('Ошибка добавления документов', 'error');
+    }
+  };
+
+  const handleRemoveDocumentFromPersonCard = async (person, document, index) => {
+    const targetKey = `${getDocumentKey(document)}-${index}`;
+    const currentDocuments = Array.isArray(person.documents) ? person.documents : [];
+    const nextDocuments = currentDocuments.filter((item, itemIndex) => (
+      `${getDocumentKey(item)}-${itemIndex}` !== targetKey
+    ));
+    try {
+      await savePersonDocuments(person.id, nextDocuments, 'Документ возвращен в ожидающие подтверждения');
+    } catch (error) {
+      console.error('Error removing document:', error);
+      showToast('Ошибка удаления документа', 'error');
+    }
   };
 
   const sidebarNav = [
@@ -2901,6 +3126,8 @@ function App() {
               <div className="smart-search-cards">
                 {smartSearchPeople.map((person) => {
                   const personName = getFullName(person) || 'Без имени';
+                  const personDocuments = Array.isArray(person.documents) ? person.documents : [];
+                  const confirmedDocumentKeys = new Set(personDocuments.map((document) => getDocumentKey(document)));
                   const isSelected = selectedSmartSearchIds.includes(person.id);
                   const isReady = isReadyForSmartSearch(person, searchCriteria);
                   const statusSourceKeys = SMART_SEARCH_SUPPORTED_SOURCE_KEYS.filter((sourceKey) => searchSources[sourceKey]);
@@ -2916,8 +3143,12 @@ function App() {
                     return sourceCache && Array.isArray(sourceCache.matches);
                   });
                   const expanded = Boolean(expandedSmartSearchCards[person.id]);
+                  const pendingSourceRecords = sourceRecords.filter(
+                    (record) => !confirmedDocumentKeys.has(getDocumentKey(record))
+                  );
+                  const selectedDocumentKeys = selectedSmartSearchDocuments[person.id] || [];
                   const statusLabel = hasMatches
-                    ? 'Найдены совпадения'
+                    ? 'Найдено совпадение'
                     : hasSourceCache
                       ? 'Совпадений не найдено'
                       : isReady
@@ -2960,12 +3191,77 @@ function App() {
                         <MapPin size={14} />
                         {person.birthPlace || 'Не указано'}
                       </p>
+                      {person.information && (
+                        <p>{person.information}</p>
+                      )}
+                      {personDocuments.length > 0 && (
+                        <div className="smart-saved-documents">
+                          <h4 className="smart-saved-documents-title">Документы</h4>
+                          <div className="smart-source-results smart-source-results-saved">
+                            {personDocuments.map((document, index) => (
+                              <article key={`${getDocumentKey(document)}-${index}`} className="smart-source-result-item">
+                                <div className="smart-source-result-header">
+                                  <div className="smart-source-header-left">
+                                    <button
+                                      type="button"
+                                      className="smart-source-remove-btn"
+                                      title="Вернуть в ожидающие подтверждения"
+                                      onClick={() => handleRemoveDocumentFromPersonCard(person, document, index)}
+                                    >
+                                      <Trash2 size={14} />
+                                    </button>
+                                    <span className={`smart-source-name ${getDocumentSourceClass(document.sourceLabel)}`.trim()}>
+                                      {document.sourceLabel || 'Источник'}
+                                    </span>
+                                  </div>
+                                </div>
+                                <p className="smart-source-title">
+                                  {document.url ? (
+                                    <a
+                                      href={document.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="smart-source-link"
+                                      title="Открыть документ в источнике"
+                                    >
+                                      {document.title || 'Документ'}
+                                    </a>
+                                  ) : (
+                                    document.title || 'Документ'
+                                  )}
+                                </p>
+                                {document.birthDate && (
+                                  <p className="smart-source-meta">Дата рождения: {document.birthDate}</p>
+                                )}
+                                {document.birthPlace && (
+                                  <p className="smart-source-meta">Место рождения: {document.birthPlace}</p>
+                                )}
+                                {document.information && (
+                                  <p className="smart-source-meta">{document.information}</p>
+                                )}
+                              </article>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                       {expanded && (
                         <div className="smart-source-results">
-                          {sourceRecords.map((record, index) => (
+                          <h4 className="smart-pending-documents-title">Ожидают подтверждения</h4>
+                          {pendingSourceRecords.map((record, index) => (
                             <article key={`${person.id}-${index}`} className="smart-source-result-item">
                               <div className="smart-source-result-header">
-                                <span className="smart-source-name">{record.sourceLabel || 'Источник'}</span>
+                                <div className="smart-source-header-left">
+                                  <label className="smart-source-record-checkbox" title="Выбрать документ">
+                                    <input
+                                      type="checkbox"
+                                      checked={selectedDocumentKeys.includes(getDocumentKey(record))}
+                                      onChange={() => handleSourceDocumentToggle(person.id, record)}
+                                    />
+                                  </label>
+                                  <span className={`smart-source-name ${getDocumentSourceClass(record.sourceLabel)}`.trim()}>
+                                    {record.sourceLabel || 'Источник'}
+                                  </span>
+                                </div>
                                 {typeof record.score === 'number' && (
                                   <span className="smart-source-score">{record.score.toFixed(1)}%</span>
                                 )}
@@ -2996,6 +3292,16 @@ function App() {
                               )}
                             </article>
                           ))}
+                          {pendingSourceRecords.length > 0 && (
+                            <button
+                              type="button"
+                              className="btn btn-primary smart-add-documents-btn"
+                              onClick={() => handleAddDocumentsToPersonCard(person, pendingSourceRecords)}
+                              disabled={selectedDocumentKeys.length === 0}
+                            >
+                              Добавить в карточку
+                            </button>
+                          )}
                         </div>
                       )}
                       {hasMatches && (
@@ -3370,7 +3676,7 @@ function App() {
                   <p>Мы уделяем особое внимание защите персональных данных наших клиентов. Для добавления родственников из другого древа необходимо запросить доступ у владельца.</p>
                 )}
                 {tutorialStep === 3 && (
-                  <p>Сейчас вам доступно добавление информации о родственниках из архивных данных. Для расширения древа за счёт ваших родственников в других деревьях необходимо оформить подписку «Умный поиск».</p>
+                  <p>Попробуйте умный поиск прямо сейчас!</p>
                 )}
               </div>
               

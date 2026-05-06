@@ -417,13 +417,18 @@ body {
 .smart-ready-badge {
   padding: 4px 10px;
   border-radius: 999px;
-  background: rgba(16, 185, 129, 0.12);
-  color: #059669;
+  background: rgba(148, 163, 184, 0.16);
+  color: #475569;
   font-size: 0.72rem;
   font-weight: 600;
 }
 
 .smart-ready-badge.found {
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+}
+
+.smart-ready-badge.ready {
   background: rgba(37, 99, 235, 0.14);
   color: #1d4ed8;
 }
@@ -434,8 +439,8 @@ body {
 }
 
 .smart-ready-badge.pending {
-  background: rgba(148, 163, 184, 0.16);
-  color: #475569;
+  background: rgba(245, 158, 11, 0.16);
+  color: #b45309;
 }
 
 .smart-explore-btn {
@@ -514,6 +519,10 @@ body {
   gap: 8px;
 }
 
+.smart-source-results-saved {
+  margin-top: 8px;
+}
+
 .smart-source-result-item {
   border: 1px solid var(--border-color);
   border-radius: 10px;
@@ -529,10 +538,60 @@ body {
   margin-bottom: 6px;
 }
 
+.smart-source-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.smart-source-record-checkbox {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.smart-source-record-checkbox input {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.smart-source-remove-btn {
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-primary);
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.smart-source-remove-btn:hover {
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
 .smart-source-name {
   font-size: 0.78rem;
   font-weight: 600;
   color: #1d4ed8;
+}
+
+.smart-source-name.source-pamyat {
+  color: rgb(221, 66, 63);
+}
+
+.smart-source-name.source-openlist {
+  color: rgb(45, 45, 45);
+}
+
+.smart-source-name.source-gwar {
+  color: rgb(201, 160, 85);
 }
 
 .smart-source-score {
@@ -562,6 +621,32 @@ body {
   margin: 2px 0;
   color: var(--text-secondary);
   font-size: 0.82rem;
+}
+
+.smart-add-documents-btn {
+  margin-top: 4px;
+  width: 100%;
+  justify-content: center;
+}
+
+.smart-saved-documents {
+  margin-top: 10px;
+}
+
+.smart-saved-documents-title {
+  margin: 0 0 6px;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.smart-pending-documents-title {
+  margin: 2px 0 2px;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
 }
 
 .smart-search-panel {
@@ -1088,6 +1173,12 @@ body {
   white-space: pre-wrap;
 }
 
+.card-documents-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .relative-list {
   display: flex;
   flex-wrap: wrap;
@@ -1335,6 +1426,19 @@ body {
   resize: vertical;
   min-height: 80px;
   font-family: inherit;
+}
+
+.form-help-text {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.edit-documents-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
 }
 
 .form-row {

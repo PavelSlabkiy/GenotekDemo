@@ -154,6 +154,9 @@ const parseLegacyPeopleMapToEntries = (peopleMap, treeId = 'tree-main') => {
     if (person.information) {
       entry.information = person.information;
     }
+    if (Array.isArray(person.documents) && person.documents.length > 0) {
+      entry.documents = person.documents;
+    }
     return entry;
   });
 };
@@ -234,7 +237,8 @@ const buildPeopleFromEntries = (entries) => {
       birthPlace: firstString(entry.birthplace),
       hasMatch: Boolean(entry.hasMatch),
       sourceSearchCache: entry.sourceSearchCache || {},
-      information: entry.information || ''
+      information: entry.information || '',
+      documents: Array.isArray(entry.documents) ? entry.documents : []
     };
     people[id].hasMatch = calculatePersonHasMatch(people[id]) || people[id].hasMatch;
   });
@@ -386,6 +390,12 @@ const convertPeopleToEntries = (people, treeId, existingEntries = []) => {
       entry.information = person.information;
     } else {
       delete entry.information;
+    }
+
+    if (Array.isArray(person.documents) && person.documents.length > 0) {
+      entry.documents = person.documents;
+    } else {
+      delete entry.documents;
     }
 
     return entry;
@@ -557,7 +567,9 @@ app.post('/api/people', (req, res) => {
     isAlive: req.body.isAlive !== undefined ? req.body.isAlive : true,
     birthDate: req.body.birthDate || '',
     birthPlace: req.body.birthPlace || '',
-    hasMatch: req.body.hasMatch || false
+    hasMatch: req.body.hasMatch || false,
+    information: req.body.information || '',
+    documents: Array.isArray(req.body.documents) ? req.body.documents : []
   };
 
   people[newPerson.id] = newPerson;
@@ -663,7 +675,9 @@ app.post('/api/people/:id/relative', (req, res) => {
     isAlive: true,
     birthDate: relativeData.birthDate || '',
     birthPlace: relativeData.birthPlace || '',
-    hasMatch: false
+    hasMatch: false,
+    information: relativeData.information || '',
+    documents: Array.isArray(relativeData.documents) ? relativeData.documents : []
   };
   
   switch (relationType) {
