@@ -1,0 +1,1165 @@
+[{
+  "_id": {
+    "$oid": "68ea2cc0da9be35dc91bd513"
+  },
+  "patientId": 1366540,
+  "gender": "Male",
+  "name": [
+    "Artem"
+  ],
+  "surname": [
+    "Nozdrin"
+  ],
+  "treeId": {
+    "$oid": "68ea2cc0da9be35dc91bd512"
+  },
+  "relatives": [
+    {
+      "id": {
+        "$oid": "68ea2cc0da9be35dc91bd514"
+      },
+      "relationType": "parent"
+    },
+    {
+      "id": {
+        "$oid": "68ea2cc0da9be35dc91bd515"
+      },
+      "relationType": "parent"
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "68ea2cc0da9be35dc91bd514"
+  },
+  "treeId": {
+    "$oid": "68ea2cc0da9be35dc91bd512"
+  },
+  "gender": "Male",
+  "relatives": [
+    {
+      "id": {
+        "$oid": "68ea2cc0da9be35dc91bd513"
+      },
+      "relationType": "child"
+    },
+    {
+      "id": {
+        "$oid": "68ea2cc0da9be35dc91bd515"
+      },
+      "relationType": "spouse"
+    },
+    {
+      "id": {
+        "$oid": "68ea2cc0da9be35dc91bd516"
+      },
+      "relationType": "parent"
+    },
+    {
+      "id": {
+        "$oid": "68ea2cc0da9be35dc91bd517"
+      },
+      "relationType": "parent"
+    }
+  ],
+  "relationships": [
+    {
+      "with": {
+        "$oid": "68ea2cc0da9be35dc91bd515"
+      },
+      "type": "official",
+      "finished": null,
+      "from": [
+        {
+          "day": null,
+          "month": null,
+          "year": null
+        }
+      ],
+      "to": [
+        {
+          "day": null,
+          "month": null,
+          "year": null
+        }
+      ]
+    }
+  ],
+  "birthdate": [
+    {
+      "day": 26,
+      "month": 1,
+      "year": 1975
+    }
+  ],
+  "middleName": [
+    "Анатольевич"
+  ],
+  "name": [
+    "Вячеслав"
+  ],
+  "surname": [
+    "Ноздрин"
+  ]
+},
+{
+  "_id": {
+    "$oid": "68ea2cc0da9be35dc91bd515"
+  },
+  "gender": "Female",
+  "treeId": {
+    "$oid": "68ea2cc0da9be35dc91bd512"
+  },
+  "relatives": [
+    {
+      "id": {
+        "$oid": "68ea2cc0da9be35dc91bd514"
+      },
+      "relationType": "spouse"
+    },
+    {
+      "id": {
+        "$oid": "68ea2cc0da9be35dc91bd513"
+      },
+      "relationType": "child"
+    },
+    {
+      "id": {
+        "$oid": "68ea2cc0da9be35dc91bd518"
+      },
+      "relationType": "parent"
+    },
+    {
+      "id": {
+        "$oid": "68ea2cc0da9be35dc91bd519"
+      },
+      "relationType": "parent"
+    }
+  ],
+  "birthdate": [
+    {
+      "day": 4,
+      "month": 2,
+      "year": 1978
+    }
+  ],
+  "maidenName": [
+    "Хабибулина"
+  ],
+  "middleName": [
+    "Анатольевна"
+  ],
+  "name": [
+    "Ольга"
+  ],
+  "relationships": [
+    {
+      "with": {
+        "$oid": "68ea2cc0da9be35dc91bd514"
+      },
+      "type": "official",
+      "finished": null,
+      "from": [
+        {
+          "day": null,
+          "month": null,
+          "year": null
+        }
+      ],
+      "to": [
+        {
+          "day": null,
+          "month": null,
+          "year": null
+        }
+      ]
+    }
+  ],
+  "surname": [
+    "Ноздрина"
+  ]
+},
+{
+  "_id": {
+    "$oid": "68ea2cc0da9be35dc91bd516"
+  },
+  "treeId": {
+    "$oid": "68ea2cc0da9be35dc91bd512"
+  },
+  "gender": "Male",
+  "relatives": [
+    {
+      "id": {
+        "$oid": "68ea2cc0da9be35dc91bd514"
+      },
+      "relationType": "child"
+    },
+    {
+      "id": {
+        "$oid": "68ea2cc0da9be35dc91bd517"
+      },
+      "relationType": "spouse"
+    },
+    {
+      "id": {
+        "$oid": "69ec71b3d4528e01b4c61243"
+      },
+      "relationType": "parent"
+    },
+    {
+      "id": {
+        "$oid": "69ec71bb4631143b2ca22fcb"
+      },
+      "relationType": "parent"
+    }
+  ],
+  "birthdate": [
+    {
+      "day": 29,
+      "month": 4,
+      "year": 1951
+    }
+  ],
+  "deathdate": [
+    {
+      "day": null,
+      "month": null,
+      "year": 2020
+    }
+  ],
+  "liveOrDead": 0,
+  "middleName": [
+    "Леонидович"
+  ],
+  "name": [
+    "Анатолий"
+  ],
+  "relationships": [
+    {
+      "with": {
+        "$oid": "68ea2cc0da9be35dc91bd517"
+      },
+      "type": null,
+      "finished": null,
+      "from": [
+        {
+          "day": null,
+          "month": null,
+          "year": null
+        }
+      ],
+      "to": [
+        {
+          "day": null,
+          "month": null,
+          "year": null
+        }
+      ]
+    }
+  ],
+  "surname": [
+    "Ноздрин"
+  ]
+},
+{
+  "_id": {
+    "$oid": "68ea2cc0da9be35dc91bd517"
+  },
+  "gender": "Female",
+  "treeId": {
+    "$oid": "68ea2cc0da9be35dc91bd512"
+  },
+  "relatives": [
+    {
+      "id": {
+        "$oid": "68ea2cc0da9be35dc91bd516"
+      },
+      "relationType": "spouse"
+    },
+    {
+      "id": {
+        "$oid": "68ea2cc0da9be35dc91bd514"
+      },
+      "relationType": "child"
+    },
+    {
+      "id": {
+        "$oid": "69ec71582d2ada0deeede8ee"
+      },
+      "relationType": "parent"
+    },
+    {
+      "id": {
+        "$oid": "69ec71622d2ada0deeede8ef"
+      },
+      "relationType": "parent"
+    }
+  ],
+  "relationships": [
+    {
+      "with": {
+        "$oid": "68ea2cc0da9be35dc91bd516"
+      },
+      "type": null,
+      "finished": null,
+      "from": [
+        {
+          "day": null,
+          "month": null,
+          "year": null
+        }
+      ],
+      "to": [
+        {
+          "day": null,
+          "month": null,
+          "year": null
+        }
+      ]
+    }
+  ],
+  "birthdate": [
+    {
+      "day": 5,
+      "month": 4,
+      "year": 1954
+    }
+  ],
+  "middleName": [
+    "Николаевна"
+  ],
+  "name": [
+    "Людмила"
+  ],
+  "surname": [
+    "Ноздрина"
+  ]
+},
+{
+  "_id": {
+    "$oid": "68ea2cc0da9be35dc91bd518"
+  },
+  "treeId": {
+    "$oid": "68ea2cc0da9be35dc91bd512"
+  },
+  "gender": "Female",
+  "relatives": [
+    {
+      "id": {
+        "$oid": "68ea2cc0da9be35dc91bd515"
+      },
+      "relationType": "child"
+    },
+    {
+      "id": {
+        "$oid": "68ea2cc0da9be35dc91bd519"
+      },
+      "relationType": "spouse"
+    },
+    {
+      "id": {
+        "$oid": "69ec702e2d2ada0deeede8e9"
+      },
+      "relationType": "parent"
+    },
+    {
+      "id": {
+        "$oid": "69ec7037d41400eb7ed33224"
+      },
+      "relationType": "parent"
+    }
+  ],
+  "relationships": [
+    {
+      "with": {
+        "$oid": "68ea2cc0da9be35dc91bd519"
+      },
+      "type": "official",
+      "finished": null,
+      "from": [
+        {
+          "day": null,
+          "month": null,
+          "year": null
+        }
+      ],
+      "to": [
+        {
+          "day": null,
+          "month": null,
+          "year": null
+        }
+      ]
+    }
+  ],
+  "birthdate": [
+    {
+      "day": 25,
+      "month": 8,
+      "year": 1952
+    }
+  ],
+  "middleName": [
+    "Павловна"
+  ],
+  "name": [
+    "Людмила"
+  ],
+  "surname": [
+    "Хабибулина"
+  ]
+},
+{
+  "_id": {
+    "$oid": "68ea2cc0da9be35dc91bd519"
+  },
+  "gender": "Male",
+  "treeId": {
+    "$oid": "68ea2cc0da9be35dc91bd512"
+  },
+  "relatives": [
+    {
+      "id": {
+        "$oid": "68ea2cc0da9be35dc91bd518"
+      },
+      "relationType": "spouse"
+    },
+    {
+      "id": {
+        "$oid": "68ea2cc0da9be35dc91bd515"
+      },
+      "relationType": "child"
+    },
+    {
+      "id": {
+        "$oid": "69ec70a8d41400eb7ed33226"
+      },
+      "relationType": "parent"
+    },
+    {
+      "id": {
+        "$oid": "69ec70add41400eb7ed33227"
+      },
+      "relationType": "parent"
+    }
+  ],
+  "birthdate": [
+    {
+      "day": 25,
+      "month": 1,
+      "year": 1948
+    }
+  ],
+  "liveOrDead": 0,
+  "name": [
+    "Анатолий"
+  ],
+  "relationships": [
+    {
+      "with": {
+        "$oid": "68ea2cc0da9be35dc91bd518"
+      },
+      "type": "official",
+      "finished": null,
+      "from": [
+        {
+          "day": null,
+          "month": null,
+          "year": null
+        }
+      ],
+      "to": [
+        {
+          "day": null,
+          "month": null,
+          "year": null
+        }
+      ]
+    }
+  ],
+  "surname": [
+    "Хабибулин"
+  ]
+},
+{
+  "_id": {
+    "$oid": "69ec702e2d2ada0deeede8e9"
+  },
+  "name": [
+    "Павел"
+  ],
+  "surname": [
+    "Оприщенко"
+  ],
+  "middleName": [
+    "Макарович"
+  ],
+  "liveOrDead": 0,
+  "birthdate": [
+    {
+      "day": 21,
+      "month": 7,
+      "year": 1907
+    }
+  ],
+  "deathdate": [
+    {
+      "day": 23,
+      "month": 11,
+      "year": 1984
+    }
+  ],
+  "gender": "Male",
+  "treeId": {
+    "$oid": "68ea2cc0da9be35dc91bd512"
+  },
+  "relatives": [
+    {
+      "id": {
+        "$oid": "68ea2cc0da9be35dc91bd518"
+      },
+      "relationType": "child"
+    },
+    {
+      "id": {
+        "$oid": "69ec7037d41400eb7ed33224"
+      },
+      "relationType": "spouse"
+    }
+  ],
+  "relationships": [
+    {
+      "with": {
+        "$oid": "69ec7037d41400eb7ed33224"
+      },
+      "type": "official",
+      "finished": 0,
+      "from": [
+        {
+          "day": null,
+          "month": null,
+          "year": null
+        }
+      ],
+      "to": [
+        {
+          "day": null,
+          "month": null,
+          "year": null
+        }
+      ]
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "69ec7037d41400eb7ed33224"
+  },
+  "gender": "Female",
+  "treeId": {
+    "$oid": "68ea2cc0da9be35dc91bd512"
+  },
+  "relatives": [
+    {
+      "id": {
+        "$oid": "68ea2cc0da9be35dc91bd518"
+      },
+      "relationType": "child"
+    },
+    {
+      "id": {
+        "$oid": "69ec702e2d2ada0deeede8e9"
+      },
+      "relationType": "spouse"
+    }
+  ],
+  "relationships": [
+    {
+      "with": {
+        "$oid": "69ec702e2d2ada0deeede8e9"
+      },
+      "type": "official",
+      "finished": 0,
+      "from": [
+        {
+          "day": null,
+          "month": null,
+          "year": null
+        }
+      ],
+      "to": [
+        {
+          "day": null,
+          "month": null,
+          "year": null
+        }
+      ]
+    }
+  ],
+  "birthdate": [
+    {
+      "day": 15,
+      "month": 8,
+      "year": 1916
+    }
+  ],
+  "deathdate": [
+    {
+      "day": 26,
+      "month": 1,
+      "year": 1990
+    }
+  ],
+  "liveOrDead": 0,
+  "middleName": [
+    "Алексеевна"
+  ],
+  "name": [
+    "Мария"
+  ],
+  "surname": [
+    "Орешкина"
+  ]
+},
+{
+  "_id": {
+    "$oid": "69ec70a8d41400eb7ed33226"
+  },
+  "name": [
+    "Нурмухамет"
+  ],
+  "surname": [
+    "Хабибулин"
+  ],
+  "middleName": [
+    "Нигаматулич"
+  ],
+  "gender": "Male",
+  "treeId": {
+    "$oid": "68ea2cc0da9be35dc91bd512"
+  },
+  "relatives": [
+    {
+      "id": {
+        "$oid": "68ea2cc0da9be35dc91bd519"
+      },
+      "relationType": "child"
+    },
+    {
+      "id": {
+        "$oid": "69ec70add41400eb7ed33227"
+      },
+      "relationType": "spouse"
+    }
+  ],
+  "relationships": [
+    {
+      "with": {
+        "$oid": "69ec70add41400eb7ed33227"
+      },
+      "type": "official",
+      "finished": 0,
+      "from": [
+        {
+          "day": null,
+          "month": null,
+          "year": null
+        }
+      ],
+      "to": [
+        {
+          "day": null,
+          "month": null,
+          "year": null
+        }
+      ]
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "69ec70add41400eb7ed33227"
+  },
+  "gender": "Female",
+  "treeId": {
+    "$oid": "68ea2cc0da9be35dc91bd512"
+  },
+  "relatives": [
+    {
+      "id": {
+        "$oid": "68ea2cc0da9be35dc91bd519"
+      },
+      "relationType": "child"
+    },
+    {
+      "id": {
+        "$oid": "69ec70a8d41400eb7ed33226"
+      },
+      "relationType": "spouse"
+    }
+  ],
+  "relationships": [
+    {
+      "with": {
+        "$oid": "69ec70a8d41400eb7ed33226"
+      },
+      "type": "official",
+      "finished": 0,
+      "from": [
+        {
+          "day": null,
+          "month": null,
+          "year": null
+        }
+      ],
+      "to": [
+        {
+          "day": null,
+          "month": null,
+          "year": null
+        }
+      ]
+    }
+  ],
+  "middleName": [
+    "Алексеевна"
+  ],
+  "name": [
+    "Мария"
+  ],
+  "surname": [
+    "Хабибулина"
+  ]
+},
+{
+  "_id": {
+    "$oid": "69ec71582d2ada0deeede8ee"
+  },
+  "name": [
+    "Николай"
+  ],
+  "surname": [
+    "Ремизов"
+  ],
+  "middleName": [
+    "Алексеевич"
+  ],
+  "liveOrDead": 0,
+  "birthdate": [
+    {
+      "day": 2,
+      "month": 5,
+      "year": 1929
+    }
+  ],
+  "deathdate": [
+    {
+      "day": 12,
+      "month": 7,
+      "year": 1986
+    }
+  ],
+  "gender": "Male",
+  "treeId": {
+    "$oid": "68ea2cc0da9be35dc91bd512"
+  },
+  "relatives": [
+    {
+      "id": {
+        "$oid": "68ea2cc0da9be35dc91bd517"
+      },
+      "relationType": "child"
+    },
+    {
+      "id": {
+        "$oid": "69ec71622d2ada0deeede8ef"
+      },
+      "relationType": "spouse"
+    }
+  ],
+  "relationships": [
+    {
+      "with": {
+        "$oid": "69ec71622d2ada0deeede8ef"
+      },
+      "type": "official",
+      "finished": 0,
+      "from": [
+        {
+          "day": null,
+          "month": null,
+          "year": null
+        }
+      ],
+      "to": [
+        {
+          "day": null,
+          "month": null,
+          "year": null
+        }
+      ]
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "69ec71622d2ada0deeede8ef"
+  },
+  "gender": "Female",
+  "treeId": {
+    "$oid": "68ea2cc0da9be35dc91bd512"
+  },
+  "relatives": [
+    {
+      "id": {
+        "$oid": "68ea2cc0da9be35dc91bd517"
+      },
+      "relationType": "child"
+    },
+    {
+      "id": {
+        "$oid": "69ec71582d2ada0deeede8ee"
+      },
+      "relationType": "spouse"
+    }
+  ],
+  "relationships": [
+    {
+      "with": {
+        "$oid": "69ec71582d2ada0deeede8ee"
+      },
+      "type": "official",
+      "finished": 0,
+      "from": [
+        {
+          "day": null,
+          "month": null,
+          "year": null
+        }
+      ],
+      "to": [
+        {
+          "day": null,
+          "month": null,
+          "year": null
+        }
+      ]
+    }
+  ],
+  "birthdate": [
+    {
+      "day": 14,
+      "month": 8,
+      "year": 1927
+    }
+  ],
+  "deathdate": [
+    {
+      "day": 24,
+      "month": 3,
+      "year": 1980
+    }
+  ],
+  "liveOrDead": 0,
+  "middleName": [
+    "Петровна"
+  ],
+  "name": [
+    "Раиса"
+  ],
+  "surname": [
+    "Ремизова"
+  ]
+},
+{
+  "_id": {
+    "$oid": "69ec71b3d4528e01b4c61243"
+  },
+  "name": [
+    "Леонид"
+  ],
+  "surname": [
+    "Ноздрин"
+  ],
+  "middleName": [
+    "Дмитриевич"
+  ],
+  "liveOrDead": 0,
+  "birthdate": [
+    {
+      "day": null,
+      "month": null,
+      "year": 1929
+    }
+  ],
+  "deathdate": [
+    {
+      "day": null,
+      "month": null,
+      "year": 1976
+    }
+  ],
+  "gender": "Male",
+  "treeId": {
+    "$oid": "68ea2cc0da9be35dc91bd512"
+  },
+  "relatives": [
+    {
+      "id": {
+        "$oid": "68ea2cc0da9be35dc91bd516"
+      },
+      "relationType": "child"
+    },
+    {
+      "id": {
+        "$oid": "69ec71bb4631143b2ca22fcb"
+      },
+      "relationType": "spouse"
+    },
+    {
+      "id": {
+        "$oid": "69ec71fa2d2ada0deeede8f0"
+      },
+      "relationType": "parent"
+    },
+    {
+      "id": {
+        "$oid": "69ec71ffd4528e01b4c61244"
+      },
+      "relationType": "parent"
+    }
+  ],
+  "relationships": [
+    {
+      "with": {
+        "$oid": "69ec71bb4631143b2ca22fcb"
+      },
+      "type": "official",
+      "finished": 0,
+      "from": [
+        {
+          "day": null,
+          "month": null,
+          "year": null
+        }
+      ],
+      "to": [
+        {
+          "day": null,
+          "month": null,
+          "year": null
+        }
+      ]
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "69ec71bb4631143b2ca22fcb"
+  },
+  "gender": "Female",
+  "treeId": {
+    "$oid": "68ea2cc0da9be35dc91bd512"
+  },
+  "relatives": [
+    {
+      "id": {
+        "$oid": "68ea2cc0da9be35dc91bd516"
+      },
+      "relationType": "child"
+    },
+    {
+      "id": {
+        "$oid": "69ec71b3d4528e01b4c61243"
+      },
+      "relationType": "spouse"
+    }
+  ],
+  "relationships": [
+    {
+      "with": {
+        "$oid": "69ec71b3d4528e01b4c61243"
+      },
+      "type": "official",
+      "finished": 0,
+      "from": [
+        {
+          "day": null,
+          "month": null,
+          "year": null
+        }
+      ],
+      "to": [
+        {
+          "day": null,
+          "month": null,
+          "year": null
+        }
+      ]
+    }
+  ],
+  "birthdate": [
+    {
+      "day": null,
+      "month": null,
+      "year": 1928
+    }
+  ],
+  "deathdate": [
+    {
+      "day": null,
+      "month": null,
+      "year": 1997
+    }
+  ],
+  "liveOrDead": 0,
+  "middleName": [
+    "Николаевич"
+  ],
+  "name": [
+    "Ираида"
+  ],
+  "surname": [
+    "Ноздрина"
+  ]
+},
+{
+  "_id": {
+    "$oid": "69ec71fa2d2ada0deeede8f0"
+  },
+  "name": [
+    "Дмитрий"
+  ],
+  "surname": [
+    "Ноздрин"
+  ],
+  "middleName": [
+    "Алексеевич"
+  ],
+  "liveOrDead": 0,
+  "birthdate": [
+    {
+      "day": null,
+      "month": null,
+      "year": 1900
+    }
+  ],
+  "deathdate": [
+    {
+      "day": null,
+      "month": null,
+      "year": 1978
+    }
+  ],
+  "gender": "Male",
+  "treeId": {
+    "$oid": "68ea2cc0da9be35dc91bd512"
+  },
+  "relatives": [
+    {
+      "id": {
+        "$oid": "69ec71b3d4528e01b4c61243"
+      },
+      "relationType": "child"
+    },
+    {
+      "id": {
+        "$oid": "69ec71ffd4528e01b4c61244"
+      },
+      "relationType": "spouse"
+    }
+  ],
+  "relationships": [
+    {
+      "with": {
+        "$oid": "69ec71ffd4528e01b4c61244"
+      },
+      "type": "official",
+      "finished": 0,
+      "from": [
+        {
+          "day": null,
+          "month": null,
+          "year": null
+        }
+      ],
+      "to": [
+        {
+          "day": null,
+          "month": null,
+          "year": null
+        }
+      ]
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "69ec71ffd4528e01b4c61244"
+  },
+  "gender": "Female",
+  "treeId": {
+    "$oid": "68ea2cc0da9be35dc91bd512"
+  },
+  "relatives": [
+    {
+      "id": {
+        "$oid": "69ec71b3d4528e01b4c61243"
+      },
+      "relationType": "child"
+    },
+    {
+      "id": {
+        "$oid": "69ec71fa2d2ada0deeede8f0"
+      },
+      "relationType": "spouse"
+    }
+  ],
+  "relationships": [
+    {
+      "with": {
+        "$oid": "69ec71fa2d2ada0deeede8f0"
+      },
+      "type": "official",
+      "finished": 0,
+      "from": [
+        {
+          "day": null,
+          "month": null,
+          "year": null
+        }
+      ],
+      "to": [
+        {
+          "day": null,
+          "month": null,
+          "year": null
+        }
+      ]
+    }
+  ],
+  "birthdate": [
+    {
+      "day": null,
+      "month": null,
+      "year": 1908
+    }
+  ],
+  "deathdate": [
+    {
+      "day": null,
+      "month": null,
+      "year": 1997
+    }
+  ],
+  "liveOrDead": 0,
+  "middleName": [
+    "Ивановна"
+  ],
+  "name": [
+    "Клавдия"
+  ],
+  "surname": [
+    "Ноздрина"
+  ]
+}]

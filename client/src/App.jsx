@@ -3328,56 +3328,96 @@ function App() {
             </section>
 
             <aside className="smart-search-panel">
-              <section className="smart-panel-section">
-                <h2>Баланс совпадений</h2>
-                <div className="smart-balance-value">
-                  <Coins size={16} />
-                  <span>{smartMatchBalance} Совпадений</span>
-                </div>
-              </section>
-
-              <section className="smart-panel-section">
-                <h2>Уведомления</h2>
-                {notifications.length === 0 ? (
-                  <p className="smart-empty-state">Нет уведомлений</p>
-                ) : (
-                  <div className="smart-notification-list">
-                    {notifications.slice(0, 5).map((notification) => (
-                      <div key={notification.id} className="notification-item">
-                        <div className="notification-icon">
-                          <Check size={14} />
-                        </div>
-                        <div className="notification-content">
-                          <p className="notification-message">{notification.message}</p>
-                          <span className="notification-time">
-                            {notification.timestamp.toLocaleTimeString('ru-RU', {
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {notifications.length > 0 && (
-                  <button type="button" className="btn btn-outline btn-sm btn-full" onClick={clearNotifications}>
-                    Очистить уведомления
+              <div className="smart-panel-actions">
+                <div className="balance-wrapper smart-panel-action-wrapper">
+                  <button
+                    type="button"
+                    className="smart-panel-action-btn"
+                    title="Баланс совпадений"
+                    onClick={() => {
+                      setShowBalancePanel(!showBalancePanel);
+                      setShowNotifications(false);
+                    }}
+                  >
+                    <Coins size={18} />
+                    <span>Баланс</span>
+                    {smartMatchBalance > 0 && (
+                      <span className="balance-badge">{smartMatchBalance}</span>
+                    )}
                   </button>
-                )}
-              </section>
+                  {showBalancePanel && (
+                    <BalancePanel
+                      balance={smartMatchBalance}
+                      onAddBalance={handleAddBalance}
+                      onClose={() => setShowBalancePanel(false)}
+                    />
+                  )}
+                </div>
 
-              <section className="smart-panel-section">
-                <h2>Загрузка и выгрузка</h2>
-                <button type="button" className="btn btn-outline btn-full" onClick={handleUploadClick}>
-                  <Upload size={16} />
-                  Загрузить JSON
+                <div className="notifications-wrapper smart-panel-action-wrapper">
+                  <button
+                    type="button"
+                    className="smart-panel-action-btn"
+                    title="Уведомления"
+                    onClick={() => {
+                      setShowNotifications(!showNotifications);
+                      setShowBalancePanel(false);
+                    }}
+                  >
+                    <Bell size={18} />
+                    <span>Уведомления</span>
+                    {notifications.length > 0 && (
+                      <span className="notification-badge">{notifications.length}</span>
+                    )}
+                  </button>
+                  {showNotifications && (
+                    <div className="notifications-panel">
+                      <div className="notifications-header">
+                        <h4>Уведомления</h4>
+                        {notifications.length > 0 && (
+                          <button
+                            className="clear-notifications-btn"
+                            onClick={clearNotifications}
+                          >
+                            Очистить
+                          </button>
+                        )}
+                      </div>
+                      <div className="notifications-list">
+                        {notifications.length === 0 ? (
+                          <p className="no-notifications">Нет уведомлений</p>
+                        ) : (
+                          notifications.map(notification => (
+                            <div key={notification.id} className="notification-item">
+                              <div className="notification-icon">
+                                <Check size={14} />
+                              </div>
+                              <div className="notification-content">
+                                <p className="notification-message">{notification.message}</p>
+                                <span className="notification-time">
+                                  {notification.timestamp.toLocaleTimeString('ru-RU', {
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </span>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <button type="button" className="smart-panel-action-btn" onClick={handleUploadClick}>
+                  <Upload size={18} />
+                  <span>Загрузка</span>
                 </button>
-                <button type="button" className="btn btn-outline btn-full" onClick={handleDownload}>
-                  <Download size={16} />
-                  Выгрузить JSON
+                <button type="button" className="smart-panel-action-btn" onClick={handleDownload}>
+                  <Download size={18} />
+                  <span>Выгрузка</span>
                 </button>
-              </section>
+              </div>
 
               <section className="smart-panel-section">
                 <h2>Источники поиска</h2>

@@ -660,6 +660,62 @@ body {
   gap: 14px;
 }
 
+.smart-panel-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.smart-panel-action-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.smart-panel-action-btn {
+  width: 100%;
+  min-height: 42px;
+  padding: 10px 40px 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: #ffffff;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  position: relative;
+}
+
+.smart-panel-action-btn svg {
+  color: #6b7280;
+  flex-shrink: 0;
+}
+
+.smart-panel-action-btn:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.smart-panel-action-wrapper .balance-badge,
+.smart-panel-action-wrapper .notification-badge {
+  top: 6px;
+  right: 8px;
+}
+
+.smart-panel-action-wrapper .notifications-panel,
+.smart-panel-action-wrapper .balance-panel {
+  top: calc(100% + 8px);
+  right: 0;
+  left: auto;
+}
+
 .smart-panel-section {
   display: flex;
   flex-direction: column;
