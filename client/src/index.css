@@ -80,9 +80,10 @@ body {
 }
 
 .sidebar {
-  width: 24vw;
-  min-width: 260px;
-  max-width: 380px;
+  width: 340px;
+  min-width: 340px;
+  max-width: 340px;
+  flex: 0 0 340px;
   background: #ffffff;
   border-right: 1px solid #e2e8f0;
   padding: 24px 20px;
@@ -439,6 +440,37 @@ body {
 
 .smart-explore-btn {
   white-space: nowrap;
+}
+
+.smart-explore-toggle {
+  margin: 12px auto 0;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  display: flex;
+  width: fit-content;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.smart-explore-toggle:hover {
+  color: var(--accent-primary);
+}
+
+.smart-explore-toggle svg {
+  transition: transform 0.2s ease;
+}
+
+.smart-explore-toggle.expanded svg {
+  transform: rotate(180deg);
+}
+
+.smart-explore-toggle span {
+  font-size: 0.78rem;
+  font-weight: 600;
 }
 
 .smart-person-name-block {

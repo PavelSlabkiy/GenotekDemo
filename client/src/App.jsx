@@ -978,7 +978,7 @@ const PersonNode = ({ person, position, isSelected, onClick, onMatchClick }) => 
             <RefreshCw size={14} />
           </button>
           <div className="match-tooltip">
-            SmartMatching — позволяет находить ваших родственников в деревьях других людей и архивных данных.
+            Умный поиск — позволяет находить ваших родственников в деревьях других людей и архивных данных.
           </div>
         </div>
       )}
@@ -1684,7 +1684,7 @@ const BalancePanel = ({ balance, onAddBalance, onClose }) => {
           <div className="balance-amount">
             <Coins size={24} />
             <span className="balance-value">{balance}</span>
-            <span className="balance-label">SmartMatch</span>
+            <span className="balance-label">Совпадений</span>
           </div>
           <button 
             className="btn btn-primary balance-replenish-btn"
@@ -1703,7 +1703,7 @@ const BalancePanel = ({ balance, onAddBalance, onClose }) => {
               <div className="payment-success">
                 <Check size={48} className="success-icon" />
                 <h3>Оплата прошла успешно!</h3>
-                <p>Добавлено {selectedPlan === 'package' ? 10 : quantity} SmartMatch</p>
+                <p>Добавлено {selectedPlan === 'package' ? 10 : quantity} совпадений</p>
               </div>
             ) : (
               <>
@@ -1720,7 +1720,7 @@ const BalancePanel = ({ balance, onAddBalance, onClose }) => {
                       <h4>Базовый</h4>
                       <span className="plan-price">{basicPrice} ₽</span>
                     </div>
-                    <p className="plan-desc">за 1 SmartMatch</p>
+                    <p className="plan-desc">за 1 совпадение</p>
                     <div className="plan-quantity">
                       <button 
                         className="quantity-btn"
@@ -1757,7 +1757,7 @@ const BalancePanel = ({ balance, onAddBalance, onClose }) => {
                       <h4>Пакет</h4>
                       <span className="plan-price">{packagePrice} ₽</span>
                     </div>
-                    <p className="plan-desc">за 10 SmartMatch</p>
+                    <p className="plan-desc">за 10 совпадений</p>
                     <p className="plan-savings">Экономия {10 * basicPrice - packagePrice} ₽</p>
                     <div className="plan-total">
                       <strong>{packagePrice} ₽</strong>
@@ -1929,7 +1929,7 @@ const MatchVerificationModal = ({
             <div className="payment-success">
               <Check size={48} className="success-icon" />
               <h3>Оплата прошла успешно!</h3>
-              <p>Добавлено {selectedPlan === 'package' ? 10 : basicQuantity} SmartMatch</p>
+              <p>Добавлено {selectedPlan === 'package' ? 10 : basicQuantity} совпадений</p>
             </div>
           ) : (
             <>
@@ -1939,7 +1939,7 @@ const MatchVerificationModal = ({
               </div>
               {requiredMatches > 1 && (
                 <p className="payment-notice">
-                  Для добавления родственников требуется минимум {requiredMatches} SmartMatch
+                  Для добавления родственников требуется минимум {requiredMatches} совпадений
                 </p>
               )}
               <div className="payment-plans">
@@ -1951,7 +1951,7 @@ const MatchVerificationModal = ({
                     <h4>Базовый</h4>
                     <span className="plan-price">{basicPrice} ₽</span>
                   </div>
-                  <p className="plan-desc">за 1 SmartMatch</p>
+                  <p className="plan-desc">за 1 совпадение</p>
                   <div className="plan-quantity">
                     <button 
                       className="quantity-btn"
@@ -1988,7 +1988,7 @@ const MatchVerificationModal = ({
                     <h4>Пакет</h4>
                     <span className="plan-price">{packagePrice} ₽</span>
                   </div>
-                  <p className="plan-desc">за 10 SmartMatch</p>
+                  <p className="plan-desc">за 10 совпадений</p>
                   <p className="plan-savings">Экономия {10 * basicPrice - packagePrice} ₽</p>
                   <div className="plan-total">
                     <strong>{packagePrice} ₽</strong>
@@ -2033,10 +2033,10 @@ const MatchVerificationModal = ({
             <h3>Подтверждение</h3>
           </div>
           <p className="confirm-purchase-text">
-            Вы хотите добавить <strong>{relativesCount}</strong> {relativesCount === 1 ? 'родственника' : relativesCount < 5 ? 'родственников' : 'родственников'} за <strong>{relativesCount} SmartMatch</strong>?
+            Вы хотите добавить <strong>{relativesCount}</strong> {relativesCount === 1 ? 'родственника' : relativesCount < 5 ? 'родственников' : 'родственников'} за <strong>{relativesCount} совпадений</strong>?
           </p>
           <p className="confirm-purchase-balance">
-            Текущий баланс: <strong>{smartMatchBalance}</strong> SmartMatch
+            Текущий баланс: <strong>{smartMatchBalance}</strong> совпадений
           </p>
           <div className="confirm-purchase-actions">
             <button 
@@ -2488,7 +2488,7 @@ function App() {
 
   const handleAddBalance = (amount) => {
     setSmartMatchBalance(prev => prev + amount);
-    showToast(`Баланс пополнен на ${amount} SmartMatch`);
+    showToast(`Баланс пополнен на ${amount} совпадений`);
   };
 
   const handleSpendBalance = (amount) => {
@@ -2942,20 +2942,6 @@ function App() {
                         <h3 className={`smart-person-name-block ${personGenderClass}`}>{personName}</h3>
                         <div className="smart-card-controls">
                           <span className={`smart-ready-badge ${statusClass}`}>{statusLabel}</span>
-                          {hasMatches && (
-                            <button
-                              type="button"
-                              className="btn btn-outline btn-sm smart-explore-btn"
-                              onClick={() => {
-                                setExpandedSmartSearchCards((prev) => ({
-                                  ...prev,
-                                  [person.id]: !prev[person.id]
-                                }));
-                              }}
-                            >
-                              {expanded ? 'Скрыть' : 'Изучить'}
-                            </button>
-                          )}
                           <label className="smart-card-checkbox" title="Выбрать карточку">
                             <input
                               type="checkbox"
@@ -3012,6 +2998,23 @@ function App() {
                           ))}
                         </div>
                       )}
+                      {hasMatches && (
+                        <button
+                          type="button"
+                          className={`smart-explore-toggle ${expanded ? 'expanded' : ''}`}
+                          onClick={() => {
+                            setExpandedSmartSearchCards((prev) => ({
+                              ...prev,
+                              [person.id]: !prev[person.id]
+                            }));
+                          }}
+                          aria-label={expanded ? 'Скрыть документы' : 'Раскрыть документы'}
+                          title={expanded ? 'Скрыть' : 'Изучить'}
+                        >
+                          <ChevronDown size={18} />
+                          <span>{expanded ? 'Скрыть' : 'Изучить'}</span>
+                        </button>
+                      )}
                     </article>
                   );
                 })}
@@ -3023,7 +3026,7 @@ function App() {
                 <h2>Баланс совпадений</h2>
                 <div className="smart-balance-value">
                   <Coins size={16} />
-                  <span>{smartMatchBalance} SmartMatch</span>
+                  <span>{smartMatchBalance} Совпадений</span>
                 </div>
               </section>
 
@@ -3167,7 +3170,7 @@ function App() {
               <div className="balance-wrapper">
                 <button
                   className="toolbar-btn"
-                  title="Баланс SmartMatch"
+                  title="Баланс совпадений"
                   onClick={() => {
                     setShowBalancePanel(!showBalancePanel);
                     setShowNotifications(false);
@@ -3329,7 +3332,7 @@ function App() {
         onChange={handleFileUpload}
       />
 
-      {/* SmartMatching Found Notification */}
+      {/* Smart Search Found Notification */}
       {showMatchFoundNotification && (
         <div 
           className="smartmatching-notification"
@@ -3345,7 +3348,7 @@ function App() {
         </div>
       )}
 
-      {/* SmartMatching Tutorial Modal */}
+      {/* Smart Search Tutorial Modal */}
       {showSmartMatchingTutorial && (
         <div className="modal-overlay smartmatching-tutorial-overlay" onClick={handleTutorialClose}>
           <div className="smartmatching-tutorial-modal" onClick={e => e.stopPropagation()}>
@@ -3354,20 +3357,20 @@ function App() {
             </button>
             
             <div className="smartmatching-tutorial-header">
-              <h3>SmartMatching</h3>
+              <h3>Умный поиск</h3>
               <span className="smartmatching-tutorial-step">Шаг {tutorialStep} из 3</span>
             </div>
 
             <div className="smartmatching-tutorial-body">
               <div className="smartmatching-tutorial-text">
                 {tutorialStep === 1 && (
-                  <p>SmartMatching позволяет находить ваших родственников в деревьях других людей и архивных данных. Расширяйте ваше древо одним нажатием.</p>
+                  <p>Умный поиск позволяет находить ваших родственников в деревьях других людей и архивных данных. Расширяйте ваше древо одним нажатием.</p>
                 )}
                 {tutorialStep === 2 && (
                   <p>Мы уделяем особое внимание защите персональных данных наших клиентов. Для добавления родственников из другого древа необходимо запросить доступ у владельца.</p>
                 )}
                 {tutorialStep === 3 && (
-                  <p>Сейчас вам доступно добавление информации о родственниках из архивных данных. Для расширения древа за счёт ваших родственников в других деревьях необходимо оформить подписку SmartMatching.</p>
+                  <p>Сейчас вам доступно добавление информации о родственниках из архивных данных. Для расширения древа за счёт ваших родственников в других деревьях необходимо оформить подписку «Умный поиск».</p>
                 )}
               </div>
               
