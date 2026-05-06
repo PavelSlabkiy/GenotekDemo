@@ -153,11 +153,16 @@ const isUserTreeRecord = (record = {}) => record.sourceKey === 'userTrees' || Bo
 const isArchiveRecord = (record = {}) => SMART_SEARCH_ARCHIVE_SOURCE_KEYS.includes(record.sourceKey);
 
 const getDocumentKey = (document = {}) => {
+  const normalizedTitle = document.title || getPersonLabel(document);
   const keyParts = [
     document.id,
+    document.sourceKey,
     document.sourceLabel,
+    document.tree_id,
+    document.database_id,
+    document.tree_owner,
     document.url,
-    document.title,
+    normalizedTitle,
     document.birthDate,
     document.birthPlace,
     document.information
@@ -168,13 +173,18 @@ const getDocumentKey = (document = {}) => {
 };
 
 const normalizeDocumentRecord = (record = {}) => ({
+  id: record.id || '',
+  sourceKey: record.sourceKey || '',
   sourceLabel: record.sourceLabel || 'Источник',
   title: record.title || getPersonLabel(record),
   url: record.url || '',
   birthDate: record.birthDate || '',
   birthPlace: record.birthPlace || '',
   information: record.information || '',
-  score: typeof record.score === 'number' ? record.score : null
+  score: typeof record.score === 'number' ? record.score : null,
+  tree_id: record.tree_id || '',
+  tree_owner: record.tree_owner || '',
+  database_id: record.database_id || ''
 });
 
 const getDocumentSourceClass = (sourceLabel = '') => {
@@ -2520,6 +2530,7 @@ function App() {
   const [showSmartMatchingTutorial, setShowSmartMatchingTutorial] = useState(false);
   const [tutorialStep, setTutorialStep] = useState(1);
   const [smartSearchQuery, setSmartSearchQuery] = useState('');
+  const [smartSearchFocusedPersonId, setSmartSearchFocusedPersonId] = useState(null);
   const [selectedSmartSearchIds, setSelectedSmartSearchIds] = useState([]);
   const [smartSearchStatusFilter, setSmartSearchStatusFilter] = useState('all');
   const [searchSources, setSearchSources] = useState({
@@ -2545,8 +2556,9 @@ function App() {
 
   // Show notification as long as there are any unconfirmed matches (people with hasMatch = true)
   const showMatchFoundNotification = useMemo(() => {
+    if (activeSection === 'smart-search') return false;
     return Object.values(people).some(person => person.hasMatch);
-  }, [people]);
+  }, [people, activeSection]);
 
   const focalPersonId = useMemo(
     () => pickFocalPersonId(people, selectedPerson?.id),
@@ -2612,14 +2624,25 @@ function App() {
   ), [smartSearchPeople, smartSearchVisibleSourceKeys, searchCriteria]);
 
   const filteredSmartSearchCards = useMemo(() => {
-    if (smartSearchStatusFilter === 'all') return smartSearchPeopleWithStatus;
-    return smartSearchPeopleWithStatus.filter((card) => card.statusClass === smartSearchStatusFilter);
-  }, [smartSearchPeopleWithStatus, smartSearchStatusFilter]);
+    let cards = smartSearchPeopleWithStatus;
+    if (smartSearchStatusFilter !== 'all') {
+      cards = cards.filter((card) => card.statusClass === smartSearchStatusFilter);
+    }
+    if (smartSearchFocusedPersonId) {
+      cards = cards.filter((card) => String(card.person.id) === String(smartSearchFocusedPersonId));
+    }
+    return cards;
+  }, [smartSearchPeopleWithStatus, smartSearchStatusFilter, smartSearchFocusedPersonId]);
 
   const visibleSmartSearchIds = useMemo(
     () => filteredSmartSearchCards.map((card) => card.person.id),
     [filteredSmartSearchCards]
   );
+  const hasVisibleSmartSearchCards = visibleSmartSearchIds.length > 0;
+  const isVisibleSmartSearchFullySelected = useMemo(() => (
+    hasVisibleSmartSearchCards
+      && visibleSmartSearchIds.every((id) => selectedSmartSearchIds.includes(id))
+  ), [hasVisibleSmartSearchCards, visibleSmartSearchIds, selectedSmartSearchIds]);
 
   const handleZoomIn = () => {
     setZoom(prev => Math.min(prev + 0.1, 2));
@@ -2727,12 +2750,26 @@ function App() {
     setShowSmartMatchingTutorial(true);
   };
 
+  const openSmartSearchForPerson = (person) => {
+    if (!person) return;
+    setSmartSearchFocusedPersonId(person.id);
+    setSmartSearchStatusFilter('all');
+    setSmartSearchQuery(getFullName(person));
+    setActiveSection('smart-search');
+  };
+
+  const openSmartSearchSection = () => {
+    setSmartSearchFocusedPersonId(null);
+    setActiveSection('smart-search');
+  };
+
   const handleTutorialNext = () => {
     if (tutorialStep < 3) {
       setTutorialStep(prev => prev + 1);
     } else {
       setShowSmartMatchingTutorial(false);
       setTutorialStep(1);
+      openSmartSearchSection();
     }
   };
 
@@ -2758,9 +2795,28 @@ function App() {
     });
   };
 
-  const handleClearVisibleSmartSearchCards = () => {
-    if (!visibleSmartSearchIds.length) return;
-    setSelectedSmartSearchIds((prev) => prev.filter((id) => !visibleSmartSearchIds.includes(id)));
+  const handleResetSmartSearchSelectionsAndFilters = () => {
+    setSelectedSmartSearchIds([]);
+    setSelectedSmartSearchDocuments({});
+    setSmartSearchStatusFilter('all');
+    setSmartSearchQuery('');
+    setSmartSearchFocusedPersonId(null);
+    setSearchSources({
+      userTrees: true,
+      pamyatNaroda: true,
+      openList: true,
+      gwar: true
+    });
+    setSearchCriteria({ ...DEFAULT_SMART_SEARCH_CRITERIA });
+  };
+
+  const handleToggleVisibleSmartSearchSelection = () => {
+    if (!hasVisibleSmartSearchCards) return;
+    if (isVisibleSmartSearchFullySelected) {
+      handleResetSmartSearchSelectionsAndFilters();
+      return;
+    }
+    handleSelectVisibleSmartSearchCards();
   };
 
   const handleSourceToggle = (sourceKey) => {
@@ -3199,17 +3255,9 @@ function App() {
     }
   };
 
-  // Handle match icon click - open match modal
+  // Handle match icon click - open Smart Search filtered by person
   const handleMatchClick = (person) => {
-    setMatchPerson(person);
-    // Filter stored matches for this specific person (instant, no API call)
-    // Convert both to strings to avoid type mismatch
-    const personId = String(person.id);
-    const personTreeMatches = allTreeMatchesRef.current.filter(m => String(m.data_id) === personId);
-    const personArchiveMatches = allArchiveMatchesRef.current.filter(m => String(m.data_id) === personId);
-    setTreeMatches(personTreeMatches);
-    setArchiveMatches(personArchiveMatches);
-    setShowMatchModal(true);
+    openSmartSearchForPerson(person);
   };
 
   // Handle tree match confirmation
@@ -3311,7 +3359,13 @@ function App() {
                 key={item.key}
                 type="button"
                 className={`nav-item ${isActive ? 'active' : ''}`}
-                onClick={() => setActiveSection(item.key)}
+                onClick={() => {
+                  if (item.key === 'smart-search') {
+                    openSmartSearchSection();
+                    return;
+                  }
+                  setActiveSection(item.key);
+                }}
               >
                 <Icon size={18} />
                 <span>{item.label}</span>
@@ -3336,7 +3390,10 @@ function App() {
                   className="smart-search-input"
                   type="text"
                   value={smartSearchQuery}
-                  onChange={(event) => setSmartSearchQuery(event.target.value)}
+                  onChange={(event) => {
+                    setSmartSearchFocusedPersonId(null);
+                    setSmartSearchQuery(event.target.value);
+                  }}
                   placeholder="Поиск по ФИО"
                 />
               </label>
@@ -3372,19 +3429,11 @@ function App() {
                 <div className="smart-selection-actions">
                   <button
                     type="button"
-                    className="btn btn-primary smart-select-visible-btn"
-                    onClick={handleSelectVisibleSmartSearchCards}
-                    disabled={visibleSmartSearchIds.length === 0}
+                    className={`btn smart-select-visible-btn ${isVisibleSmartSearchFullySelected ? 'btn-danger' : 'btn-primary'}`}
+                    onClick={handleToggleVisibleSmartSearchSelection}
+                    disabled={!hasVisibleSmartSearchCards}
                   >
-                    Выбрать
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-danger smart-select-visible-btn"
-                    onClick={handleClearVisibleSmartSearchCards}
-                    disabled={visibleSmartSearchIds.length === 0}
-                  >
-                    Очистить
+                    {isVisibleSmartSearchFullySelected ? 'Очистить' : 'Выбрать'}
                   </button>
                 </div>
               </div>
