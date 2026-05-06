@@ -966,8 +966,100 @@
     "surname": [
       "Ворожейкин"
     ],
-    "hasMatch": false,
-    "sourceSearchCache": {}
+    "hasMatch": true,
+    "sourceSearchCache": {
+      "userTrees": {
+        "searchedAt": "2026-05-06T01:18:11.685Z",
+        "status": "matches_found",
+        "source": "userTrees",
+        "sourceLabel": "Деревья других пользователей",
+        "searchCriteria": {
+          "fullName": true,
+          "birthDate": true,
+          "birthPlace": true
+        },
+        "matches": [
+          {
+            "data_id": "69e51483fa2dc09590a3866a",
+            "tree_id": "68f36f8fda84114f6acf1ce4",
+            "tree_owner": "Слабкий Павел Андреевич",
+            "database_id": "69e51483fa2dc09590a3866a",
+            "score": 100,
+            "people": {
+              "69e51483fa2dc09590a3866a": {
+                "id": "69e51483fa2dc09590a3866a",
+                "name": "Петр",
+                "lastName": "Ворожейкин",
+                "middleName": "Васильевич",
+                "gender": "male",
+                "fatherId": "69ec77dcaf23af790aa7c003",
+                "motherId": "69ec77e6af23af790aa7c004",
+                "partnerId": "69e5147cde03323817ef6184",
+                "children": [
+                  "69e51231f2f4ad946ba05d67"
+                ],
+                "isAlive": false,
+                "birthDate": "1895-02-01",
+                "birthPlace": "г. Семипалатинск",
+                "hasMatch": false,
+                "sourceSearchCache": {},
+                "information": "",
+                "documents": []
+              },
+              "69ec77dcaf23af790aa7c003": {
+                "id": "69ec77dcaf23af790aa7c003",
+                "name": "Василий",
+                "lastName": "Ворожейкин",
+                "middleName": "Николаевич",
+                "gender": "male",
+                "fatherId": null,
+                "motherId": null,
+                "partnerId": "69ec77e6af23af790aa7c004",
+                "children": [
+                  "69e51483fa2dc09590a3866a",
+                  "69ec7860bebb794243c75469",
+                  "69ec78b3f781c88171e82e6e",
+                  "69ec790af781c88171e82e6f",
+                  "69ec7a322d2ada0deeede8f6"
+                ],
+                "isAlive": false,
+                "birthDate": "1868",
+                "birthPlace": "с. Ново-Покровское Ново-Покровской волости Змеиногорского уезда Томской губернии",
+                "hasMatch": false,
+                "sourceSearchCache": {},
+                "information": "",
+                "documents": []
+              },
+              "69ec77e6af23af790aa7c004": {
+                "id": "69ec77e6af23af790aa7c004",
+                "name": "Агафья",
+                "lastName": "Ворожейкина",
+                "middleName": "Моисеевна",
+                "gender": "female",
+                "fatherId": null,
+                "motherId": null,
+                "partnerId": "69ec77dcaf23af790aa7c003",
+                "children": [
+                  "69e51483fa2dc09590a3866a",
+                  "69ec7860bebb794243c75469",
+                  "69ec78b3f781c88171e82e6e",
+                  "69ec790af781c88171e82e6f",
+                  "69ec7a322d2ada0deeede8f6"
+                ],
+                "isAlive": false,
+                "birthDate": "1868",
+                "birthPlace": "",
+                "hasMatch": false,
+                "sourceSearchCache": {},
+                "information": "",
+                "documents": []
+              }
+            }
+          }
+        ],
+        "errors": []
+      }
+    }
   },
   {
     "_id": {
@@ -1659,8 +1751,56 @@
         ]
       }
     ],
-    "hasMatch": false,
-    "sourceSearchCache": {}
+    "hasMatch": true,
+    "sourceSearchCache": {
+      "userTrees": {
+        "searchedAt": "2026-05-06T01:18:11.685Z",
+        "status": "matches_found",
+        "source": "userTrees",
+        "sourceLabel": "Деревья других пользователей",
+        "searchCriteria": {
+          "fullName": true,
+          "birthDate": true,
+          "birthPlace": true
+        },
+        "matches": [
+          {
+            "data_id": "69ec77dcaf23af790aa7c003",
+            "tree_id": "68f36f8fda84114f6acf1ce4",
+            "tree_owner": "Слабкий Павел Андреевич",
+            "database_id": "69ec77dcaf23af790aa7c003",
+            "score": 90.47619047619047,
+            "people": {
+              "69ec77dcaf23af790aa7c003": {
+                "id": "69ec77dcaf23af790aa7c003",
+                "name": "Василий",
+                "lastName": "Ворожейкин",
+                "middleName": "Николаевич",
+                "gender": "male",
+                "fatherId": null,
+                "motherId": null,
+                "partnerId": "69ec77e6af23af790aa7c004",
+                "children": [
+                  "69e51483fa2dc09590a3866a",
+                  "69ec7860bebb794243c75469",
+                  "69ec78b3f781c88171e82e6e",
+                  "69ec790af781c88171e82e6f",
+                  "69ec7a322d2ada0deeede8f6"
+                ],
+                "isAlive": false,
+                "birthDate": "1868",
+                "birthPlace": "с. Ново-Покровское Ново-Покровской волости Змеиногорского уезда Томской губернии",
+                "hasMatch": false,
+                "sourceSearchCache": {},
+                "information": "",
+                "documents": []
+              }
+            }
+          }
+        ],
+        "errors": []
+      }
+    }
   },
   {
     "_id": {
@@ -1860,8 +2000,98 @@
       "Борис"
     ],
     "relationships": [],
-    "hasMatch": false,
-    "sourceSearchCache": {}
+    "hasMatch": true,
+    "sourceSearchCache": {
+      "userTrees": {
+        "searchedAt": "2026-05-06T01:18:11.685Z",
+        "status": "matches_found",
+        "source": "userTrees",
+        "sourceLabel": "Деревья других пользователей",
+        "searchCriteria": {
+          "fullName": true,
+          "birthDate": true,
+          "birthPlace": true
+        },
+        "matches": [
+          {
+            "data_id": "69ec7860bebb794243c75469",
+            "tree_id": "68f36f8fda84114f6acf1ce4",
+            "tree_owner": "Слабкий Павел Андреевич",
+            "database_id": "69ec7860bebb794243c75469",
+            "score": 100,
+            "people": {
+              "69ec7860bebb794243c75469": {
+                "id": "69ec7860bebb794243c75469",
+                "name": "Борис",
+                "lastName": "Ворожейкин",
+                "middleName": "Васильевич",
+                "gender": "male",
+                "fatherId": "69ec77dcaf23af790aa7c003",
+                "motherId": "69ec77e6af23af790aa7c004",
+                "partnerId": null,
+                "children": [],
+                "isAlive": false,
+                "birthDate": "1900",
+                "birthPlace": "г. Семипалатинск",
+                "hasMatch": false,
+                "sourceSearchCache": {},
+                "information": "",
+                "documents": []
+              },
+              "69ec77dcaf23af790aa7c003": {
+                "id": "69ec77dcaf23af790aa7c003",
+                "name": "Василий",
+                "lastName": "Ворожейкин",
+                "middleName": "Николаевич",
+                "gender": "male",
+                "fatherId": null,
+                "motherId": null,
+                "partnerId": "69ec77e6af23af790aa7c004",
+                "children": [
+                  "69e51483fa2dc09590a3866a",
+                  "69ec7860bebb794243c75469",
+                  "69ec78b3f781c88171e82e6e",
+                  "69ec790af781c88171e82e6f",
+                  "69ec7a322d2ada0deeede8f6"
+                ],
+                "isAlive": false,
+                "birthDate": "1868",
+                "birthPlace": "с. Ново-Покровское Ново-Покровской волости Змеиногорского уезда Томской губернии",
+                "hasMatch": false,
+                "sourceSearchCache": {},
+                "information": "",
+                "documents": []
+              },
+              "69ec77e6af23af790aa7c004": {
+                "id": "69ec77e6af23af790aa7c004",
+                "name": "Агафья",
+                "lastName": "Ворожейкина",
+                "middleName": "Моисеевна",
+                "gender": "female",
+                "fatherId": null,
+                "motherId": null,
+                "partnerId": "69ec77dcaf23af790aa7c003",
+                "children": [
+                  "69e51483fa2dc09590a3866a",
+                  "69ec7860bebb794243c75469",
+                  "69ec78b3f781c88171e82e6e",
+                  "69ec790af781c88171e82e6f",
+                  "69ec7a322d2ada0deeede8f6"
+                ],
+                "isAlive": false,
+                "birthDate": "1868",
+                "birthPlace": "",
+                "hasMatch": false,
+                "sourceSearchCache": {},
+                "information": "",
+                "documents": []
+              }
+            }
+          }
+        ],
+        "errors": []
+      }
+    }
   },
   {
     "_id": {
@@ -1954,8 +2184,98 @@
       "Аркадий"
     ],
     "relationships": [],
-    "hasMatch": false,
-    "sourceSearchCache": {}
+    "hasMatch": true,
+    "sourceSearchCache": {
+      "userTrees": {
+        "searchedAt": "2026-05-06T01:18:11.685Z",
+        "status": "matches_found",
+        "source": "userTrees",
+        "sourceLabel": "Деревья других пользователей",
+        "searchCriteria": {
+          "fullName": true,
+          "birthDate": true,
+          "birthPlace": true
+        },
+        "matches": [
+          {
+            "data_id": "69ec790af781c88171e82e6f",
+            "tree_id": "68f36f8fda84114f6acf1ce4",
+            "tree_owner": "Слабкий Павел Андреевич",
+            "database_id": "69ec790af781c88171e82e6f",
+            "score": 100,
+            "people": {
+              "69ec790af781c88171e82e6f": {
+                "id": "69ec790af781c88171e82e6f",
+                "name": "Аркадий",
+                "lastName": "Ворожейкин",
+                "middleName": "Васильевич",
+                "gender": "male",
+                "fatherId": "69ec77dcaf23af790aa7c003",
+                "motherId": "69ec77e6af23af790aa7c004",
+                "partnerId": null,
+                "children": [],
+                "isAlive": false,
+                "birthDate": "1905",
+                "birthPlace": "г. Семипалатинск",
+                "hasMatch": false,
+                "sourceSearchCache": {},
+                "information": "",
+                "documents": []
+              },
+              "69ec77dcaf23af790aa7c003": {
+                "id": "69ec77dcaf23af790aa7c003",
+                "name": "Василий",
+                "lastName": "Ворожейкин",
+                "middleName": "Николаевич",
+                "gender": "male",
+                "fatherId": null,
+                "motherId": null,
+                "partnerId": "69ec77e6af23af790aa7c004",
+                "children": [
+                  "69e51483fa2dc09590a3866a",
+                  "69ec7860bebb794243c75469",
+                  "69ec78b3f781c88171e82e6e",
+                  "69ec790af781c88171e82e6f",
+                  "69ec7a322d2ada0deeede8f6"
+                ],
+                "isAlive": false,
+                "birthDate": "1868",
+                "birthPlace": "с. Ново-Покровское Ново-Покровской волости Змеиногорского уезда Томской губернии",
+                "hasMatch": false,
+                "sourceSearchCache": {},
+                "information": "",
+                "documents": []
+              },
+              "69ec77e6af23af790aa7c004": {
+                "id": "69ec77e6af23af790aa7c004",
+                "name": "Агафья",
+                "lastName": "Ворожейкина",
+                "middleName": "Моисеевна",
+                "gender": "female",
+                "fatherId": null,
+                "motherId": null,
+                "partnerId": "69ec77dcaf23af790aa7c003",
+                "children": [
+                  "69e51483fa2dc09590a3866a",
+                  "69ec7860bebb794243c75469",
+                  "69ec78b3f781c88171e82e6e",
+                  "69ec790af781c88171e82e6f",
+                  "69ec7a322d2ada0deeede8f6"
+                ],
+                "isAlive": false,
+                "birthDate": "1868",
+                "birthPlace": "",
+                "hasMatch": false,
+                "sourceSearchCache": {},
+                "information": "",
+                "documents": []
+              }
+            }
+          }
+        ],
+        "errors": []
+      }
+    }
   },
   {
     "_id": {
@@ -2041,8 +2361,101 @@
         ]
       }
     ],
-    "hasMatch": false,
-    "sourceSearchCache": {}
+    "hasMatch": true,
+    "sourceSearchCache": {
+      "userTrees": {
+        "searchedAt": "2026-05-06T01:18:11.685Z",
+        "status": "matches_found",
+        "source": "userTrees",
+        "sourceLabel": "Деревья других пользователей",
+        "searchCriteria": {
+          "fullName": true,
+          "birthDate": true,
+          "birthPlace": true
+        },
+        "matches": [
+          {
+            "data_id": "69ec7a322d2ada0deeede8f6",
+            "tree_id": "68f36f8fda84114f6acf1ce4",
+            "tree_owner": "Слабкий Павел Андреевич",
+            "database_id": "69ec7a322d2ada0deeede8f6",
+            "score": 100,
+            "people": {
+              "69ec7a322d2ada0deeede8f6": {
+                "id": "69ec7a322d2ada0deeede8f6",
+                "name": "Александр",
+                "lastName": "Ворожейкин",
+                "middleName": "Васильевич",
+                "gender": "male",
+                "fatherId": "69ec77dcaf23af790aa7c003",
+                "motherId": "69ec77e6af23af790aa7c004",
+                "partnerId": "69ec7a724631143b2ca22fdb",
+                "children": [
+                  "69ec7a932d2ada0deeede8f7",
+                  "69ec7ab34631143b2ca22fdc"
+                ],
+                "isAlive": false,
+                "birthDate": "1891-11-23",
+                "birthPlace": "г. Семипалатинск",
+                "hasMatch": false,
+                "sourceSearchCache": {},
+                "information": "",
+                "documents": []
+              },
+              "69ec77dcaf23af790aa7c003": {
+                "id": "69ec77dcaf23af790aa7c003",
+                "name": "Василий",
+                "lastName": "Ворожейкин",
+                "middleName": "Николаевич",
+                "gender": "male",
+                "fatherId": null,
+                "motherId": null,
+                "partnerId": "69ec77e6af23af790aa7c004",
+                "children": [
+                  "69e51483fa2dc09590a3866a",
+                  "69ec7860bebb794243c75469",
+                  "69ec78b3f781c88171e82e6e",
+                  "69ec790af781c88171e82e6f",
+                  "69ec7a322d2ada0deeede8f6"
+                ],
+                "isAlive": false,
+                "birthDate": "1868",
+                "birthPlace": "с. Ново-Покровское Ново-Покровской волости Змеиногорского уезда Томской губернии",
+                "hasMatch": false,
+                "sourceSearchCache": {},
+                "information": "",
+                "documents": []
+              },
+              "69ec77e6af23af790aa7c004": {
+                "id": "69ec77e6af23af790aa7c004",
+                "name": "Агафья",
+                "lastName": "Ворожейкина",
+                "middleName": "Моисеевна",
+                "gender": "female",
+                "fatherId": null,
+                "motherId": null,
+                "partnerId": "69ec77dcaf23af790aa7c003",
+                "children": [
+                  "69e51483fa2dc09590a3866a",
+                  "69ec7860bebb794243c75469",
+                  "69ec78b3f781c88171e82e6e",
+                  "69ec790af781c88171e82e6f",
+                  "69ec7a322d2ada0deeede8f6"
+                ],
+                "isAlive": false,
+                "birthDate": "1868",
+                "birthPlace": "",
+                "hasMatch": false,
+                "sourceSearchCache": {},
+                "information": "",
+                "documents": []
+              }
+            }
+          }
+        ],
+        "errors": []
+      }
+    }
   },
   {
     "_id": {
@@ -2156,8 +2569,140 @@
     ],
     "relationships": [],
     "liveOrDead": 1,
-    "hasMatch": false,
-    "sourceSearchCache": {}
+    "hasMatch": true,
+    "sourceSearchCache": {
+      "userTrees": {
+        "searchedAt": "2026-05-06T01:18:11.685Z",
+        "status": "matches_found",
+        "source": "userTrees",
+        "sourceLabel": "Деревья других пользователей",
+        "searchCriteria": {
+          "fullName": true,
+          "birthDate": true,
+          "birthPlace": true
+        },
+        "matches": [
+          {
+            "data_id": "69ec7a932d2ada0deeede8f7",
+            "tree_id": "68f36f8fda84114f6acf1ce4",
+            "tree_owner": "Слабкий Павел Андреевич",
+            "database_id": "69ec7a932d2ada0deeede8f7",
+            "score": 100,
+            "people": {
+              "69ec7a932d2ada0deeede8f7": {
+                "id": "69ec7a932d2ada0deeede8f7",
+                "name": "Павел",
+                "lastName": "Ворожейкин",
+                "middleName": "Александрович",
+                "gender": "male",
+                "fatherId": "69ec7a322d2ada0deeede8f6",
+                "motherId": "69ec7a724631143b2ca22fdb",
+                "partnerId": null,
+                "children": [],
+                "isAlive": true,
+                "birthDate": "1923",
+                "birthPlace": "г. Семипалатинск",
+                "hasMatch": false,
+                "sourceSearchCache": {},
+                "information": "",
+                "documents": []
+              },
+              "69ec7a322d2ada0deeede8f6": {
+                "id": "69ec7a322d2ada0deeede8f6",
+                "name": "Александр",
+                "lastName": "Ворожейкин",
+                "middleName": "Васильевич",
+                "gender": "male",
+                "fatherId": "69ec77dcaf23af790aa7c003",
+                "motherId": "69ec77e6af23af790aa7c004",
+                "partnerId": "69ec7a724631143b2ca22fdb",
+                "children": [
+                  "69ec7a932d2ada0deeede8f7",
+                  "69ec7ab34631143b2ca22fdc"
+                ],
+                "isAlive": false,
+                "birthDate": "1891-11-23",
+                "birthPlace": "г. Семипалатинск",
+                "hasMatch": false,
+                "sourceSearchCache": {},
+                "information": "",
+                "documents": []
+              },
+              "69ec77dcaf23af790aa7c003": {
+                "id": "69ec77dcaf23af790aa7c003",
+                "name": "Василий",
+                "lastName": "Ворожейкин",
+                "middleName": "Николаевич",
+                "gender": "male",
+                "fatherId": null,
+                "motherId": null,
+                "partnerId": "69ec77e6af23af790aa7c004",
+                "children": [
+                  "69e51483fa2dc09590a3866a",
+                  "69ec7860bebb794243c75469",
+                  "69ec78b3f781c88171e82e6e",
+                  "69ec790af781c88171e82e6f",
+                  "69ec7a322d2ada0deeede8f6"
+                ],
+                "isAlive": false,
+                "birthDate": "1868",
+                "birthPlace": "с. Ново-Покровское Ново-Покровской волости Змеиногорского уезда Томской губернии",
+                "hasMatch": false,
+                "sourceSearchCache": {},
+                "information": "",
+                "documents": []
+              },
+              "69ec77e6af23af790aa7c004": {
+                "id": "69ec77e6af23af790aa7c004",
+                "name": "Агафья",
+                "lastName": "Ворожейкина",
+                "middleName": "Моисеевна",
+                "gender": "female",
+                "fatherId": null,
+                "motherId": null,
+                "partnerId": "69ec77dcaf23af790aa7c003",
+                "children": [
+                  "69e51483fa2dc09590a3866a",
+                  "69ec7860bebb794243c75469",
+                  "69ec78b3f781c88171e82e6e",
+                  "69ec790af781c88171e82e6f",
+                  "69ec7a322d2ada0deeede8f6"
+                ],
+                "isAlive": false,
+                "birthDate": "1868",
+                "birthPlace": "",
+                "hasMatch": false,
+                "sourceSearchCache": {},
+                "information": "",
+                "documents": []
+              },
+              "69ec7a724631143b2ca22fdb": {
+                "id": "69ec7a724631143b2ca22fdb",
+                "name": "",
+                "lastName": "Ворожейкина",
+                "middleName": "",
+                "gender": "female",
+                "fatherId": null,
+                "motherId": null,
+                "partnerId": "69ec7a322d2ada0deeede8f6",
+                "children": [
+                  "69ec7a932d2ada0deeede8f7",
+                  "69ec7ab34631143b2ca22fdc"
+                ],
+                "isAlive": false,
+                "birthDate": "1895",
+                "birthPlace": "",
+                "hasMatch": false,
+                "sourceSearchCache": {},
+                "information": "",
+                "documents": []
+              }
+            }
+          }
+        ],
+        "errors": []
+      }
+    }
   },
   {
     "_id": {
@@ -2203,8 +2748,140 @@
       "Геннадий"
     ],
     "relationships": [],
-    "hasMatch": false,
-    "sourceSearchCache": {}
+    "hasMatch": true,
+    "sourceSearchCache": {
+      "userTrees": {
+        "searchedAt": "2026-05-06T01:18:11.685Z",
+        "status": "matches_found",
+        "source": "userTrees",
+        "sourceLabel": "Деревья других пользователей",
+        "searchCriteria": {
+          "fullName": true,
+          "birthDate": true,
+          "birthPlace": true
+        },
+        "matches": [
+          {
+            "data_id": "69ec7ab34631143b2ca22fdc",
+            "tree_id": "68f36f8fda84114f6acf1ce4",
+            "tree_owner": "Слабкий Павел Андреевич",
+            "database_id": "69ec7ab34631143b2ca22fdc",
+            "score": 100,
+            "people": {
+              "69ec7ab34631143b2ca22fdc": {
+                "id": "69ec7ab34631143b2ca22fdc",
+                "name": "Геннадий",
+                "lastName": "Ворожейкин",
+                "middleName": "Александрович",
+                "gender": "male",
+                "fatherId": "69ec7a322d2ada0deeede8f6",
+                "motherId": "69ec7a724631143b2ca22fdb",
+                "partnerId": null,
+                "children": [],
+                "isAlive": false,
+                "birthDate": "1925",
+                "birthPlace": "г. Семипалатинск",
+                "hasMatch": false,
+                "sourceSearchCache": {},
+                "information": "",
+                "documents": []
+              },
+              "69ec7a322d2ada0deeede8f6": {
+                "id": "69ec7a322d2ada0deeede8f6",
+                "name": "Александр",
+                "lastName": "Ворожейкин",
+                "middleName": "Васильевич",
+                "gender": "male",
+                "fatherId": "69ec77dcaf23af790aa7c003",
+                "motherId": "69ec77e6af23af790aa7c004",
+                "partnerId": "69ec7a724631143b2ca22fdb",
+                "children": [
+                  "69ec7a932d2ada0deeede8f7",
+                  "69ec7ab34631143b2ca22fdc"
+                ],
+                "isAlive": false,
+                "birthDate": "1891-11-23",
+                "birthPlace": "г. Семипалатинск",
+                "hasMatch": false,
+                "sourceSearchCache": {},
+                "information": "",
+                "documents": []
+              },
+              "69ec77dcaf23af790aa7c003": {
+                "id": "69ec77dcaf23af790aa7c003",
+                "name": "Василий",
+                "lastName": "Ворожейкин",
+                "middleName": "Николаевич",
+                "gender": "male",
+                "fatherId": null,
+                "motherId": null,
+                "partnerId": "69ec77e6af23af790aa7c004",
+                "children": [
+                  "69e51483fa2dc09590a3866a",
+                  "69ec7860bebb794243c75469",
+                  "69ec78b3f781c88171e82e6e",
+                  "69ec790af781c88171e82e6f",
+                  "69ec7a322d2ada0deeede8f6"
+                ],
+                "isAlive": false,
+                "birthDate": "1868",
+                "birthPlace": "с. Ново-Покровское Ново-Покровской волости Змеиногорского уезда Томской губернии",
+                "hasMatch": false,
+                "sourceSearchCache": {},
+                "information": "",
+                "documents": []
+              },
+              "69ec77e6af23af790aa7c004": {
+                "id": "69ec77e6af23af790aa7c004",
+                "name": "Агафья",
+                "lastName": "Ворожейкина",
+                "middleName": "Моисеевна",
+                "gender": "female",
+                "fatherId": null,
+                "motherId": null,
+                "partnerId": "69ec77dcaf23af790aa7c003",
+                "children": [
+                  "69e51483fa2dc09590a3866a",
+                  "69ec7860bebb794243c75469",
+                  "69ec78b3f781c88171e82e6e",
+                  "69ec790af781c88171e82e6f",
+                  "69ec7a322d2ada0deeede8f6"
+                ],
+                "isAlive": false,
+                "birthDate": "1868",
+                "birthPlace": "",
+                "hasMatch": false,
+                "sourceSearchCache": {},
+                "information": "",
+                "documents": []
+              },
+              "69ec7a724631143b2ca22fdb": {
+                "id": "69ec7a724631143b2ca22fdb",
+                "name": "",
+                "lastName": "Ворожейкина",
+                "middleName": "",
+                "gender": "female",
+                "fatherId": null,
+                "motherId": null,
+                "partnerId": "69ec7a322d2ada0deeede8f6",
+                "children": [
+                  "69ec7a932d2ada0deeede8f7",
+                  "69ec7ab34631143b2ca22fdc"
+                ],
+                "isAlive": false,
+                "birthDate": "1895",
+                "birthPlace": "",
+                "hasMatch": false,
+                "sourceSearchCache": {},
+                "information": "",
+                "documents": []
+              }
+            }
+          }
+        ],
+        "errors": []
+      }
+    }
   },
   {
     "_id": {
@@ -3000,12 +3677,6 @@
       "$oid": "68f36f8fda84114f6acf1ce4"
     },
     "relatives": [
-      {
-        "id": {
-          "$oid": "17780241463027ba9"
-        },
-        "relationType": "parent"
-      },
       {
         "id": {
           "$oid": "69ec8144f361179d8a0747b2"
@@ -4648,195 +5319,5 @@
     "relationships": [],
     "hasMatch": false,
     "sourceSearchCache": {}
-  },
-  {
-    "_id": {
-      "$oid": "17780241463027ba9"
-    },
-    "treeId": {
-      "$oid": "68f36f8fda84114f6acf1ce4"
-    },
-    "gender": "Male",
-    "relatives": [
-      {
-        "id": {
-          "$oid": "69ec813c4631143b2ca22fec"
-        },
-        "relationType": "child"
-      }
-    ],
-    "relationships": [],
-    "birthdate": [],
-    "birthplace": [],
-    "name": [
-      "Терентий"
-    ],
-    "surname": [
-      "Авинов"
-    ],
-    "middleName": [
-      "Алексеевич"
-    ],
-    "liveOrDead": 1,
-    "hasMatch": true,
-    "sourceSearchCache": {
-      "pamyatNaroda": {
-        "searchedAt": "2026-05-05T23:36:06.298Z",
-        "status": "no_matches",
-        "source": "pamyatNaroda",
-        "sourceLabel": "Память народа",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
-      },
-      "openList": {
-        "searchedAt": "2026-05-05T23:36:07.921Z",
-        "status": "matches_found",
-        "source": "openList",
-        "sourceLabel": "Открытый список",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [
-          {
-            "data_id": "17780241463027ba9",
-            "source": "openList",
-            "sourceLabel": "Открытый список",
-            "score": 70.00000000000001,
-            "person": {
-              "lastName": "Авинов",
-              "name": "Терентий",
-              "middleName": "Алексеевич",
-              "birthDate": "",
-              "birthPlace": "",
-              "information": ""
-            },
-            "records": [
-              {
-                "source": "openList",
-                "sourceLabel": "Открытый список",
-                "title": "Авинов Терентий Алексеевич (1892)",
-                "information": "",
-                "url": "https://ru.openlist.wiki/%D0%90%D0%B2%D0%B8%D0%BD%D0%BE%D0%B2_%D0%A2%D0%B5%D1%80%D0%B5%D0%BD%D1%82%D0%B8%D0%B9_%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B5%D0%B5%D0%B2%D0%B8%D1%87_(1892)",
-                "birthDate": "",
-                "birthPlace": "",
-                "score": 70.00000000000001
-              }
-            ],
-            "searchedAt": "2026-05-05T23:36:07+00:00",
-            "tlsFallbackUsed": true
-          }
-        ],
-        "errors": []
-      },
-      "gwar": {
-        "searchedAt": "2026-05-05T23:36:09.494Z",
-        "status": "matches_found",
-        "source": "gwar",
-        "sourceLabel": "Герои великой войны",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [
-          {
-            "data_id": "17780241463027ba9",
-            "source": "gwar",
-            "sourceLabel": "Герои великой войны",
-            "score": 70,
-            "person": {
-              "lastName": "Авинов",
-              "name": "Терентий",
-              "middleName": "Алексеевич",
-              "birthDate": "",
-              "birthPlace": "",
-              "information": "рядовой | 294-й Грязовецкий полк | РГВИА"
-            },
-            "records": [
-              {
-                "source": "gwar",
-                "sourceLabel": "Герои великой войны",
-                "title": "Авинов Терентий Алексеевич",
-                "information": "рядовой | 294-й Грязовецкий полк | РГВИА",
-                "url": "https://gwar.mil.ru/heroes/chelovek_gospital22805775/",
-                "birthDate": "",
-                "birthPlace": "",
-                "score": 70
-              },
-              {
-                "source": "gwar",
-                "sourceLabel": "Герои великой войны",
-                "title": "Авинов (Авенов) Терентий Алексеевич",
-                "information": "рядовой | 296-й пехотный Грязовецкий полк | РГВИА",
-                "url": "https://gwar.mil.ru/heroes/chelovek_gospital225568/",
-                "birthDate": "",
-                "birthPlace": "Томская губ., Бийский округ, Сростинская вол., д. Сростки",
-                "score": 60
-              },
-              {
-                "source": "gwar",
-                "sourceLabel": "Герои великой войны",
-                "title": "Овинов (Авинов) Терентий Алексеевич",
-                "information": "296-й пехотный Грязовецкий полк | РГВИА",
-                "url": "https://gwar.mil.ru/heroes/chelovek_plen30891497/",
-                "birthDate": "1891-01-01",
-                "birthPlace": "",
-                "score": 60
-              },
-              {
-                "source": "gwar",
-                "sourceLabel": "Герои великой войны",
-                "title": "Авивов Тимофей Андреевич",
-                "information": "рядовой | 171-й пехотный Кобринский полк | РГВИА",
-                "url": "https://gwar.mil.ru/heroes/chelovek_donesenie11895437/",
-                "birthDate": "",
-                "birthPlace": "Казанская губ., Тетюшский уезд, Колунецкая вол., д. Удельное",
-                "score": 43.51
-              },
-              {
-                "source": "gwar",
-                "sourceLabel": "Герои великой войны",
-                "title": "Авелов (Авилов) Тихон Антонович",
-                "information": "мл. унтер-офицер | 308-й транспорт 68-й обозный батальон | РГВИА",
-                "url": "https://gwar.mil.ru/heroes/chelovek_gospital22805731/",
-                "birthDate": "",
-                "birthPlace": "Бакинская губ., Кубинский уезд",
-                "score": 28.12
-              }
-            ],
-            "searchedAt": "2026-05-05T23:36:09+00:00",
-            "tlsFallbackUsed": true
-          }
-        ],
-        "errors": []
-      }
-    },
-    "documents": [
-      {
-        "sourceLabel": "Открытый список",
-        "title": "Авинов Терентий Алексеевич (1892)",
-        "url": "https://ru.openlist.wiki/%D0%90%D0%B2%D0%B8%D0%BD%D0%BE%D0%B2_%D0%A2%D0%B5%D1%80%D0%B5%D0%BD%D1%82%D0%B8%D0%B9_%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B5%D0%B5%D0%B2%D0%B8%D1%87_(1892)",
-        "birthDate": "",
-        "birthPlace": "",
-        "information": "",
-        "score": 70.00000000000001
-      },
-      {
-        "sourceLabel": "Герои великой войны",
-        "title": "Авинов (Авенов) Терентий Алексеевич",
-        "url": "https://gwar.mil.ru/heroes/chelovek_gospital225568/",
-        "birthDate": "",
-        "birthPlace": "Томская губ., Бийский округ, Сростинская вол., д. Сростки",
-        "information": "рядовой | 296-й пехотный Грязовецкий полк | РГВИА",
-        "score": 60
-      }
-    ]
   }
 ]

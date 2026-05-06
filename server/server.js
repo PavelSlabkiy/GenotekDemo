@@ -11,9 +11,11 @@ app.use(cors());
 app.use(express.json({ limit: '20mb' }));
 
 const DATABASE_FILE = path.join(__dirname, '..', 'database.json');
+const TREES_DIR = path.join(__dirname, '..', 'trees');
 const PAMYAT_PARSER_SCRIPT = path.join(__dirname, '..', 'pamyat_parser.py');
 const OPENLIST_PARSER_SCRIPT = path.join(__dirname, '..', 'openlist_parser.py');
 const GWAR_PARSER_SCRIPT = path.join(__dirname, '..', 'gwar_parser.py');
+const SMART_MATCHING_SCRIPT = path.join(__dirname, '..', 'smart_matching.py');
 
 const getOid = (value) => {
   if (value && typeof value === 'object' && '$oid' in value) {
@@ -81,6 +83,7 @@ const unique = (values) => Array.from(new Set(values.filter(Boolean)));
 const PAMYAT_SOURCE_KEY = 'pamyatNaroda';
 const OPENLIST_SOURCE_KEY = 'openList';
 const GWAR_SOURCE_KEY = 'gwar';
+const USER_TREES_SOURCE_KEY = 'userTrees';
 const DEFAULT_SMART_SEARCH_CRITERIA = {
   fullName: true,
   birthDate: true,
@@ -326,6 +329,48 @@ const buildSmartMatchingDatabase = (groupedTrees, currentTreeId) => {
   return { tree_id: treeData };
 };
 
+const readExternalTreeEntries = () => {
+  if (!fs.existsSync(TREES_DIR)) return [];
+  let files = [];
+  try {
+    files = fs.readdirSync(TREES_DIR).filter(name => name.toLowerCase().endsWith('.json'));
+  } catch (error) {
+    console.error('Failed to read trees directory:', error);
+    return [];
+  }
+
+  const entries = [];
+  files.forEach((fileName) => {
+    const filePath = path.join(TREES_DIR, fileName);
+    try {
+      const raw = fs.readFileSync(filePath, 'utf8');
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        entries.push(...parsed);
+      } else {
+        console.warn(`Skipping non-array tree file: ${fileName}`);
+      }
+    } catch (error) {
+      console.error(`Failed to parse tree file ${fileName}:`, error);
+    }
+  });
+
+  return entries;
+};
+
+const buildTreesDirectorySmartDatabase = () => {
+  const externalEntries = readExternalTreeEntries();
+  const grouped = groupEntriesByTree(externalEntries);
+  const treeData = {};
+  Object.entries(grouped).forEach(([treeId, entries]) => {
+    treeData[treeId] = {
+      tree_owner: deriveTreeOwner(entries),
+      people: buildPeopleFromEntries(entries)
+    };
+  });
+  return { tree_id: treeData };
+};
+
 const readDatabaseState = () => {
   const entries = parseDatabaseFile();
   const groupedTrees = groupEntriesByTree(entries);
@@ -527,6 +572,76 @@ const runGwarParser = ({ people, personIds, searchCriteria }) => {
     people,
     personIds,
     searchCriteria
+  });
+};
+
+const runTreeMatchingParser = ({ people, personIds, searchCriteria }) => {
+  return new Promise((resolve, reject) => {
+    const fallback = {
+      matches: [],
+      matchedDataIds: [],
+      processedPersonIds: personIds || [],
+      errors: []
+    };
+    const treesDatabase = buildTreesDirectorySmartDatabase();
+    const treesCount = Object.keys(treesDatabase.tree_id || {}).length;
+    if (treesCount === 0) {
+      resolve(fallback);
+      return;
+    }
+
+    const python = spawn('python3', [SMART_MATCHING_SCRIPT], {
+      timeout: 120000
+    });
+    let stdout = '';
+    let stderr = '';
+
+    python.stdout.on('data', (data) => {
+      stdout += data.toString();
+    });
+
+    python.stderr.on('data', (data) => {
+      stderr += data.toString();
+    });
+
+    python.on('close', (code) => {
+      if (code !== 0) {
+        console.error('Smart matching parser stderr:', stderr || '(empty)');
+        fallback.errors.push({ person_id: null, message: `Parser failed with code ${code}` });
+        resolve(fallback);
+        return;
+      }
+
+      if (!stdout.trim()) {
+        resolve(fallback);
+        return;
+      }
+
+      try {
+        const parsed = JSON.parse(stdout);
+        resolve(parsed && typeof parsed === 'object' ? parsed : fallback);
+      } catch (error) {
+        console.error('Failed to parse smart matching parser output:', error);
+        fallback.errors.push({ person_id: null, message: 'Failed to parse parser output JSON' });
+        resolve(fallback);
+      }
+    });
+
+    python.on('error', (err) => {
+      console.error('Smart matching parser error:', err);
+      reject(err);
+    });
+
+    const input = JSON.stringify({
+      data: { people },
+      db: treesDatabase,
+      personIds,
+      searchCriteria: normalizeSearchCriteria(searchCriteria),
+      scoreThreshold: 90,
+      topKPerPerson: 5
+    });
+    python.stdin.write(input);
+    python.stdin.end();
   });
 };
 
@@ -861,6 +976,12 @@ const SUPPORTED_SMART_SOURCES = [
   }
 ];
 
+const USER_TREES_SOURCE = {
+  key: USER_TREES_SOURCE_KEY,
+  label: 'Деревья других пользователей',
+  enabledByDefault: true
+};
+
 // Source search endpoint
 app.post('/api/smart-matching', async (req, res) => {
   try {
@@ -870,9 +991,44 @@ app.post('/api/smart-matching', async (req, res) => {
     const sources = req.body?.sources || {};
     const searchCriteria = normalizeSearchCriteria(req.body?.searchCriteria || DEFAULT_SMART_SEARCH_CRITERIA);
 
+    const isUserTreesEnabled = sources[USER_TREES_SOURCE_KEY] !== false;
     const enabledSources = SUPPORTED_SMART_SOURCES.filter(
       source => sources[source.key] !== false
     );
+
+    let treeParserResult = {
+      matches: [],
+      errors: [],
+      matchedDataIds: [],
+      processedPersonIds: personIds
+    };
+    if (isUserTreesEnabled) {
+      treeParserResult = await runTreeMatchingParser({
+        people: data.people,
+        personIds,
+        searchCriteria
+      });
+    }
+    const treeMatchesByPersonId = {};
+    (treeParserResult.matches || []).forEach((match) => {
+      const personId = String(match.data_id);
+      if (!treeMatchesByPersonId[personId]) treeMatchesByPersonId[personId] = [];
+      treeMatchesByPersonId[personId].push(match);
+    });
+
+    personIds.forEach((personId) => {
+      const person = data.people[personId];
+      if (!person) return;
+      person.sourceSearchCache = person.sourceSearchCache || {};
+      person.sourceSearchCache[USER_TREES_SOURCE_KEY] = sourceCacheEntry({
+        sourceKey: USER_TREES_SOURCE_KEY,
+        sourceLabel: USER_TREES_SOURCE.label,
+        matches: treeMatchesByPersonId[personId] || [],
+        errors: (treeParserResult.errors || []).filter((entry) => String(entry?.person_id) === personId),
+        searchCriteria
+      });
+      person.hasMatch = calculatePersonHasMatch(person);
+    });
 
     for (const source of enabledSources) {
       const peopleToSearch = [];
@@ -946,6 +1102,14 @@ app.post('/api/smart-matching', async (req, res) => {
 
     writeCurrentPeople(data.people);
 
+    const allTreeMatches = isUserTreesEnabled
+      ? personIds.flatMap((personId) => {
+        const person = data.people[personId];
+        if (!person) return [];
+        const cacheEntry = person.sourceSearchCache?.[USER_TREES_SOURCE_KEY];
+        return cacheEntry?.matches || [];
+      })
+      : [];
     const allSourceMatches = personIds.flatMap((personId) => {
       const person = data.people[personId];
       if (!person) return [];
@@ -954,14 +1118,19 @@ app.post('/api/smart-matching', async (req, res) => {
         return cacheEntry?.matches || [];
       });
     });
-    const matchedDataIds = [...new Set(allSourceMatches.map(match => String(match.data_id)))];
+    const matchedDataIds = [...new Set(
+      [...allTreeMatches, ...allSourceMatches].map(match => String(match.data_id))
+    )];
 
     res.json({
-      treeMatches: [],
+      treeMatches: allTreeMatches,
       archiveMatches: allSourceMatches,
       matchedDataIds,
       processedPersonIds: personIds,
-      sources: enabledSources.map(source => ({ key: source.key, label: source.label })),
+      sources: [
+        ...(isUserTreesEnabled ? [{ key: USER_TREES_SOURCE.key, label: USER_TREES_SOURCE.label }] : []),
+        ...enabledSources.map(source => ({ key: source.key, label: source.label }))
+      ],
       searchCriteria
     });
   } catch (error) {
@@ -981,13 +1150,16 @@ app.get('/api/people/:id/matches', async (req, res) => {
     }
 
     const sourceCache = state.people[personId].sourceSearchCache || {};
+    const personTreeMatches = Array.isArray(sourceCache[USER_TREES_SOURCE_KEY]?.matches)
+      ? sourceCache[USER_TREES_SOURCE_KEY].matches
+      : [];
     const personArchiveMatches = SUPPORTED_SMART_SOURCES.flatMap((source) => {
       const sourceEntry = sourceCache[source.key];
       return Array.isArray(sourceEntry?.matches) ? sourceEntry.matches : [];
     });
     
     res.json({ 
-      treeMatches: [],
+      treeMatches: personTreeMatches,
       archiveMatches: personArchiveMatches
     });
   } catch (error) {

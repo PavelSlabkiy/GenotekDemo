@@ -39,8 +39,9 @@ import {
 } from 'lucide-react';
 
 const API_URL = '/api';
-const SMART_SEARCH_SUPPORTED_SOURCE_KEYS = ['pamyatNaroda', 'openList', 'gwar'];
+const SMART_SEARCH_SUPPORTED_SOURCE_KEYS = ['userTrees', 'pamyatNaroda', 'openList', 'gwar'];
 const SMART_SEARCH_SOURCE_LABELS = {
+  userTrees: 'Деревья других пользователей',
   pamyatNaroda: 'Память народа',
   openList: 'Открытый список',
   gwar: 'Герои великой войны',
@@ -110,6 +111,17 @@ const getSourceRecords = (person, sourceKey) => {
   const records = [];
   getSourceMatches(person, sourceKey).forEach((match) => {
     const sourceLabel = match.sourceLabel || SMART_SEARCH_SOURCE_LABELS[sourceKey] || 'Источник';
+    if (match.people && match.database_id) {
+      const treePerson = match.people[match.database_id];
+      if (treePerson) {
+        records.push({
+          ...treePerson,
+          sourceLabel,
+          score: match.score
+        });
+      }
+      return;
+    }
     if (Array.isArray(match.records) && match.records.length > 0) {
       match.records.forEach((record) => {
         records.push({
@@ -2500,6 +2512,7 @@ function App() {
   const [smartSearchQuery, setSmartSearchQuery] = useState('');
   const [selectedSmartSearchIds, setSelectedSmartSearchIds] = useState([]);
   const [searchSources, setSearchSources] = useState({
+    userTrees: true,
     pamyatNaroda: true,
     openList: true,
     gwar: true
@@ -3421,6 +3434,14 @@ function App() {
 
               <section className="smart-panel-section">
                 <h2>Источники поиска</h2>
+                <label className="smart-source-item">
+                  <input
+                    type="checkbox"
+                    checked={searchSources.userTrees}
+                    onChange={() => handleSourceToggle('userTrees')}
+                  />
+                  <span>Деревья других пользователей</span>
+                </label>
                 <label className="smart-source-item">
                   <input
                     type="checkbox"

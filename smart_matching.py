@@ -5,16 +5,255 @@ import heapq
 import sys
 import re
 
+
 class SmartMatching:
-    '''
+    """
     SmartMatching — поиск похожих людей во всех деревьях.
-    Теперь возвращает список совпадений, и для каждого совпадения формируется отдельный people-фрагмент.
-    '''
-    def __init__(self, data, database, trashhold: int = 90, k: int = 1):
+
+    Поддерживает оба формата:
+    1) приложение: {"people": {...}} и {"tree_id": {...}}
+    2) example/database: [{...}, {...}] c _id/treeId/relatives/birthdate
+    """
+
+    def __init__(self, data, database, trashhold: int = 90, k: int = 5, person_ids=None):
         self.data = data
         self.database = database
         self.trashhold = trashhold
         self.k = k
+        self.person_ids = [str(pid) for pid in (person_ids or [])]
+
+    # ----------------------------------------------------------------------
+    # Normalization helpers
+    # ----------------------------------------------------------------------
+
+    @staticmethod
+    def _parse_raw(raw):
+        if isinstance(raw, str):
+            raw = raw.strip()
+            if not raw:
+                return {}
+            return json.loads(raw)
+        return raw if raw is not None else {}
+
+    @staticmethod
+    def _oid_to_str(value):
+        if value is None:
+            return None
+        if isinstance(value, dict) and "$oid" in value:
+            return str(value["$oid"])
+        return str(value)
+
+    @staticmethod
+    def _first_string(value):
+        if isinstance(value, list):
+            return str(value[0]) if value else ""
+        if value is None:
+            return ""
+        return str(value)
+
+    @staticmethod
+    def _normalize_gender(value):
+        if not value:
+            return ""
+        val = str(value).strip().lower()
+        if val.startswith("f") or val in {"female", "жен", "ж", "woman"}:
+            return "female"
+        return "male"
+
+    @staticmethod
+    def _normalize_is_alive(value):
+        if value is None:
+            return None
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, (int, float)):
+            return value != 0
+        sval = str(value).strip().lower()
+        if sval in {"0", "false", "no"}:
+            return False
+        if sval in {"1", "true", "yes"}:
+            return True
+        return None
+
+    @staticmethod
+    def _birthdate_to_string(value):
+        if isinstance(value, str):
+            return value.strip()
+        if not isinstance(value, list) or not value:
+            return ""
+        item = value[0] or {}
+        year = item.get("year")
+        month = item.get("month")
+        day = item.get("day")
+        if not year:
+            return ""
+        if not month:
+            return str(year)
+        if not day:
+            return f"{int(year):04d}-{int(month):02d}"
+        return f"{int(year):04d}-{int(month):02d}-{int(day):02d}"
+
+    def _entry_to_person(self, entry):
+        pid = self._oid_to_str(entry.get("_id"))
+        if not pid:
+            return None, None, None
+
+        person = {
+            "id": pid,
+            "name": self._first_string(entry.get("name")),
+            "lastName": self._first_string(entry.get("surname")),
+            "middleName": self._first_string(entry.get("middleName")),
+            "gender": self._normalize_gender(entry.get("gender")),
+            "fatherId": None,
+            "motherId": None,
+            "partnerId": None,
+            "children": [],
+            "isAlive": self._normalize_is_alive(entry.get("liveOrDead")),
+            "birthDate": self._birthdate_to_string(entry.get("birthdate")),
+            "birthPlace": self._first_string(entry.get("birthplace")),
+            "information": entry.get("information", ""),
+        }
+        return pid, person, entry.get("relatives", [])
+
+    def _resolve_relations(self, people, pending_relatives):
+        parent_candidates = {}
+        child_candidates = {}
+        spouse_candidates = {}
+
+        for person_id, relatives in pending_relatives.items():
+            for relative in relatives:
+                rel_id = self._oid_to_str((relative or {}).get("id"))
+                rel_type = (relative or {}).get("relationType")
+                if not rel_id or rel_id not in people:
+                    continue
+                if rel_type == "parent":
+                    parent_candidates.setdefault(person_id, []).append(rel_id)
+                elif rel_type == "child":
+                    child_candidates.setdefault(person_id, []).append(rel_id)
+                elif rel_type == "spouse":
+                    spouse_candidates[person_id] = rel_id
+
+        for person_id, parent_ids in parent_candidates.items():
+            person = people.get(person_id)
+            if not person:
+                continue
+            for parent_id in list(dict.fromkeys(parent_ids)):
+                parent = people.get(parent_id)
+                if not parent:
+                    continue
+                if parent.get("gender") == "male" and not person.get("fatherId"):
+                    person["fatherId"] = parent_id
+                    continue
+                if parent.get("gender") == "female" and not person.get("motherId"):
+                    person["motherId"] = parent_id
+                    continue
+                if not person.get("fatherId"):
+                    person["fatherId"] = parent_id
+                elif not person.get("motherId"):
+                    person["motherId"] = parent_id
+
+        for person_id, child_ids in child_candidates.items():
+            person = people.get(person_id)
+            if person:
+                person["children"] = list(dict.fromkeys(child_ids))
+
+        for person_id, spouse_id in spouse_candidates.items():
+            if person_id in people and spouse_id in people:
+                people[person_id]["partnerId"] = spouse_id
+                if not people[spouse_id].get("partnerId"):
+                    people[spouse_id]["partnerId"] = person_id
+
+        for person in people.values():
+            if person.get("fatherId") and person["fatherId"] in people:
+                father = people[person["fatherId"]]
+                father["children"] = list(dict.fromkeys([*father.get("children", []), person["id"]]))
+            if person.get("motherId") and person["motherId"] in people:
+                mother = people[person["motherId"]]
+                mother["children"] = list(dict.fromkeys([*mother.get("children", []), person["id"]]))
+
+    def _entries_to_people(self, entries):
+        people = {}
+        pending_relatives = {}
+
+        for entry in entries:
+            person_id, person, relatives = self._entry_to_person(entry)
+            if not person_id:
+                continue
+            people[person_id] = person
+            pending_relatives[person_id] = relatives if isinstance(relatives, list) else []
+
+        self._resolve_relations(people, pending_relatives)
+        return people
+
+    def _group_entries_by_tree(self, entries):
+        grouped = {}
+        for entry in entries:
+            tree_id = self._oid_to_str(entry.get("treeId")) or "tree-main"
+            grouped.setdefault(tree_id, []).append(entry)
+        return grouped
+
+    def _derive_tree_owner(self, entries):
+        if not entries:
+            return "Unknown"
+        owner = None
+        for entry in entries:
+            if entry.get("patientId"):
+                owner = entry
+                break
+        if owner is None:
+            owner = entries[0]
+        full_name = [
+            self._first_string(owner.get("surname")),
+            self._first_string(owner.get("name")),
+            self._first_string(owner.get("middleName")),
+        ]
+        return " ".join([part for part in full_name if part]).strip() or "Unknown"
+
+    def _normalize_data_to_people(self):
+        raw = self._parse_raw(self.data)
+
+        if isinstance(raw, dict) and isinstance(raw.get("people"), dict):
+            people = {}
+            for key, value in raw["people"].items():
+                person = dict(value)
+                person.setdefault("id", str(key))
+                people[str(key)] = person
+            return people
+
+        if isinstance(raw, list):
+            return self._entries_to_people(raw)
+
+        return {}
+
+    def _normalize_database_to_tree_map(self):
+        raw = self._parse_raw(self.database)
+
+        if isinstance(raw, dict) and "tree_id" in raw:
+            result = {}
+            for tree_id, tree_data in (raw.get("tree_id") or {}).items():
+                people = tree_data.get("people", {})
+                normalized_people = {}
+                for key, value in people.items():
+                    person = dict(value)
+                    person.setdefault("id", str(key))
+                    normalized_people[str(key)] = person
+                result[str(tree_id)] = {
+                    "tree_owner": tree_data.get("tree_owner", "Unknown"),
+                    "people": normalized_people,
+                }
+            return result
+
+        if isinstance(raw, list):
+            grouped = self._group_entries_by_tree(raw)
+            result = {}
+            for tree_id, entries in grouped.items():
+                result[str(tree_id)] = {
+                    "tree_owner": self._derive_tree_owner(entries),
+                    "people": self._entries_to_people(entries),
+                }
+            return result
+
+        return {}
 
     # ----------------------------------------------------------------------
 
@@ -182,9 +421,8 @@ class SmartMatching:
 
         return score / weight_sum
 
-    # ----------------------------------------------------------------------
     def get_oldest_generation_idx(self):
-        data_json = json.loads(self.data)
+        data_json = {"people": self._normalize_data_to_people()}
         oldest_idx = []
         for person_id, person in data_json["people"].items():
             if person.get("fatherId") is None and person.get("motherId") is None:
@@ -195,9 +433,16 @@ class SmartMatching:
     # Поиск совпадений во всех деревьях
     # ----------------------------------------------------------------------
     def parse_json(self):
-        data_json = json.loads(self.data)
-        database_json = json.loads(self.database)
-        oldest_idx = self.get_oldest_generation_idx()
+        data_json = {"people": self._normalize_data_to_people()}
+        database_json = {"tree_id": self._normalize_database_to_tree_map()}
+        if self.person_ids:
+            oldest_idx = [
+                person_id
+                for person_id in self.person_ids
+                if person_id in data_json["people"]
+            ]
+        else:
+            oldest_idx = self.get_oldest_generation_idx()
 
         scores_dict = {}
 
@@ -219,30 +464,18 @@ class SmartMatching:
                             "score": score
                         })
 
+            if self.k and self.k > 0:
+                scores_list = heapq.nlargest(self.k, scores_list, key=lambda x: x["score"])
             scores_dict[data_idx] = scores_list
 
         return scores_dict
 
-    # ----------------------------------------------------------------------
-    def top_k_idx(self):
-        k = self.k
-        scores_dict = self.parse_json()
-
-        pairs = [
-            entry
-            for _, entries in scores_dict.items()
-            for entry in entries
-        ]
-
-        top_k = heapq.nlargest(k, pairs, key=lambda x: x["score"])
-        return top_k
-
-    # ----------------------------------------------------------------------
     # Формируем отдельный people-фрагмент для КАЖДОГО совпадения
     # ----------------------------------------------------------------------
     def get_older_generation_idx(self):
-        top = self.top_k_idx()
-        database_json = json.loads(self.database)
+        scores_dict = self.parse_json()
+        top = [entry for entries in scores_dict.values() for entry in entries]
+        database_json = {"tree_id": self._normalize_database_to_tree_map()}
 
         matchedDataIds = list({t["data_id"] for t in top})
 
@@ -291,14 +524,17 @@ class SmartMatching:
 if __name__ == "__main__":
     payload = sys.stdin.read()
     if not payload:
-        print(json.dumps({}))
+        print(json.dumps({"matches": [], "matchedDataIds": []}))
         sys.exit(0)
 
     obj = json.loads(payload)
     data = obj.get("data")
     db = obj.get("db")
+    person_ids = obj.get("personIds") or []
+    threshold = obj.get("scoreThreshold", 90)
+    per_person_top_k = obj.get("topKPerPerson", 5)
 
-    SM = SmartMatching(data, db, trashhold=90, k=5)
+    SM = SmartMatching(data, db, trashhold=threshold, k=per_person_top_k, person_ids=person_ids)
     out = SM.get_older_generation_idx()
 
     print(json.dumps(out))
