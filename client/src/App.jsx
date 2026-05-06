@@ -47,6 +47,7 @@ const SMART_SEARCH_SOURCE_LABELS = {
   gwar: 'Герои великой войны',
   warHeroes: 'Герои великой войны'
 };
+const SMART_SEARCH_ARCHIVE_SOURCE_KEYS = ['pamyatNaroda', 'openList', 'gwar', 'warHeroes'];
 const DEFAULT_SMART_SEARCH_CRITERIA = {
   fullName: true,
   birthDate: true,
@@ -117,7 +118,11 @@ const getSourceRecords = (person, sourceKey) => {
         records.push({
           ...treePerson,
           sourceLabel,
-          score: match.score
+          sourceKey,
+          score: match.score,
+          tree_id: match.tree_id,
+          tree_owner: match.tree_owner,
+          database_id: match.database_id
         });
       }
       return;
@@ -126,7 +131,8 @@ const getSourceRecords = (person, sourceKey) => {
       match.records.forEach((record) => {
         records.push({
           ...record,
-          sourceLabel: record.sourceLabel || sourceLabel
+          sourceLabel: record.sourceLabel || sourceLabel,
+          sourceKey
         });
       });
       return;
@@ -135,12 +141,16 @@ const getSourceRecords = (person, sourceKey) => {
       records.push({
         ...match.person,
         sourceLabel,
+        sourceKey,
         score: match.score
       });
     }
   });
   return records;
 };
+
+const isUserTreeRecord = (record = {}) => record.sourceKey === 'userTrees' || Boolean(record.tree_id);
+const isArchiveRecord = (record = {}) => SMART_SEARCH_ARCHIVE_SOURCE_KEYS.includes(record.sourceKey);
 
 const getDocumentKey = (document = {}) => {
   const keyParts = [
@@ -2511,6 +2521,7 @@ function App() {
   const [tutorialStep, setTutorialStep] = useState(1);
   const [smartSearchQuery, setSmartSearchQuery] = useState('');
   const [selectedSmartSearchIds, setSelectedSmartSearchIds] = useState([]);
+  const [smartSearchStatusFilter, setSmartSearchStatusFilter] = useState('all');
   const [searchSources, setSearchSources] = useState({
     userTrees: true,
     pamyatNaroda: true,
@@ -2521,6 +2532,16 @@ function App() {
   const [isSmartSearchRunning, setIsSmartSearchRunning] = useState(false);
   const [expandedSmartSearchCards, setExpandedSmartSearchCards] = useState({});
   const [selectedSmartSearchDocuments, setSelectedSmartSearchDocuments] = useState({});
+  const [unlockedSmartSearchArchiveKeys, setUnlockedSmartSearchArchiveKeys] = useState([]);
+  const [showSmartSearchPaymentModal, setShowSmartSearchPaymentModal] = useState(false);
+  const [showSmartSearchConfirmModal, setShowSmartSearchConfirmModal] = useState(false);
+  const [showSmartSearchRequestModal, setShowSmartSearchRequestModal] = useState(false);
+  const [smartSearchActionContext, setSmartSearchActionContext] = useState(null);
+  const [smartSearchRequestMessage, setSmartSearchRequestMessage] = useState('');
+  const [isSmartSearchActionProcessing, setIsSmartSearchActionProcessing] = useState(false);
+  const [showSmartSearchPaymentSuccess, setShowSmartSearchPaymentSuccess] = useState(false);
+  const [smartSearchSelectedPlan, setSmartSearchSelectedPlan] = useState('basic');
+  const [smartSearchBasicQuantity, setSmartSearchBasicQuantity] = useState(1);
 
   // Show notification as long as there are any unconfirmed matches (people with hasMatch = true)
   const showMatchFoundNotification = useMemo(() => {
@@ -2546,6 +2567,59 @@ function App() {
       })
       .sort((a, b) => getFullName(a).localeCompare(getFullName(b), 'ru'));
   }, [people, smartSearchQuery]);
+
+  const smartSearchVisibleSourceKeys = useMemo(() => {
+    const statusSourceKeys = SMART_SEARCH_SUPPORTED_SOURCE_KEYS.filter((sourceKey) => searchSources[sourceKey]);
+    return statusSourceKeys.length > 0
+      ? statusSourceKeys
+      : SMART_SEARCH_SUPPORTED_SOURCE_KEYS;
+  }, [searchSources]);
+
+  const smartSearchPeopleWithStatus = useMemo(() => (
+    smartSearchPeople.map((person) => {
+      const isReady = isReadyForSmartSearch(person, searchCriteria);
+      const sourceRecords = smartSearchVisibleSourceKeys.flatMap((sourceKey) =>
+        getSourceRecords(person, sourceKey)
+      );
+      const hasMatches = sourceRecords.length > 0;
+      const hasSourceCache = smartSearchVisibleSourceKeys.some((sourceKey) => {
+        const sourceCache = person.sourceSearchCache?.[sourceKey];
+        return sourceCache && Array.isArray(sourceCache.matches);
+      });
+      const statusLabel = hasMatches
+        ? 'Найдено совпадение'
+        : hasSourceCache
+          ? 'Совпадений не найдено'
+          : isReady
+            ? 'Готово к поиску'
+            : 'Недостаточно данных';
+      const statusClass = hasMatches
+        ? 'found'
+        : hasSourceCache
+          ? 'empty'
+          : isReady
+            ? 'ready'
+            : 'pending';
+      return {
+        person,
+        sourceRecords,
+        hasMatches,
+        hasSourceCache,
+        statusLabel,
+        statusClass
+      };
+    })
+  ), [smartSearchPeople, smartSearchVisibleSourceKeys, searchCriteria]);
+
+  const filteredSmartSearchCards = useMemo(() => {
+    if (smartSearchStatusFilter === 'all') return smartSearchPeopleWithStatus;
+    return smartSearchPeopleWithStatus.filter((card) => card.statusClass === smartSearchStatusFilter);
+  }, [smartSearchPeopleWithStatus, smartSearchStatusFilter]);
+
+  const visibleSmartSearchIds = useMemo(
+    () => filteredSmartSearchCards.map((card) => card.person.id),
+    [filteredSmartSearchCards]
+  );
 
   const handleZoomIn = () => {
     setZoom(prev => Math.min(prev + 0.1, 2));
@@ -2675,6 +2749,20 @@ function App() {
     ));
   };
 
+  const handleSelectVisibleSmartSearchCards = () => {
+    if (!visibleSmartSearchIds.length) return;
+    setSelectedSmartSearchIds((prev) => {
+      const next = new Set(prev);
+      visibleSmartSearchIds.forEach((id) => next.add(id));
+      return Array.from(next);
+    });
+  };
+
+  const handleClearVisibleSmartSearchCards = () => {
+    if (!visibleSmartSearchIds.length) return;
+    setSelectedSmartSearchIds((prev) => prev.filter((id) => !visibleSmartSearchIds.includes(id)));
+  };
+
   const handleSourceToggle = (sourceKey) => {
     setSearchSources((prev) => ({
       ...prev,
@@ -2687,6 +2775,119 @@ function App() {
       ...prev,
       [criteriaKey]: !prev[criteriaKey]
     }));
+  };
+
+  const isSmartSearchRecordUnlocked = (record) => {
+    const recordKey = getDocumentKey(record);
+    if (!recordKey) return false;
+    if (isUserTreeRecord(record)) {
+      return Boolean(record.tree_id && grantedAccessIds.includes(record.tree_id));
+    }
+    if (isArchiveRecord(record)) {
+      return unlockedSmartSearchArchiveKeys.includes(recordKey);
+    }
+    return true;
+  };
+
+  const resetSmartSearchActionState = () => {
+    setShowSmartSearchPaymentModal(false);
+    setShowSmartSearchConfirmModal(false);
+    setShowSmartSearchRequestModal(false);
+    setSmartSearchActionContext(null);
+    setSmartSearchRequestMessage('');
+    setIsSmartSearchActionProcessing(false);
+    setShowSmartSearchPaymentSuccess(false);
+  };
+
+  const startSmartSearchCardPurchase = (person, lockedTreeRecords, lockedArchiveRecords) => {
+    if (!lockedTreeRecords.length && !lockedArchiveRecords.length) return;
+    const treeMap = new Map();
+    lockedTreeRecords.forEach((record) => {
+      if (!record.tree_id) return;
+      if (!treeMap.has(record.tree_id)) {
+        treeMap.set(record.tree_id, record.tree_owner || 'Владелец дерева');
+      }
+    });
+    const treeIds = Array.from(treeMap.keys());
+    const archiveRecordKeys = Array.from(new Set(
+      lockedArchiveRecords
+        .map((record) => getDocumentKey(record))
+        .filter(Boolean)
+    ));
+    const requiredMatches = 1;
+    const owners = Array.from(treeMap.values());
+
+    setSmartSearchActionContext({
+      type: 'cardPurchase',
+      personId: person.id,
+      personName: getFullName(person),
+      requiredMatches,
+      treeIds,
+      archiveRecordKeys,
+      treeOwners: owners
+    });
+    if (smartMatchBalance >= requiredMatches) {
+      setShowSmartSearchConfirmModal(true);
+      return;
+    }
+    setSmartSearchBasicQuantity(requiredMatches);
+    setSmartSearchSelectedPlan('basic');
+    setShowSmartSearchPaymentModal(true);
+  };
+
+  const handleSmartSearchConfirmPurchase = () => {
+    setShowSmartSearchConfirmModal(false);
+    if (!smartSearchActionContext) return;
+    handleSpendBalance(1);
+    if (!smartSearchActionContext.treeIds?.length) {
+      setUnlockedSmartSearchArchiveKeys((prev) => Array.from(new Set([
+        ...prev,
+        ...(smartSearchActionContext.archiveRecordKeys || [])
+      ])));
+      showToast('Карточка разблокирована');
+      setSmartSearchActionContext(null);
+      return;
+    }
+    const firstOwner = smartSearchActionContext.treeOwners?.[0] || 'владельцу дерева';
+    setSmartSearchRequestMessage(`Здравствуйте, ${firstOwner}! Я хотел бы получить доступ к данным вашего семейного древа.`);
+    setShowSmartSearchRequestModal(true);
+  };
+
+  const handleSmartSearchBuyMatches = async () => {
+    setIsSmartSearchActionProcessing(true);
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    setIsSmartSearchActionProcessing(false);
+    setShowSmartSearchPaymentSuccess(true);
+
+    const matchesToAdd = smartSearchSelectedPlan === 'package' ? 10 : smartSearchBasicQuantity;
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    setShowSmartSearchPaymentSuccess(false);
+    setShowSmartSearchPaymentModal(false);
+    handleAddBalance(matchesToAdd);
+
+    if (smartSearchActionContext) {
+      setShowSmartSearchConfirmModal(true);
+    }
+  };
+
+  const handleSmartSearchSendRequest = async () => {
+    if (!smartSearchActionContext?.treeIds?.length) return;
+    setIsSmartSearchActionProcessing(true);
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    setIsSmartSearchActionProcessing(false);
+
+    setGrantedAccessIds((prev) => Array.from(new Set([
+      ...prev,
+      ...smartSearchActionContext.treeIds
+    ])));
+    setUnlockedSmartSearchArchiveKeys((prev) => Array.from(new Set([
+      ...prev,
+      ...(smartSearchActionContext.archiveRecordKeys || [])
+    ])));
+    setShowSmartSearchRequestModal(false);
+    setSmartSearchActionContext(null);
+    setSmartSearchRequestMessage('');
+    showToast('Карточка разблокирована');
   };
 
   const handleSourceDocumentToggle = (personId, record) => {
@@ -2732,9 +2933,11 @@ function App() {
       return;
     }
 
-    const selectedRecords = sourceRecords.filter((record) => selectedKeys.includes(getDocumentKey(record)));
+    const selectedRecords = sourceRecords.filter((record) => (
+      selectedKeys.includes(getDocumentKey(record)) && isSmartSearchRecordUnlocked(record)
+    ));
     if (!selectedRecords.length) {
-      showToast('Выбранные документы не найдены', 'error');
+      showToast('Выбранные документы пока недоступны', 'error');
       return;
     }
 
@@ -3079,6 +3282,12 @@ function App() {
     setShowBalancePanel(false);
   }, [activeSection]);
 
+  const smartSearchRequiredMatches = smartSearchActionContext?.requiredMatches || 1;
+  const smartSearchPaymentBasicPrice = 210;
+  const smartSearchPaymentPackagePrice = 1600;
+  const smartSearchPaymentBasicTotal = smartSearchBasicQuantity * smartSearchPaymentBasicPrice;
+  const smartSearchActionTitle = 'разблокировки карточки';
+
   if (loading) {
     return (
       <div className="app">
@@ -3133,47 +3342,77 @@ function App() {
               </label>
 
               <p className="smart-search-meta">
-                Найдено карточек: <strong>{smartSearchPeople.length}</strong> | Выбрано: <strong>{selectedSmartSearchIds.length}</strong>
+                Найдено: <strong>{filteredSmartSearchCards.length}</strong> | Выбрано: <strong>{selectedSmartSearchIds.length}</strong>
               </p>
 
+              <div className="smart-search-filters-row">
+                <div className="smart-search-filters">
+                  <button
+                    type="button"
+                    className={`smart-ready-badge found smart-filter-chip ${smartSearchStatusFilter === 'found' ? 'active' : ''}`}
+                    onClick={() => setSmartSearchStatusFilter((prev) => (prev === 'found' ? 'all' : 'found'))}
+                  >
+                    Найдено совпадение
+                  </button>
+                  <button
+                    type="button"
+                    className={`smart-ready-badge ready smart-filter-chip ${smartSearchStatusFilter === 'ready' ? 'active' : ''}`}
+                    onClick={() => setSmartSearchStatusFilter((prev) => (prev === 'ready' ? 'all' : 'ready'))}
+                  >
+                    Готово к поиску
+                  </button>
+                  <button
+                    type="button"
+                    className={`smart-ready-badge pending smart-filter-chip ${smartSearchStatusFilter === 'pending' ? 'active' : ''}`}
+                    onClick={() => setSmartSearchStatusFilter((prev) => (prev === 'pending' ? 'all' : 'pending'))}
+                  >
+                    Недостаточно данных
+                  </button>
+                </div>
+                <div className="smart-selection-actions">
+                  <button
+                    type="button"
+                    className="btn btn-primary smart-select-visible-btn"
+                    onClick={handleSelectVisibleSmartSearchCards}
+                    disabled={visibleSmartSearchIds.length === 0}
+                  >
+                    Выбрать
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-danger smart-select-visible-btn"
+                    onClick={handleClearVisibleSmartSearchCards}
+                    disabled={visibleSmartSearchIds.length === 0}
+                  >
+                    Очистить
+                  </button>
+                </div>
+              </div>
+
               <div className="smart-search-cards">
-                {smartSearchPeople.map((person) => {
+                {filteredSmartSearchCards.map((card) => {
+                  const { person, sourceRecords, hasMatches, statusLabel, statusClass } = card;
                   const personName = getFullName(person) || 'Без имени';
                   const personDocuments = Array.isArray(person.documents) ? person.documents : [];
                   const confirmedDocumentKeys = new Set(personDocuments.map((document) => getDocumentKey(document)));
                   const isSelected = selectedSmartSearchIds.includes(person.id);
-                  const isReady = isReadyForSmartSearch(person, searchCriteria);
-                  const statusSourceKeys = SMART_SEARCH_SUPPORTED_SOURCE_KEYS.filter((sourceKey) => searchSources[sourceKey]);
-                  const visibleSourceKeys = statusSourceKeys.length > 0
-                    ? statusSourceKeys
-                    : SMART_SEARCH_SUPPORTED_SOURCE_KEYS;
-                  const sourceRecords = visibleSourceKeys.flatMap((sourceKey) =>
-                    getSourceRecords(person, sourceKey)
-                  );
-                  const hasMatches = sourceRecords.length > 0;
-                  const hasSourceCache = visibleSourceKeys.some((sourceKey) => {
-                    const sourceCache = person.sourceSearchCache?.[sourceKey];
-                    return sourceCache && Array.isArray(sourceCache.matches);
-                  });
                   const expanded = Boolean(expandedSmartSearchCards[person.id]);
                   const pendingSourceRecords = sourceRecords.filter(
                     (record) => !confirmedDocumentKeys.has(getDocumentKey(record))
                   );
                   const selectedDocumentKeys = selectedSmartSearchDocuments[person.id] || [];
-                  const statusLabel = hasMatches
-                    ? 'Найдено совпадение'
-                    : hasSourceCache
-                      ? 'Совпадений не найдено'
-                      : isReady
-                        ? 'Готово к поиску'
-                        : 'Недостаточно данных';
-                  const statusClass = hasMatches
-                    ? 'found'
-                    : hasSourceCache
-                      ? 'empty'
-                      : isReady
-                        ? 'ready'
-                        : 'pending';
+                  const lockedTreeRecords = pendingSourceRecords.filter(
+                    (record) => isUserTreeRecord(record) && !isSmartSearchRecordUnlocked(record)
+                  );
+                  const lockedArchiveRecords = pendingSourceRecords.filter(
+                    (record) => isArchiveRecord(record) && !isSmartSearchRecordUnlocked(record)
+                  );
+                  const lockedRecordKeys = new Set([
+                    ...lockedTreeRecords.map((record) => getDocumentKey(record)),
+                    ...lockedArchiveRecords.map((record) => getDocumentKey(record))
+                  ]);
+                  const hasLockedRecords = lockedRecordKeys.size > 0;
+                  const selectedUnlockedCount = selectedDocumentKeys.filter((recordKey) => !lockedRecordKeys.has(recordKey)).length;
                   const personGenderClass = person.gender === 'male'
                     ? 'male'
                     : person.gender === 'female'
@@ -3261,16 +3500,25 @@ function App() {
                         <div className="smart-source-results">
                           <h4 className="smart-pending-documents-title">Ожидают подтверждения</h4>
                           {pendingSourceRecords.map((record, index) => (
-                            <article key={`${person.id}-${index}`} className="smart-source-result-item">
+                            <article
+                              key={`${person.id}-${index}`}
+                              className={`smart-source-result-item ${!isSmartSearchRecordUnlocked(record) ? 'smart-source-result-item-locked' : ''}`}
+                            >
                               <div className="smart-source-result-header">
                                 <div className="smart-source-header-left">
-                                  <label className="smart-source-record-checkbox" title="Выбрать документ">
-                                    <input
-                                      type="checkbox"
-                                      checked={selectedDocumentKeys.includes(getDocumentKey(record))}
-                                      onChange={() => handleSourceDocumentToggle(person.id, record)}
-                                    />
-                                  </label>
+                                  {isSmartSearchRecordUnlocked(record) ? (
+                                    <label className="smart-source-record-checkbox" title="Выбрать документ">
+                                      <input
+                                        type="checkbox"
+                                        checked={selectedDocumentKeys.includes(getDocumentKey(record))}
+                                        onChange={() => handleSourceDocumentToggle(person.id, record)}
+                                      />
+                                    </label>
+                                  ) : (
+                                    <span className="smart-source-lock-icon" title="Доступ ограничен">
+                                      <Lock size={14} />
+                                    </span>
+                                  )}
                                   <span className={`smart-source-name ${getDocumentSourceClass(record.sourceLabel)}`.trim()}>
                                     {record.sourceLabel || 'Источник'}
                                   </span>
@@ -3279,38 +3527,50 @@ function App() {
                                   <span className="smart-source-score">{record.score.toFixed(1)}%</span>
                                 )}
                               </div>
-                              <p className="smart-source-title">
-                                {record.url ? (
-                                  <a
-                                    href={record.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="smart-source-link"
-                                    title="Открыть документ в источнике"
-                                  >
-                                    {record.title || getPersonLabel(record)}
-                                  </a>
-                                ) : (
-                                  record.title || getPersonLabel(record)
+                              <div className={!isSmartSearchRecordUnlocked(record) ? 'blurred-info smart-source-content' : 'smart-source-content'}>
+                                <p className="smart-source-title">
+                                  {record.url ? (
+                                    <a
+                                      href={record.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="smart-source-link"
+                                      title="Открыть документ в источнике"
+                                    >
+                                      {record.title || getPersonLabel(record)}
+                                    </a>
+                                  ) : (
+                                    record.title || getPersonLabel(record)
+                                  )}
+                                </p>
+                                {record.birthDate && (
+                                  <p className="smart-source-meta">Дата рождения: {record.birthDate}</p>
                                 )}
-                              </p>
-                              {record.birthDate && (
-                                <p className="smart-source-meta">Дата рождения: {record.birthDate}</p>
-                              )}
-                              {record.birthPlace && (
-                                <p className="smart-source-meta">Место рождения: {record.birthPlace}</p>
-                              )}
-                              {record.information && (
-                                <p className="smart-source-meta">{record.information}</p>
-                              )}
+                                {record.birthPlace && (
+                                  <p className="smart-source-meta">Место рождения: {record.birthPlace}</p>
+                                )}
+                                {record.information && (
+                                  <p className="smart-source-meta">{record.information}</p>
+                                )}
+                              </div>
                             </article>
                           ))}
-                          {pendingSourceRecords.length > 0 && (
+                          {hasLockedRecords && (
+                            <button
+                              type="button"
+                              className="btn btn-secondary smart-lock-action-btn"
+                              onClick={() => startSmartSearchCardPurchase(person, lockedTreeRecords, lockedArchiveRecords)}
+                            >
+                              <Lock size={16} />
+                              Приобрести
+                            </button>
+                          )}
+                          {pendingSourceRecords.length > 0 && !hasLockedRecords && (
                             <button
                               type="button"
                               className="btn btn-primary smart-add-documents-btn"
                               onClick={() => handleAddDocumentsToPersonCard(person, pendingSourceRecords)}
-                              disabled={selectedDocumentKeys.length === 0}
+                              disabled={selectedUnlockedCount === 0}
                             >
                               Добавить в карточку
                             </button>
@@ -3690,6 +3950,165 @@ function App() {
         grantedAccessIds={grantedAccessIds}
         onGrantAccess={handleGrantAccess}
       />
+
+      {showSmartSearchPaymentModal && (
+        <div className="modal-overlay payment-modal" onClick={() => !isSmartSearchActionProcessing && resetSmartSearchActionState()}>
+          <div className="modal-content payment-content" onClick={(e) => e.stopPropagation()}>
+            {showSmartSearchPaymentSuccess ? (
+              <div className="payment-success">
+                <Check size={48} className="success-icon" />
+                <h3>Оплата прошла успешно!</h3>
+                <p>Добавлено {smartSearchSelectedPlan === 'package' ? 10 : smartSearchBasicQuantity} совпадений</p>
+              </div>
+            ) : (
+              <>
+                <div className="payment-header">
+                  <CreditCard size={32} className="payment-icon" />
+                  <h3>Пополнение баланса</h3>
+                </div>
+                {smartSearchRequiredMatches > 1 && (
+                  <p className="payment-notice">
+                    Для {smartSearchActionTitle} требуется минимум {smartSearchRequiredMatches} совпадений
+                  </p>
+                )}
+                <div className="payment-plans">
+                  <div
+                    className={`payment-plan ${smartSearchSelectedPlan === 'basic' ? 'selected' : ''}`}
+                    onClick={() => setSmartSearchSelectedPlan('basic')}
+                  >
+                    <div className="plan-header">
+                      <h4>Базовый</h4>
+                      <span className="plan-price">{smartSearchPaymentBasicPrice} ₽</span>
+                    </div>
+                    <p className="plan-desc">за 1 совпадение</p>
+                    <div className="plan-quantity">
+                      <button
+                        className="quantity-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSmartSearchBasicQuantity((prev) => Math.max(smartSearchRequiredMatches, prev - 1));
+                        }}
+                        disabled={smartSearchBasicQuantity <= smartSearchRequiredMatches}
+                      >
+                        <Minus size={14} />
+                      </button>
+                      <span className="quantity-value">{smartSearchBasicQuantity}</span>
+                      <button
+                        className="quantity-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSmartSearchBasicQuantity((prev) => prev + 1);
+                        }}
+                      >
+                        <Plus size={14} />
+                      </button>
+                    </div>
+                    <div className="plan-total">
+                      Итого: <strong>{smartSearchPaymentBasicTotal} ₽</strong>
+                    </div>
+                  </div>
+                  <div
+                    className={`payment-plan package ${smartSearchSelectedPlan === 'package' ? 'selected' : ''}`}
+                    onClick={() => setSmartSearchSelectedPlan('package')}
+                  >
+                    <div className="plan-badge">Выгодно</div>
+                    <div className="plan-header">
+                      <h4>Пакет</h4>
+                      <span className="plan-price">{smartSearchPaymentPackagePrice} ₽</span>
+                    </div>
+                    <p className="plan-desc">за 10 совпадений</p>
+                    <p className="plan-savings">Экономия {10 * smartSearchPaymentBasicPrice - smartSearchPaymentPackagePrice} ₽</p>
+                    <div className="plan-total">
+                      <strong>{smartSearchPaymentPackagePrice} ₽</strong>
+                    </div>
+                  </div>
+                </div>
+                <button
+                  className="btn btn-primary payment-btn"
+                  onClick={handleSmartSearchBuyMatches}
+                  disabled={isSmartSearchActionProcessing}
+                >
+                  {isSmartSearchActionProcessing ? (
+                    <>
+                      <div className="btn-spinner" />
+                      Обработка...
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard size={16} />
+                      Оплатить {smartSearchSelectedPlan === 'package' ? smartSearchPaymentPackagePrice : smartSearchPaymentBasicTotal} ₽
+                    </>
+                  )}
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {showSmartSearchConfirmModal && (
+        <div className="modal-overlay confirm-purchase-modal" onClick={resetSmartSearchActionState}>
+          <div className="modal-content confirm-purchase-content" onClick={(e) => e.stopPropagation()}>
+            <div className="confirm-purchase-header">
+              <Coins size={32} className="confirm-purchase-icon" />
+              <h3>Подтверждение</h3>
+            </div>
+            <p className="confirm-purchase-text">
+              Вы хотите приобрести разблокировку карточки за <strong>1 совпадение</strong>?
+            </p>
+            <p className="confirm-purchase-balance">
+              Текущий баланс: <strong>{smartMatchBalance}</strong> совпадений
+            </p>
+            <div className="confirm-purchase-actions">
+              <button className="btn btn-secondary" onClick={resetSmartSearchActionState}>
+                Отмена
+              </button>
+              <button className="btn btn-primary" onClick={handleSmartSearchConfirmPurchase}>
+                <Check size={16} />
+                Подтвердить
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showSmartSearchRequestModal && (
+        <div className="modal-overlay request-modal" onClick={() => !isSmartSearchActionProcessing && resetSmartSearchActionState()}>
+          <div className="modal-content request-content" onClick={(e) => e.stopPropagation()}>
+            <div className="request-header">
+              <Send size={24} className="request-icon" />
+              <h3>Запрос доступа</h3>
+            </div>
+            <p className="request-recipient">
+              Кому: <strong>{smartSearchActionContext?.treeOwners?.join(', ') || 'Владелец дерева'}</strong>
+            </p>
+            <textarea
+              className="request-textarea"
+              value={smartSearchRequestMessage}
+              onChange={(event) => setSmartSearchRequestMessage(event.target.value)}
+              rows={4}
+              disabled={isSmartSearchActionProcessing}
+            />
+            <button
+              className="btn btn-primary request-btn"
+              onClick={handleSmartSearchSendRequest}
+              disabled={isSmartSearchActionProcessing}
+            >
+              {isSmartSearchActionProcessing ? (
+                <>
+                  <div className="btn-spinner" />
+                  Отправка...
+                </>
+              ) : (
+                <>
+                  <Send size={16} />
+                  Отправить
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      )}
 
       <input
         ref={uploadInputRef}
