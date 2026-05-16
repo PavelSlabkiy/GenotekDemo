@@ -38,7 +38,7 @@
 ## Структура проекта
 
 ```
-qhp/
+Genotek/
 ├── server/                    # Backend (Node.js + Express)
 ├── client/                    # Frontend (React + Vite)
 ├── smart_matching.py          # Модуль SmartMatching (Python)
@@ -95,30 +95,184 @@ npm run dev
 
 ## API Endpoints
 
-### Основные операции с людьми
+### Люди и связи
 
 | Метод | Путь | Описание |
 |-------|------|----------|
 | GET | /api/people | Получить всех людей |
 | GET | /api/people/:id | Получить человека по ID |
-| GET | /api/people/:id/family | Получить человека с семейными связями |
+| GET | /api/people/:id/family | Получить расширенную семейную карточку |
 | POST | /api/people | Создать нового человека |
 | PUT | /api/people/:id | Обновить данные человека |
-| DELETE | /api/people/:id | Удалить человека |
-| POST | /api/people/:id/relative | Добавить родственника |
+| DELETE | /api/people/:id | Удалить человека и почистить связи |
+| POST | /api/people/:id/relative | Добавить родственника (partner/father/mother/son/daughter) |
 
-### SmartMatching API
+#### POST `/api/people/:id/relative`
+
+Пример `request`:
+
+```json
+{
+  "relationType": "father",
+  "relativeData": {
+    "name": "Петр",
+    "lastName": "Иванов",
+    "middleName": "Сергеевич",
+    "birthDate": "1960",
+    "birthPlace": "Москва",
+    "information": ""
+  }
+}
+```
+
+Пример `response`:
+
+```json
+{
+  "person": { "id": "target_id" },
+  "newRelative": { "id": "new_relative_id" }
+}
+```
+
+### SmartMatching и архивные источники
 
 | Метод | Путь | Описание |
 |-------|------|----------|
-| POST | /api/smart-matching | Запустить поиск совпадений (деревья + архивы) |
-| GET | /api/people/:id/matches | Получить совпадения для конкретного человека |
-| POST | /api/people/:id/confirm-match | Подтвердить совпадение с другим деревом |
-| POST | /api/people/:id/confirm-archive-match | Подтвердить совпадение с архивом |
+| POST | /api/smart-matching | Запустить поиск совпадений по деревьям и архивам |
+| GET | /api/people/:id/matches | Получить кэш совпадений для персоны |
+| POST | /api/people/:id/confirm-match | Подтвердить совпадение с чужим деревом |
+| POST | /api/people/:id/confirm-archive-match | Подтвердить архивное совпадение |
+
+#### POST `/api/smart-matching`
+
+Пример `request`:
+
+```json
+{
+  "personIds": ["person_1", "person_2"],
+  "sources": {
+    "userTrees": true,
+    "pamyatNaroda": true,
+    "openList": true,
+    "gwar": false
+  },
+  "searchCriteria": {
+    "fullName": true,
+    "birthDate": true,
+    "birthPlace": true
+  }
+}
+```
+
+Пример `response`:
+
+```json
+{
+  "treeMatches": [],
+  "archiveMatches": [],
+  "matchedDataIds": ["person_1"],
+  "processedPersonIds": ["person_1", "person_2"],
+  "sources": [
+    { "key": "userTrees", "label": "Деревья других пользователей" },
+    { "key": "pamyatNaroda", "label": "Память народа" },
+    { "key": "openList", "label": "Открытый список" }
+  ],
+  "searchCriteria": {
+    "fullName": true,
+    "birthDate": true,
+    "birthPlace": true
+  }
+}
+```
+
+#### GET `/api/people/:id/matches`
+
+Пример `response`:
+
+```json
+{
+  "treeMatches": [],
+  "archiveMatches": []
+}
+```
+
+#### POST `/api/people/:id/confirm-match`
+
+Пример `request`:
+
+```json
+{
+  "match": {
+    "database_id": "db_person_id",
+    "people": {
+      "db_person_id": { "id": "db_person_id" }
+    }
+  }
+}
+```
+
+Пример `response`:
+
+```json
+{
+  "success": true,
+  "message": "Match confirmed and relatives added",
+  "people": {}
+}
+```
+
+#### POST `/api/people/:id/confirm-archive-match`
+
+Пример `request`:
+
+```json
+{
+  "match": {
+    "person": {
+      "birthDate": "1920",
+      "birthPlace": "Москва",
+      "information": "Архивные сведения..."
+    }
+  }
+}
+```
+
+Пример `response`:
+
+```json
+{
+  "success": true,
+  "message": "Archive information added",
+  "person": { "id": "person_1" }
+}
+```
+
+### Импорт/экспорт базы
+
+| Метод | Путь | Описание |
+|-------|------|----------|
+| POST | /api/database/upload | Загрузить `database.json` (массив import-записей) |
+| GET | /api/database/export | Выгрузить `database.json` |
+
+#### POST `/api/database/upload`
+
+Поддерживает:
+- массив записей import-формата;
+- объект с полем `data`, содержащим массив записей.
+
+Пример успешного `response`:
+
+```json
+{
+  "success": true,
+  "people": {},
+  "records": 123
+}
+```
 
 ## Структура данных
 
-### Человек (Person)
+### Человек (Person, API `/api/people`)
 
 ```json
 {
@@ -135,29 +289,69 @@ npm run dev
   "children": ["id_ребёнка1", "id_ребёнка2"],
   "isAlive": true,
   "hasMatch": false,
-  "information": "Описание или данные из архива"
+  "information": "Описание или данные из архива",
+  "documents": [],
+  "sourceSearchCache": {
+    "userTrees": {
+      "searchedAt": "2026-05-16T10:00:00.000Z",
+      "status": "matches_found|no_matches",
+      "source": "userTrees",
+      "sourceLabel": "Деревья других пользователей",
+      "searchCriteria": {
+        "fullName": true,
+        "birthDate": true,
+        "birthPlace": true
+      },
+      "matches": [],
+      "errors": []
+    }
+  }
 }
 ```
 
-### Единое хранилище (database.json)
+### Локальное хранилище (`database.json`)
+
+`database.json` хранит массив записей в import-формате. Текущее дерево определяется автоматически (обычно по `patientId`), а при сохранении обновляется только текущее дерево.
 
 ```json
 [
   {
-    "_id": { "$oid": "..." },
-    "treeId": { "$oid": "..." },
-    "gender": "Male|Female",
-    "name": ["..."],
-    "surname": ["..."],
-    "middleName": ["..."],
+    "_id": { "$oid": "person_1" },
+    "treeId": { "$oid": "tree_main" },
+    "patientId": true,
+    "gender": "Male",
+    "name": ["Иван"],
+    "surname": ["Иванов"],
+    "middleName": ["Иванович"],
     "birthdate": [{ "day": 1, "month": 1, "year": 1990 }],
-    "birthplace": ["..."],
-    "relatives": [{ "id": { "$oid": "..." }, "relationType": "parent|child|spouse" }]
+    "birthplace": ["Москва"],
+    "liveOrDead": 1,
+    "relatives": [
+      { "id": { "$oid": "person_2" }, "relationType": "parent" },
+      { "id": { "$oid": "person_3" }, "relationType": "spouse" }
+    ],
+    "relationships": [
+      {
+        "with": { "$oid": "person_3" },
+        "type": "official",
+        "finished": null,
+        "from": [{ "day": null, "month": null, "year": null }],
+        "to": [{ "day": null, "month": null, "year": null }]
+      }
+    ],
+    "hasMatch": false,
+    "sourceSearchCache": {},
+    "information": "Дополнительная информация",
+    "documents": []
   }
 ]
 ```
 
-### Результат SmartMatching
+### База деревьев других пользователей (`trees/`)
+
+`trees/` содержит `.json` файлы в том же import-формате (массив записей). При поиске источник `userTrees` строится из файлов этой директории.
+
+### Результат `/api/smart-matching`
 
 ```json
 {
@@ -168,12 +362,30 @@ npm run dev
       "tree_owner": "Владелец дерева",
       "database_id": "id_в_другом_дереве",
       "score": 95.5,
-      "people": { ... }
+      "people": {
+        "db_person_id": {
+          "id": "db_person_id",
+          "name": "Иван",
+          "lastName": "Иванов",
+          "middleName": "Иванович",
+          "gender": "male",
+          "fatherId": null,
+          "motherId": null,
+          "partnerId": null,
+          "children": [],
+          "isAlive": true,
+          "birthDate": "1910",
+          "birthPlace": "Москва",
+          "information": ""
+        }
+      }
     }
   ],
   "archiveMatches": [
     {
       "data_id": "id_в_вашем_дереве",
+      "source": "pamyatNaroda|openList|gwar",
+      "sourceLabel": "Память народа|Открытый список|Герои великой войны",
       "score": 92.3,
       "person": {
         "lastName": "Фамилия",
@@ -182,10 +394,24 @@ npm run dev
         "birthDate": "1920",
         "birthPlace": "Место",
         "information": "AI-суммаризация архивных данных"
-      }
+      },
+      "records": [],
+      "searchedAt": "2026-05-16T10:00:00.000Z"
     }
   ],
-  "matchedDataIds": ["id1", "id2"]
+  "matchedDataIds": ["id1", "id2"],
+  "processedPersonIds": ["id1", "id2"],
+  "sources": [
+    { "key": "userTrees", "label": "Деревья других пользователей" },
+    { "key": "pamyatNaroda", "label": "Память народа" },
+    { "key": "openList", "label": "Открытый список" },
+    { "key": "gwar", "label": "Герои великой войны" }
+  ],
+  "searchCriteria": {
+    "fullName": true,
+    "birthDate": true,
+    "birthPlace": true
+  }
 }
 ```
 
@@ -218,7 +444,15 @@ npm run dev
 
 ## Алгоритм SmartMatching
 
-SmartMatching — интеллектуальный алгоритм поиска совпадений между людьми в разных генеалогических деревьях. Использует комбинацию нечёткого сравнения строк, анализа дат и географических названий.
+SmartMatching сравнивает персон текущего дерева с персонами из источника `userTrees` и возвращает совпадения для фронта в едином формате.
+
+Что делает модуль `smart_matching.py`:
+- принимает текущих персон (`data`) и базу чужих деревьев (`db`);
+- поддерживает два формата входа: `{"people": ...}` и import-массив с `_id/treeId/relatives`;
+- считает score по набору полей с динамическими весами;
+- фильтрует по порогу `scoreThreshold`;
+- ограничивает выдачу `topKPerPerson`;
+- для каждого совпадения добавляет `people`-фрагмент предков для подтверждения/импорта в текущее дерево.
 
 ### Взвешенная оценка
 
@@ -226,13 +460,12 @@ SmartMatching — интеллектуальный алгоритм поиска
 
 | Поле | Вес | Описание |
 |------|-----|----------|
-| **Фамилия** | 0.25 | Нечёткое сравнение (RapidFuzz) |
-| **Имя** | 0.20 | Нечёткое сравнение (RapidFuzz) |
-| **Дата рождения** | 0.25 | Сравнение с поддержкой диапазонов |
+| **Фамилия** | 0.28 | Нечёткое сравнение (RapidFuzz) |
+| **Имя** | 0.24 | Нечёткое сравнение (RapidFuzz) |
+| **Дата рождения** | 0.28 | Сравнение с поддержкой диапазонов |
 | **Отчество** | 0.10 | Только если указано хотя бы у одного |
 | **Место рождения** | 0.10 | Триграммное сравнение с фильтрацией |
-| **Пол** | 0.10 | Точное совпадение (100/0) |
-| **Статус (жив/умер)** | 0.05 | Точное совпадение (100/0) |
+| **Девичья фамилия** | 0.12 | Только если указана у обеих персон |
 
 Итоговый score = Σ(score_i × weight_i) / Σ(weight_i)
 
@@ -281,26 +514,26 @@ SmartMatching — интеллектуальный алгоритм поиска
 | ≥ 0.20 | 40 |
 | < 0.20 | 0 |
 
-### Порог совпадения
+### Порог совпадения и выдача
 
-**90%** — минимальный score для признания совпадения.
+- По умолчанию `scoreThreshold = 90`.
+- По умолчанию `topKPerPerson = 5`.
+- Если `personIds` не передан, поиск идет по старшему поколению (персоны без родителей).
 
 ### Пример расчёта
 
 ```
-Персона A: Иванов Иван Иванович, 1920, Москва, муж., жив
-Персона B: Иванов Иван Иваныч, 1920-03, г. Москва, муж., жив
+Персона A: Иванов Иван Иванович, 1920, Москва
+Персона B: Иванов Иван Иваныч, 1920-03, г. Москва
 
-lastName:   fuzz("иванов", "иванов") = 100 × 0.25 = 25.0
-name:       fuzz("иван", "иван") = 100 × 0.20 = 20.0
-birthDate:  пересечение диапазонов = 100 × 0.25 = 25.0
+lastName:   fuzz("иванов", "иванов") = 100 × 0.28 = 28.0
+name:       fuzz("иван", "иван") = 100 × 0.24 = 24.0
+birthDate:  пересечение диапазонов = 100 × 0.28 = 28.0
 middleName: fuzz("иванович", "иваныч") = 85 × 0.10 = 8.5
 birthPlace: trigram("москва", "москва") = 100 × 0.10 = 10.0
-gender:     "male" == "male" = 100 × 0.10 = 10.0
-isAlive:    true == true = 100 × 0.05 = 5.0
 
-Сумма весов: 0.25 + 0.20 + 0.25 + 0.10 + 0.10 + 0.10 + 0.05 = 1.05
-Итого: (25 + 20 + 25 + 8.5 + 10 + 10 + 5) / 1.05 = 98.6%
+Сумма весов: 0.28 + 0.24 + 0.28 + 0.10 + 0.10 = 1.00
+Итого: 98.5%
 ```
 
 ## Скриншоты

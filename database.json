@@ -59,7 +59,10 @@
     ],
     "middleName": [
       "Андреевич"
-    ]
+    ],
+    "liveOrDead": 1,
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -72,15 +75,15 @@
     "relatives": [
       {
         "id": {
-          "$oid": "68f36f8fda84114f6acf1ce5"
-        },
-        "relationType": "child"
-      },
-      {
-        "id": {
           "$oid": "68f36f8fda84114f6acf1ce7"
         },
         "relationType": "spouse"
+      },
+      {
+        "id": {
+          "$oid": "68f36f8fda84114f6acf1ce5"
+        },
+        "relationType": "child"
       },
       {
         "id": {
@@ -148,7 +151,10 @@
     ],
     "surname": [
       "Слабкий"
-    ]
+    ],
+    "liveOrDead": 1,
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -161,15 +167,9 @@
     "relatives": [
       {
         "id": {
-          "$oid": "68f36f8fda84114f6acf1ce6"
+          "$oid": "69e511895098bd3c428c90fc"
         },
-        "relationType": "spouse"
-      },
-      {
-        "id": {
-          "$oid": "68f36f8fda84114f6acf1ce5"
-        },
-        "relationType": "child"
+        "relationType": "parent"
       },
       {
         "id": {
@@ -179,9 +179,15 @@
       },
       {
         "id": {
-          "$oid": "69e511895098bd3c428c90fc"
+          "$oid": "68f36f8fda84114f6acf1ce6"
         },
-        "relationType": "parent"
+        "relationType": "spouse"
+      },
+      {
+        "id": {
+          "$oid": "68f36f8fda84114f6acf1ce5"
+        },
+        "relationType": "child"
       },
       {
         "id": {
@@ -249,7 +255,10 @@
         "geo_lon": "37.62049",
         "qc_geo": "4"
       }
-    ]
+    ],
+    "liveOrDead": 1,
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -282,15 +291,9 @@
     "relatives": [
       {
         "id": {
-          "$oid": "68f36f8fda84114f6acf1ce7"
+          "$oid": "69e512485098bd3c428c9104"
         },
-        "relationType": "child"
-      },
-      {
-        "id": {
-          "$oid": "69e511895098bd3c428c90fc"
-        },
-        "relationType": "spouse"
+        "relationType": "parent"
       },
       {
         "id": {
@@ -300,9 +303,15 @@
       },
       {
         "id": {
-          "$oid": "69e512485098bd3c428c9104"
+          "$oid": "69e511895098bd3c428c90fc"
         },
-        "relationType": "parent"
+        "relationType": "spouse"
+      },
+      {
+        "id": {
+          "$oid": "68f36f8fda84114f6acf1ce7"
+        },
+        "relationType": "child"
       }
     ],
     "relationships": [
@@ -311,7 +320,7 @@
           "$oid": "69e511895098bd3c428c90fc"
         },
         "type": "official",
-        "finished": 0,
+        "finished": null,
         "from": [
           {
             "day": null,
@@ -327,7 +336,10 @@
           }
         ]
       }
-    ]
+    ],
+    "liveOrDead": 1,
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -340,15 +352,9 @@
     "relatives": [
       {
         "id": {
-          "$oid": "68f36f8fda84114f6acf1ce7"
+          "$oid": "69e512c9838d7ce23ea79046"
         },
-        "relationType": "child"
-      },
-      {
-        "id": {
-          "$oid": "69e511804e4cbcdb8c98543f"
-        },
-        "relationType": "spouse"
+        "relationType": "parent"
       },
       {
         "id": {
@@ -358,9 +364,15 @@
       },
       {
         "id": {
-          "$oid": "69e512c9838d7ce23ea79046"
+          "$oid": "69e511804e4cbcdb8c98543f"
         },
-        "relationType": "parent"
+        "relationType": "spouse"
+      },
+      {
+        "id": {
+          "$oid": "68f36f8fda84114f6acf1ce7"
+        },
+        "relationType": "child"
       }
     ],
     "relationships": [
@@ -369,7 +381,7 @@
           "$oid": "69e511804e4cbcdb8c98543f"
         },
         "type": "official",
-        "finished": 0,
+        "finished": null,
         "from": [
           {
             "day": null,
@@ -423,7 +435,9 @@
     "surname": [
       "Середа"
     ],
-    "liveOrDead": 0
+    "liveOrDead": 0,
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -457,15 +471,9 @@
     "relatives": [
       {
         "id": {
-          "$oid": "69e511804e4cbcdb8c98543f"
+          "$oid": "69e51483fa2dc09590a3866a"
         },
-        "relationType": "child"
-      },
-      {
-        "id": {
-          "$oid": "69e512485098bd3c428c9104"
-        },
-        "relationType": "spouse"
+        "relationType": "parent"
       },
       {
         "id": {
@@ -475,9 +483,15 @@
       },
       {
         "id": {
-          "$oid": "69e51483fa2dc09590a3866a"
+          "$oid": "69e512485098bd3c428c9104"
         },
-        "relationType": "parent"
+        "relationType": "spouse"
+      },
+      {
+        "id": {
+          "$oid": "69e511804e4cbcdb8c98543f"
+        },
+        "relationType": "child"
       }
     ],
     "relationships": [
@@ -486,7 +500,7 @@
           "$oid": "69e512485098bd3c428c9104"
         },
         "type": "official",
-        "finished": 0,
+        "finished": null,
         "from": [
           {
             "day": null,
@@ -502,7 +516,9 @@
           }
         ]
       }
-    ]
+    ],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -515,15 +531,9 @@
     "relatives": [
       {
         "id": {
-          "$oid": "69e511804e4cbcdb8c98543f"
+          "$oid": "69e51500f2f4ad946ba05d77"
         },
-        "relationType": "child"
-      },
-      {
-        "id": {
-          "$oid": "69e51231f2f4ad946ba05d67"
-        },
-        "relationType": "spouse"
+        "relationType": "parent"
       },
       {
         "id": {
@@ -533,9 +543,15 @@
       },
       {
         "id": {
-          "$oid": "69e51500f2f4ad946ba05d77"
+          "$oid": "69e51231f2f4ad946ba05d67"
         },
-        "relationType": "parent"
+        "relationType": "spouse"
+      },
+      {
+        "id": {
+          "$oid": "69e511804e4cbcdb8c98543f"
+        },
+        "relationType": "child"
       }
     ],
     "relationships": [
@@ -544,7 +560,7 @@
           "$oid": "69e51231f2f4ad946ba05d67"
         },
         "type": "official",
-        "finished": 0,
+        "finished": null,
         "from": [
           {
             "day": null,
@@ -581,7 +597,9 @@
     ],
     "surname": [
       "Никитин"
-    ]
+    ],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -632,15 +650,27 @@
     "relatives": [
       {
         "id": {
-          "$oid": "69e511895098bd3c428c90fc"
+          "$oid": "69e516895098bd3c428c9115"
         },
-        "relationType": "child"
+        "relationType": "parent"
+      },
+      {
+        "id": {
+          "$oid": "69e51683fa2dc09590a3867b"
+        },
+        "relationType": "parent"
       },
       {
         "id": {
           "$oid": "69e512c9838d7ce23ea79046"
         },
         "relationType": "spouse"
+      },
+      {
+        "id": {
+          "$oid": "69e511895098bd3c428c90fc"
+        },
+        "relationType": "child"
       },
       {
         "id": {
@@ -653,18 +683,6 @@
           "$oid": "69e5157a467872c45f21ccb7"
         },
         "relationType": "child"
-      },
-      {
-        "id": {
-          "$oid": "69e51683fa2dc09590a3867b"
-        },
-        "relationType": "parent"
-      },
-      {
-        "id": {
-          "$oid": "69e516895098bd3c428c9115"
-        },
-        "relationType": "parent"
       }
     ],
     "relationships": [
@@ -673,7 +691,7 @@
           "$oid": "69e512c9838d7ce23ea79046"
         },
         "type": "official",
-        "finished": 0,
+        "finished": null,
         "from": [
           {
             "day": null,
@@ -689,7 +707,9 @@
           }
         ]
       }
-    ]
+    ],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -702,15 +722,27 @@
     "relatives": [
       {
         "id": {
-          "$oid": "69e511895098bd3c428c90fc"
+          "$oid": "69e51635fa2dc09590a38676"
         },
-        "relationType": "child"
+        "relationType": "parent"
+      },
+      {
+        "id": {
+          "$oid": "69e515fe467872c45f21ccb8"
+        },
+        "relationType": "parent"
       },
       {
         "id": {
           "$oid": "69e512bf5098bd3c428c9108"
         },
         "relationType": "spouse"
+      },
+      {
+        "id": {
+          "$oid": "69e511895098bd3c428c90fc"
+        },
+        "relationType": "child"
       },
       {
         "id": {
@@ -723,18 +755,6 @@
           "$oid": "69e5157a467872c45f21ccb7"
         },
         "relationType": "child"
-      },
-      {
-        "id": {
-          "$oid": "69e515fe467872c45f21ccb8"
-        },
-        "relationType": "parent"
-      },
-      {
-        "id": {
-          "$oid": "69e51635fa2dc09590a38676"
-        },
-        "relationType": "parent"
       }
     ],
     "relationships": [
@@ -743,7 +763,7 @@
           "$oid": "69e512bf5098bd3c428c9108"
         },
         "type": "official",
-        "finished": 0,
+        "finished": null,
         "from": [
           {
             "day": null,
@@ -780,7 +800,9 @@
     ],
     "surname": [
       "Середа"
-    ]
+    ],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -817,18 +839,6 @@
     "relatives": [
       {
         "id": {
-          "$oid": "69e51231f2f4ad946ba05d67"
-        },
-        "relationType": "child"
-      },
-      {
-        "id": {
-          "$oid": "69e51483fa2dc09590a3866a"
-        },
-        "relationType": "spouse"
-      },
-      {
-        "id": {
           "$oid": "69ec7c31af23af790aa7c017"
         },
         "relationType": "parent"
@@ -838,6 +848,18 @@
           "$oid": "69ec7c3daf23af790aa7c018"
         },
         "relationType": "parent"
+      },
+      {
+        "id": {
+          "$oid": "69e51483fa2dc09590a3866a"
+        },
+        "relationType": "spouse"
+      },
+      {
+        "id": {
+          "$oid": "69e51231f2f4ad946ba05d67"
+        },
+        "relationType": "child"
       }
     ],
     "relationships": [
@@ -846,7 +868,7 @@
           "$oid": "69e51483fa2dc09590a3866a"
         },
         "type": "official",
-        "finished": 0,
+        "finished": null,
         "from": [
           {
             "day": null,
@@ -862,7 +884,9 @@
           }
         ]
       }
-    ]
+    ],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -875,18 +899,6 @@
     "relatives": [
       {
         "id": {
-          "$oid": "69e51231f2f4ad946ba05d67"
-        },
-        "relationType": "child"
-      },
-      {
-        "id": {
-          "$oid": "69e5147cde03323817ef6184"
-        },
-        "relationType": "spouse"
-      },
-      {
-        "id": {
           "$oid": "69ec77dcaf23af790aa7c003"
         },
         "relationType": "parent"
@@ -896,6 +908,18 @@
           "$oid": "69ec77e6af23af790aa7c004"
         },
         "relationType": "parent"
+      },
+      {
+        "id": {
+          "$oid": "69e5147cde03323817ef6184"
+        },
+        "relationType": "spouse"
+      },
+      {
+        "id": {
+          "$oid": "69e51231f2f4ad946ba05d67"
+        },
+        "relationType": "child"
       }
     ],
     "relationships": [
@@ -904,7 +928,7 @@
           "$oid": "69e5147cde03323817ef6184"
         },
         "type": "official",
-        "finished": 0,
+        "finished": null,
         "from": [
           {
             "day": null,
@@ -941,7 +965,9 @@
     ],
     "surname": [
       "Ворожейкин"
-    ]
+    ],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -974,15 +1000,15 @@
     "relatives": [
       {
         "id": {
-          "$oid": "69e512485098bd3c428c9104"
-        },
-        "relationType": "child"
-      },
-      {
-        "id": {
           "$oid": "69e51500f2f4ad946ba05d77"
         },
         "relationType": "spouse"
+      },
+      {
+        "id": {
+          "$oid": "69e512485098bd3c428c9104"
+        },
+        "relationType": "child"
       },
       {
         "id": {
@@ -997,7 +1023,7 @@
           "$oid": "69e51500f2f4ad946ba05d77"
         },
         "type": "official",
-        "finished": 0,
+        "finished": null,
         "from": [
           {
             "day": null,
@@ -1013,7 +1039,10 @@
           }
         ]
       }
-    ]
+    ],
+    "birthplace": [],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -1026,15 +1055,15 @@
     "relatives": [
       {
         "id": {
-          "$oid": "69e512485098bd3c428c9104"
-        },
-        "relationType": "child"
-      },
-      {
-        "id": {
           "$oid": "69e514fbf2f4ad946ba05d76"
         },
         "relationType": "spouse"
+      },
+      {
+        "id": {
+          "$oid": "69e512485098bd3c428c9104"
+        },
+        "relationType": "child"
       },
       {
         "id": {
@@ -1049,7 +1078,7 @@
           "$oid": "69e514fbf2f4ad946ba05d76"
         },
         "type": "official",
-        "finished": 0,
+        "finished": null,
         "from": [
           {
             "day": null,
@@ -1086,7 +1115,9 @@
     ],
     "surname": [
       "Никитин"
-    ]
+    ],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -1146,7 +1177,11 @@
     ],
     "name": [
       "Владимир"
-    ]
+    ],
+    "relationships": [],
+    "liveOrDead": 1,
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -1207,7 +1242,10 @@
     "liveOrDead": 0,
     "name": [
       "Анатолий"
-    ]
+    ],
+    "relationships": [],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -1220,15 +1258,15 @@
     "relatives": [
       {
         "id": {
-          "$oid": "69e512c9838d7ce23ea79046"
-        },
-        "relationType": "child"
-      },
-      {
-        "id": {
           "$oid": "69e51635fa2dc09590a38676"
         },
         "relationType": "spouse"
+      },
+      {
+        "id": {
+          "$oid": "69e512c9838d7ce23ea79046"
+        },
+        "relationType": "child"
       }
     ],
     "relationships": [
@@ -1237,7 +1275,7 @@
           "$oid": "69e51635fa2dc09590a38676"
         },
         "type": "official",
-        "finished": 0,
+        "finished": null,
         "from": [
           {
             "day": null,
@@ -1270,7 +1308,10 @@
     ],
     "surname": [
       "Середа"
-    ]
+    ],
+    "birthplace": [],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -1283,18 +1324,6 @@
     "relatives": [
       {
         "id": {
-          "$oid": "69e512c9838d7ce23ea79046"
-        },
-        "relationType": "child"
-      },
-      {
-        "id": {
-          "$oid": "69e515fe467872c45f21ccb8"
-        },
-        "relationType": "spouse"
-      },
-      {
-        "id": {
           "$oid": "69ec813c4631143b2ca22fec"
         },
         "relationType": "parent"
@@ -1304,6 +1333,18 @@
           "$oid": "69ec8144f361179d8a0747b2"
         },
         "relationType": "parent"
+      },
+      {
+        "id": {
+          "$oid": "69e515fe467872c45f21ccb8"
+        },
+        "relationType": "spouse"
+      },
+      {
+        "id": {
+          "$oid": "69e512c9838d7ce23ea79046"
+        },
+        "relationType": "child"
       }
     ],
     "relationships": [
@@ -1312,7 +1353,7 @@
           "$oid": "69e515fe467872c45f21ccb8"
         },
         "type": "official",
-        "finished": 0,
+        "finished": null,
         "from": [
           {
             "day": null,
@@ -1349,7 +1390,9 @@
     ],
     "surname": [
       "Середа"
-    ]
+    ],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -1376,15 +1419,15 @@
     "relatives": [
       {
         "id": {
-          "$oid": "69e512bf5098bd3c428c9108"
-        },
-        "relationType": "child"
-      },
-      {
-        "id": {
           "$oid": "69e516895098bd3c428c9115"
         },
         "relationType": "spouse"
+      },
+      {
+        "id": {
+          "$oid": "69e512bf5098bd3c428c9108"
+        },
+        "relationType": "child"
       }
     ],
     "relationships": [
@@ -1393,7 +1436,7 @@
           "$oid": "69e516895098bd3c428c9115"
         },
         "type": "official",
-        "finished": 0,
+        "finished": null,
         "from": [
           {
             "day": null,
@@ -1409,7 +1452,11 @@
           }
         ]
       }
-    ]
+    ],
+    "birthplace": [],
+    "surname": [],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -1422,15 +1469,15 @@
     "relatives": [
       {
         "id": {
-          "$oid": "69e512bf5098bd3c428c9108"
-        },
-        "relationType": "child"
-      },
-      {
-        "id": {
           "$oid": "69e51683fa2dc09590a3867b"
         },
         "relationType": "spouse"
+      },
+      {
+        "id": {
+          "$oid": "69e512bf5098bd3c428c9108"
+        },
+        "relationType": "child"
       }
     ],
     "relationships": [
@@ -1439,7 +1486,7 @@
           "$oid": "69e51683fa2dc09590a3867b"
         },
         "type": "official",
-        "finished": 0,
+        "finished": null,
         "from": [
           {
             "day": null,
@@ -1469,7 +1516,11 @@
     ],
     "name": [
       "Петр"
-    ]
+    ],
+    "birthplace": [],
+    "surname": [],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -1513,7 +1564,10 @@
     "liveOrDead": 0,
     "name": [
       "Марк"
-    ]
+    ],
+    "relationships": [],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -1547,15 +1601,15 @@
     "relatives": [
       {
         "id": {
-          "$oid": "69e51483fa2dc09590a3866a"
-        },
-        "relationType": "child"
-      },
-      {
-        "id": {
           "$oid": "69ec77e6af23af790aa7c004"
         },
         "relationType": "spouse"
+      },
+      {
+        "id": {
+          "$oid": "69e51483fa2dc09590a3866a"
+        },
+        "relationType": "child"
       },
       {
         "id": {
@@ -1588,7 +1642,7 @@
           "$oid": "69ec77e6af23af790aa7c004"
         },
         "type": "official",
-        "finished": 0,
+        "finished": null,
         "from": [
           {
             "day": null,
@@ -1604,7 +1658,9 @@
           }
         ]
       }
-    ]
+    ],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -1617,15 +1673,15 @@
     "relatives": [
       {
         "id": {
-          "$oid": "69e51483fa2dc09590a3866a"
-        },
-        "relationType": "child"
-      },
-      {
-        "id": {
           "$oid": "69ec77dcaf23af790aa7c003"
         },
         "relationType": "spouse"
+      },
+      {
+        "id": {
+          "$oid": "69e51483fa2dc09590a3866a"
+        },
+        "relationType": "child"
       },
       {
         "id": {
@@ -1658,7 +1714,7 @@
           "$oid": "69ec77dcaf23af790aa7c003"
         },
         "type": "official",
-        "finished": 0,
+        "finished": null,
         "from": [
           {
             "day": null,
@@ -1691,7 +1747,10 @@
     "surname": [
       "Ворожейкина"
     ],
-    "liveOrDead": 0
+    "liveOrDead": 0,
+    "birthplace": [],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -1751,7 +1810,11 @@
     ],
     "name": [
       "Александр"
-    ]
+    ],
+    "relationships": [],
+    "liveOrDead": 1,
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -1770,13 +1833,13 @@
     "relatives": [
       {
         "id": {
-          "$oid": "69ec77e6af23af790aa7c004"
+          "$oid": "69ec77dcaf23af790aa7c003"
         },
         "relationType": "parent"
       },
       {
         "id": {
-          "$oid": "69ec77dcaf23af790aa7c003"
+          "$oid": "69ec77e6af23af790aa7c004"
         },
         "relationType": "parent"
       }
@@ -1795,7 +1858,10 @@
     "liveOrDead": 0,
     "name": [
       "Борис"
-    ]
+    ],
+    "relationships": [],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -1811,13 +1877,13 @@
     "relatives": [
       {
         "id": {
-          "$oid": "69ec77e6af23af790aa7c004"
+          "$oid": "69ec77dcaf23af790aa7c003"
         },
         "relationType": "parent"
       },
       {
         "id": {
-          "$oid": "69ec77dcaf23af790aa7c003"
+          "$oid": "69ec77e6af23af790aa7c004"
         },
         "relationType": "parent"
       }
@@ -1839,7 +1905,10 @@
     ],
     "surname": [
       "Ворожейкина"
-    ]
+    ],
+    "relationships": [],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -1858,13 +1927,13 @@
     "relatives": [
       {
         "id": {
-          "$oid": "69ec77e6af23af790aa7c004"
+          "$oid": "69ec77dcaf23af790aa7c003"
         },
         "relationType": "parent"
       },
       {
         "id": {
-          "$oid": "69ec77dcaf23af790aa7c003"
+          "$oid": "69ec77e6af23af790aa7c004"
         },
         "relationType": "parent"
       }
@@ -1883,7 +1952,10 @@
     "liveOrDead": 0,
     "name": [
       "Аркадий"
-    ]
+    ],
+    "relationships": [],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -1952,7 +2024,7 @@
           "$oid": "69ec7a724631143b2ca22fdb"
         },
         "type": "official",
-        "finished": 0,
+        "finished": null,
         "from": [
           {
             "day": null,
@@ -1967,6 +2039,216 @@
             "year": null
           }
         ]
+      }
+    ],
+    "hasMatch": true,
+    "sourceSearchCache": {
+      "userTrees": {
+        "searchedAt": "2026-05-06T03:03:40.564Z",
+        "status": "matches_found",
+        "source": "userTrees",
+        "sourceLabel": "Деревья других пользователей",
+        "searchCriteria": {
+          "fullName": true,
+          "birthDate": true,
+          "birthPlace": true
+        },
+        "matches": [
+          {
+            "data_id": "69ec7a322d2ada0deeede8f6",
+            "tree_id": "68f36f8fda84114f6acf1ce4",
+            "tree_owner": "Слабкий Павел Андреевич",
+            "database_id": "69ec7a322d2ada0deeede8f6",
+            "score": 100,
+            "people": {
+              "69ec7a322d2ada0deeede8f6": {
+                "id": "69ec7a322d2ada0deeede8f6",
+                "name": "Александр",
+                "lastName": "Ворожейкин",
+                "middleName": "Васильевич",
+                "gender": "male",
+                "fatherId": "69ec77dcaf23af790aa7c003",
+                "motherId": "69ec77e6af23af790aa7c004",
+                "partnerId": "69ec7a724631143b2ca22fdb",
+                "children": [
+                  "69ec7a932d2ada0deeede8f7",
+                  "69ec7ab34631143b2ca22fdc"
+                ],
+                "isAlive": false,
+                "birthDate": "1891-11-23",
+                "birthPlace": "г. Семипалатинск",
+                "hasMatch": false,
+                "sourceSearchCache": {},
+                "information": "",
+                "documents": []
+              },
+              "69ec77dcaf23af790aa7c003": {
+                "id": "69ec77dcaf23af790aa7c003",
+                "name": "Василий",
+                "lastName": "Ворожейкин",
+                "middleName": "Николаевич",
+                "gender": "male",
+                "fatherId": null,
+                "motherId": null,
+                "partnerId": "69ec77e6af23af790aa7c004",
+                "children": [
+                  "69e51483fa2dc09590a3866a",
+                  "69ec7860bebb794243c75469",
+                  "69ec78b3f781c88171e82e6e",
+                  "69ec790af781c88171e82e6f",
+                  "69ec7a322d2ada0deeede8f6"
+                ],
+                "isAlive": false,
+                "birthDate": "1868",
+                "birthPlace": "с. Ново-Покровское Ново-Покровской волости Змеиногорского уезда Томской губернии",
+                "hasMatch": false,
+                "sourceSearchCache": {},
+                "information": "",
+                "documents": []
+              },
+              "69ec77e6af23af790aa7c004": {
+                "id": "69ec77e6af23af790aa7c004",
+                "name": "Агафья",
+                "lastName": "Ворожейкина",
+                "middleName": "Моисеевна",
+                "gender": "female",
+                "fatherId": null,
+                "motherId": null,
+                "partnerId": "69ec77dcaf23af790aa7c003",
+                "children": [
+                  "69e51483fa2dc09590a3866a",
+                  "69ec7860bebb794243c75469",
+                  "69ec78b3f781c88171e82e6e",
+                  "69ec790af781c88171e82e6f",
+                  "69ec7a322d2ada0deeede8f6"
+                ],
+                "isAlive": false,
+                "birthDate": "1868",
+                "birthPlace": "",
+                "hasMatch": false,
+                "sourceSearchCache": {},
+                "information": "",
+                "documents": []
+              }
+            }
+          }
+        ],
+        "errors": []
+      },
+      "pamyatNaroda": {
+        "searchedAt": "2026-05-06T03:03:56.111Z",
+        "status": "no_matches",
+        "source": "pamyatNaroda",
+        "sourceLabel": "Память народа",
+        "searchCriteria": {
+          "fullName": true,
+          "birthDate": true,
+          "birthPlace": true
+        },
+        "matches": [],
+        "errors": [
+          {
+            "person_id": "69ec7a322d2ada0deeede8f6",
+            "message": "Search failed with status=unexpected_response",
+            "status_code": 200,
+            "details": "Portal returned HTML instead of JSON: <!DOCTYPE html> <html> <head> <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"> <noscript><meta http-equiv=\"refresh\" content=\"0; url=/exhkqyad\"></noscript> </head> <style> .container { display: flex; al..."
+          }
+        ]
+      },
+      "openList": {
+        "searchedAt": "2026-05-06T03:03:57.932Z",
+        "status": "matches_found",
+        "source": "openList",
+        "sourceLabel": "Открытый список",
+        "searchCriteria": {
+          "fullName": true,
+          "birthDate": true,
+          "birthPlace": true
+        },
+        "matches": [
+          {
+            "data_id": "69ec7a322d2ada0deeede8f6",
+            "source": "openList",
+            "sourceLabel": "Открытый список",
+            "score": 71.85185185185186,
+            "person": {
+              "lastName": "Ворожейкин",
+              "name": "Александр",
+              "middleName": "Васильевич",
+              "birthDate": "",
+              "birthPlace": "г. Семипалатинск",
+              "information": ""
+            },
+            "records": [
+              {
+                "source": "openList",
+                "sourceLabel": "Открытый список",
+                "title": "Ворожейкин Александр Васильевич (1892)",
+                "information": "",
+                "url": "https://ru.openlist.wiki/%D0%92%D0%BE%D1%80%D0%BE%D0%B6%D0%B5%D0%B9%D0%BA%D0%B8%D0%BD_%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B0%D0%BD%D0%B4%D1%80_%D0%92%D0%B0%D1%81%D0%B8%D0%BB%D1%8C%D0%B5%D0%B2%D0%B8%D1%87_(1892)",
+                "birthDate": "",
+                "birthPlace": "",
+                "score": 71.85185185185186
+              },
+              {
+                "source": "openList",
+                "sourceLabel": "Открытый список",
+                "title": "Ворожейкин Александр Васильевич (1923)",
+                "information": "",
+                "url": "https://ru.openlist.wiki/%D0%92%D0%BE%D1%80%D0%BE%D0%B6%D0%B5%D0%B9%D0%BA%D0%B8%D0%BD_%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B0%D0%BD%D0%B4%D1%80_%D0%92%D0%B0%D1%81%D0%B8%D0%BB%D1%8C%D0%B5%D0%B2%D0%B8%D1%87_(1923)",
+                "birthDate": "",
+                "birthPlace": "",
+                "score": 71.85185185185186
+              }
+            ],
+            "searchedAt": "2026-05-06T03:03:57+00:00",
+            "tlsFallbackUsed": true
+          }
+        ],
+        "errors": []
+      },
+      "gwar": {
+        "searchedAt": "2026-05-06T03:03:59.326Z",
+        "status": "no_matches",
+        "source": "gwar",
+        "sourceLabel": "Герои великой войны",
+        "searchCriteria": {
+          "fullName": true,
+          "birthDate": true,
+          "birthPlace": true
+        },
+        "matches": [],
+        "errors": []
+      }
+    },
+    "documents": [
+      {
+        "id": "69ec7a322d2ada0deeede8f6",
+        "sourceKey": "userTrees",
+        "sourceLabel": "Деревья других пользователей",
+        "title": "Ворожейкин Александр Васильевич",
+        "url": "",
+        "birthDate": "1891-11-23",
+        "birthPlace": "г. Семипалатинск",
+        "information": "",
+        "score": 100,
+        "tree_id": "68f36f8fda84114f6acf1ce4",
+        "tree_owner": "Слабкий Павел Андреевич",
+        "database_id": "69ec7a322d2ada0deeede8f6"
+      },
+      {
+        "id": "",
+        "sourceKey": "openList",
+        "sourceLabel": "Открытый список",
+        "title": "Ворожейкин Александр Васильевич (1892)",
+        "url": "https://ru.openlist.wiki/%D0%92%D0%BE%D1%80%D0%BE%D0%B6%D0%B5%D0%B9%D0%BA%D0%B8%D0%BD_%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B0%D0%BD%D0%B4%D1%80_%D0%92%D0%B0%D1%81%D0%B8%D0%BB%D1%8C%D0%B5%D0%B2%D0%B8%D1%87_(1892)",
+        "birthDate": "",
+        "birthPlace": "",
+        "information": "",
+        "score": 71.85185185185186,
+        "tree_id": "",
+        "tree_owner": "",
+        "database_id": ""
       }
     ]
   },
@@ -2004,7 +2286,7 @@
           "$oid": "69ec7a322d2ada0deeede8f6"
         },
         "type": "official",
-        "finished": 0,
+        "finished": null,
         "from": [
           {
             "day": null,
@@ -2031,7 +2313,12 @@
     "liveOrDead": 0,
     "surname": [
       "Ворожейкина"
-    ]
+    ],
+    "birthplace": [],
+    "name": [],
+    "middleName": [],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -2074,7 +2361,11 @@
     "birthplaceParsed": [],
     "name": [
       "Павел"
-    ]
+    ],
+    "relationships": [],
+    "liveOrDead": 1,
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -2118,7 +2409,10 @@
     "liveOrDead": 0,
     "name": [
       "Геннадий"
-    ]
+    ],
+    "relationships": [],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -2145,15 +2439,15 @@
     "relatives": [
       {
         "id": {
-          "$oid": "69e5147cde03323817ef6184"
-        },
-        "relationType": "child"
-      },
-      {
-        "id": {
           "$oid": "69ec7c3daf23af790aa7c018"
         },
         "relationType": "spouse"
+      },
+      {
+        "id": {
+          "$oid": "69e5147cde03323817ef6184"
+        },
+        "relationType": "child"
       },
       {
         "id": {
@@ -2192,7 +2486,7 @@
           "$oid": "69ec7c3daf23af790aa7c018"
         },
         "type": "official",
-        "finished": 0,
+        "finished": null,
         "from": [
           {
             "day": null,
@@ -2208,7 +2502,11 @@
           }
         ]
       }
-    ]
+    ],
+    "birthplace": [],
+    "middleName": [],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -2221,15 +2519,15 @@
     "relatives": [
       {
         "id": {
-          "$oid": "69e5147cde03323817ef6184"
-        },
-        "relationType": "child"
-      },
-      {
-        "id": {
           "$oid": "69ec7c31af23af790aa7c017"
         },
         "relationType": "spouse"
+      },
+      {
+        "id": {
+          "$oid": "69e5147cde03323817ef6184"
+        },
+        "relationType": "child"
       },
       {
         "id": {
@@ -2268,7 +2566,7 @@
           "$oid": "69ec7c31af23af790aa7c017"
         },
         "type": "official",
-        "finished": 0,
+        "finished": null,
         "from": [
           {
             "day": null,
@@ -2298,7 +2596,11 @@
     ],
     "surname": [
       "Губарева"
-    ]
+    ],
+    "birthplace": [],
+    "middleName": [],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -2314,13 +2616,13 @@
     "relatives": [
       {
         "id": {
-          "$oid": "69ec7c3daf23af790aa7c018"
+          "$oid": "69ec7c31af23af790aa7c017"
         },
         "relationType": "parent"
       },
       {
         "id": {
-          "$oid": "69ec7c31af23af790aa7c017"
+          "$oid": "69ec7c3daf23af790aa7c018"
         },
         "relationType": "parent"
       }
@@ -2359,7 +2661,10 @@
     ],
     "surname": [
       "Губарева"
-    ]
+    ],
+    "relationships": [],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -2375,13 +2680,13 @@
     "relatives": [
       {
         "id": {
-          "$oid": "69ec7c3daf23af790aa7c018"
+          "$oid": "69ec7c31af23af790aa7c017"
         },
         "relationType": "parent"
       },
       {
         "id": {
-          "$oid": "69ec7c31af23af790aa7c017"
+          "$oid": "69ec7c3daf23af790aa7c018"
         },
         "relationType": "parent"
       }
@@ -2420,7 +2725,10 @@
     ],
     "surname": [
       "Губарева"
-    ]
+    ],
+    "relationships": [],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -2436,13 +2744,13 @@
     "relatives": [
       {
         "id": {
-          "$oid": "69ec7c3daf23af790aa7c018"
+          "$oid": "69ec7c31af23af790aa7c017"
         },
         "relationType": "parent"
       },
       {
         "id": {
-          "$oid": "69ec7c31af23af790aa7c017"
+          "$oid": "69ec7c3daf23af790aa7c018"
         },
         "relationType": "parent"
       }
@@ -2481,7 +2789,10 @@
     ],
     "surname": [
       "Губарева"
-    ]
+    ],
+    "relationships": [],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -2497,13 +2808,13 @@
     "relatives": [
       {
         "id": {
-          "$oid": "69ec7c3daf23af790aa7c018"
+          "$oid": "69ec7c31af23af790aa7c017"
         },
         "relationType": "parent"
       },
       {
         "id": {
-          "$oid": "69ec7c31af23af790aa7c017"
+          "$oid": "69ec7c3daf23af790aa7c018"
         },
         "relationType": "parent"
       }
@@ -2542,7 +2853,10 @@
     ],
     "surname": [
       "Губарева"
-    ]
+    ],
+    "relationships": [],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -2561,13 +2875,13 @@
     "relatives": [
       {
         "id": {
-          "$oid": "69ec7c3daf23af790aa7c018"
+          "$oid": "69ec7c31af23af790aa7c017"
         },
         "relationType": "parent"
       },
       {
         "id": {
-          "$oid": "69ec7c31af23af790aa7c017"
+          "$oid": "69ec7c3daf23af790aa7c018"
         },
         "relationType": "parent"
       },
@@ -2634,7 +2948,7 @@
           "$oid": "69ec7e5c53f521f572bd64ec"
         },
         "type": "official",
-        "finished": 0,
+        "finished": null,
         "from": [
           {
             "day": null,
@@ -2650,7 +2964,9 @@
           }
         ]
       }
-    ]
+    ],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -2692,7 +3008,7 @@
           "$oid": "69ec7e33af23af790aa7c024"
         },
         "type": "official",
-        "finished": 0,
+        "finished": null,
         "from": [
           {
             "day": null,
@@ -2722,7 +3038,11 @@
     ],
     "surname": [
       "Губарева"
-    ]
+    ],
+    "birthplace": [],
+    "middleName": [],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -2741,13 +3061,13 @@
     "relatives": [
       {
         "id": {
-          "$oid": "69ec7e5c53f521f572bd64ec"
+          "$oid": "69ec7e33af23af790aa7c024"
         },
         "relationType": "parent"
       },
       {
         "id": {
-          "$oid": "69ec7e33af23af790aa7c024"
+          "$oid": "69ec7e5c53f521f572bd64ec"
         },
         "relationType": "parent"
       }
@@ -2766,7 +3086,10 @@
     "liveOrDead": 0,
     "name": [
       "Петр"
-    ]
+    ],
+    "relationships": [],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -2785,13 +3108,13 @@
     "relatives": [
       {
         "id": {
-          "$oid": "69ec7e5c53f521f572bd64ec"
+          "$oid": "69ec7e33af23af790aa7c024"
         },
         "relationType": "parent"
       },
       {
         "id": {
-          "$oid": "69ec7e33af23af790aa7c024"
+          "$oid": "69ec7e5c53f521f572bd64ec"
         },
         "relationType": "parent"
       }
@@ -2810,7 +3133,10 @@
     "liveOrDead": 0,
     "name": [
       "Василий"
-    ]
+    ],
+    "relationships": [],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -2829,13 +3155,13 @@
     "relatives": [
       {
         "id": {
-          "$oid": "69ec7e5c53f521f572bd64ec"
+          "$oid": "69ec7e33af23af790aa7c024"
         },
         "relationType": "parent"
       },
       {
         "id": {
-          "$oid": "69ec7e33af23af790aa7c024"
+          "$oid": "69ec7e5c53f521f572bd64ec"
         },
         "relationType": "parent"
       }
@@ -2854,7 +3180,10 @@
     "liveOrDead": 0,
     "name": [
       "Александр"
-    ]
+    ],
+    "relationships": [],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -2881,15 +3210,15 @@
     "relatives": [
       {
         "id": {
-          "$oid": "69e51635fa2dc09590a38676"
-        },
-        "relationType": "child"
-      },
-      {
-        "id": {
           "$oid": "69ec8144f361179d8a0747b2"
         },
         "relationType": "spouse"
+      },
+      {
+        "id": {
+          "$oid": "69e51635fa2dc09590a38676"
+        },
+        "relationType": "child"
       },
       {
         "id": {
@@ -2928,28 +3257,7 @@
           "$oid": "69ec8144f361179d8a0747b2"
         },
         "type": "official",
-        "finished": 0,
-        "from": [
-          {
-            "day": null,
-            "month": null,
-            "year": null
-          }
-        ],
-        "to": [
-          {
-            "day": null,
-            "month": null,
-            "year": null
-          }
-        ]
-      },
-      {
-        "with": {
-          "$oid": "69ec8144f361179d8a0747b2"
-        },
-        "type": "official",
-        "finished": 0,
+        "finished": null,
         "from": [
           {
             "day": null,
@@ -2965,7 +3273,11 @@
           }
         ]
       }
-    ]
+    ],
+    "birthplace": [],
+    "middleName": [],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -2978,21 +3290,15 @@
     "relatives": [
       {
         "id": {
+          "$oid": "69ec813c4631143b2ca22fec"
+        },
+        "relationType": "spouse"
+      },
+      {
+        "id": {
           "$oid": "69e51635fa2dc09590a38676"
         },
         "relationType": "child"
-      },
-      {
-        "id": {
-          "$oid": "69ec813c4631143b2ca22fec"
-        },
-        "relationType": "spouse"
-      },
-      {
-        "id": {
-          "$oid": "69ec813c4631143b2ca22fec"
-        },
-        "relationType": "spouse"
       },
       {
         "id": {
@@ -3031,7 +3337,7 @@
           "$oid": "69ec813c4631143b2ca22fec"
         },
         "type": "official",
-        "finished": 0,
+        "finished": null,
         "from": [
           {
             "day": null,
@@ -3051,7 +3357,13 @@
     "liveOrDead": 0,
     "surname": [
       "Середа"
-    ]
+    ],
+    "birthdate": [],
+    "birthplace": [],
+    "name": [],
+    "middleName": [],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -3126,7 +3438,7 @@
           "$oid": "69ec820253f521f572bd64f7"
         },
         "type": "official",
-        "finished": 0,
+        "finished": null,
         "from": [
           {
             "day": null,
@@ -3142,7 +3454,9 @@
           }
         ]
       }
-    ]
+    ],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -3184,7 +3498,7 @@
           "$oid": "69ec8160f361179d8a0747b4"
         },
         "type": "official",
-        "finished": 0,
+        "finished": null,
         "from": [
           {
             "day": null,
@@ -3211,7 +3525,12 @@
     "liveOrDead": 0,
     "surname": [
       "Середа"
-    ]
+    ],
+    "birthplace": [],
+    "name": [],
+    "middleName": [],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -3274,7 +3593,7 @@
           "$oid": "69ec824c4631143b2ca22fef"
         },
         "type": "official",
-        "finished": 0,
+        "finished": null,
         "from": [
           {
             "day": null,
@@ -3290,7 +3609,9 @@
           }
         ]
       }
-    ]
+    ],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -3320,7 +3641,7 @@
           "$oid": "69ec822af781c88171e82e94"
         },
         "type": "official",
-        "finished": 0,
+        "finished": null,
         "from": [
           {
             "day": null,
@@ -3347,7 +3668,12 @@
     "liveOrDead": 0,
     "surname": [
       "Середа"
-    ]
+    ],
+    "birthplace": [],
+    "name": [],
+    "middleName": [],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -3391,7 +3717,10 @@
     "liveOrDead": 0,
     "name": [
       "Филипп"
-    ]
+    ],
+    "relationships": [],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -3466,7 +3795,7 @@
           "$oid": "69ec82e62d2ada0deeede90a"
         },
         "type": "official",
-        "finished": 0,
+        "finished": null,
         "from": [
           {
             "day": null,
@@ -3482,7 +3811,9 @@
           }
         ]
       }
-    ]
+    ],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -3557,7 +3888,7 @@
           "$oid": "69ec832e53f521f572bd64ff"
         },
         "type": "official",
-        "finished": 0,
+        "finished": null,
         "from": [
           {
             "day": null,
@@ -3573,7 +3904,9 @@
           }
         ]
       }
-    ]
+    ],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -3615,7 +3948,7 @@
           "$oid": "69ec828e53f521f572bd64fb"
         },
         "type": "official",
-        "finished": 0,
+        "finished": null,
         "from": [
           {
             "day": null,
@@ -3648,7 +3981,10 @@
     ],
     "surname": [
       "Середа"
-    ]
+    ],
+    "birthplace": [],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -3690,7 +4026,7 @@
           "$oid": "69ec82bc4631143b2ca22ffb"
         },
         "type": "official",
-        "finished": 0,
+        "finished": null,
         "from": [
           {
             "day": null,
@@ -3723,7 +4059,10 @@
     ],
     "surname": [
       "Середа"
-    ]
+    ],
+    "birthplace": [],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -3742,13 +4081,13 @@
     "relatives": [
       {
         "id": {
-          "$oid": "69ec832e53f521f572bd64ff"
+          "$oid": "69ec82bc4631143b2ca22ffb"
         },
         "relationType": "parent"
       },
       {
         "id": {
-          "$oid": "69ec82bc4631143b2ca22ffb"
+          "$oid": "69ec832e53f521f572bd64ff"
         },
         "relationType": "parent"
       }
@@ -3784,7 +4123,10 @@
     "liveOrDead": 0,
     "name": [
       "Григорий"
-    ]
+    ],
+    "relationships": [],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -3803,13 +4145,13 @@
     "relatives": [
       {
         "id": {
-          "$oid": "69ec832e53f521f572bd64ff"
+          "$oid": "69ec82bc4631143b2ca22ffb"
         },
         "relationType": "parent"
       },
       {
         "id": {
-          "$oid": "69ec82bc4631143b2ca22ffb"
+          "$oid": "69ec832e53f521f572bd64ff"
         },
         "relationType": "parent"
       }
@@ -3828,7 +4170,10 @@
     "liveOrDead": 0,
     "name": [
       "Сергей"
-    ]
+    ],
+    "relationships": [],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -3872,7 +4217,10 @@
     ],
     "surname": [
       "Середа"
-    ]
+    ],
+    "relationships": [],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -3888,13 +4236,13 @@
     "relatives": [
       {
         "id": {
-          "$oid": "69ec82e62d2ada0deeede90a"
+          "$oid": "69ec828e53f521f572bd64fb"
         },
         "relationType": "parent"
       },
       {
         "id": {
-          "$oid": "69ec828e53f521f572bd64fb"
+          "$oid": "69ec82e62d2ada0deeede90a"
         },
         "relationType": "parent"
       }
@@ -3916,7 +4264,10 @@
     ],
     "surname": [
       "Середа"
-    ]
+    ],
+    "relationships": [],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -3935,13 +4286,13 @@
     "relatives": [
       {
         "id": {
-          "$oid": "69ec82e62d2ada0deeede90a"
+          "$oid": "69ec828e53f521f572bd64fb"
         },
         "relationType": "parent"
       },
       {
         "id": {
-          "$oid": "69ec828e53f521f572bd64fb"
+          "$oid": "69ec82e62d2ada0deeede90a"
         },
         "relationType": "parent"
       }
@@ -3960,7 +4311,10 @@
     "liveOrDead": 0,
     "name": [
       "Иоанн"
-    ]
+    ],
+    "relationships": [],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -3976,13 +4330,13 @@
     "relatives": [
       {
         "id": {
-          "$oid": "69ec82e62d2ada0deeede90a"
+          "$oid": "69ec828e53f521f572bd64fb"
         },
         "relationType": "parent"
       },
       {
         "id": {
-          "$oid": "69ec828e53f521f572bd64fb"
+          "$oid": "69ec82e62d2ada0deeede90a"
         },
         "relationType": "parent"
       }
@@ -4004,7 +4358,10 @@
     ],
     "surname": [
       "Середа"
-    ]
+    ],
+    "relationships": [],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -4048,7 +4405,10 @@
     "liveOrDead": 0,
     "name": [
       "Федор"
-    ]
+    ],
+    "relationships": [],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -4067,13 +4427,13 @@
     "relatives": [
       {
         "id": {
-          "$oid": "69ec820253f521f572bd64f7"
+          "$oid": "69ec8160f361179d8a0747b4"
         },
         "relationType": "parent"
       },
       {
         "id": {
-          "$oid": "69ec8160f361179d8a0747b4"
+          "$oid": "69ec820253f521f572bd64f7"
         },
         "relationType": "parent"
       },
@@ -4111,7 +4471,7 @@
           "$oid": "69ec8ae96b1a6d760c84fb1d"
         },
         "type": "official",
-        "finished": 0,
+        "finished": null,
         "from": [
           {
             "day": null,
@@ -4127,7 +4487,9 @@
           }
         ]
       }
-    ]
+    ],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -4146,13 +4508,13 @@
     "relatives": [
       {
         "id": {
-          "$oid": "69ec820253f521f572bd64f7"
+          "$oid": "69ec8160f361179d8a0747b4"
         },
         "relationType": "parent"
       },
       {
         "id": {
-          "$oid": "69ec8160f361179d8a0747b4"
+          "$oid": "69ec820253f521f572bd64f7"
         },
         "relationType": "parent"
       }
@@ -4178,7 +4540,10 @@
     "liveOrDead": 0,
     "name": [
       "Павел"
-    ]
+    ],
+    "relationships": [],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -4208,7 +4573,7 @@
           "$oid": "69ec8a272d2ada0deeede930"
         },
         "type": "official",
-        "finished": 0,
+        "finished": null,
         "from": [
           {
             "day": null,
@@ -4235,7 +4600,12 @@
     "liveOrDead": 0,
     "surname": [
       "Середа"
-    ]
+    ],
+    "birthplace": [],
+    "name": [],
+    "middleName": [],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -4254,13 +4624,13 @@
     "relatives": [
       {
         "id": {
-          "$oid": "69ec8ae96b1a6d760c84fb1d"
+          "$oid": "69ec8a272d2ada0deeede930"
         },
         "relationType": "parent"
       },
       {
         "id": {
-          "$oid": "69ec8a272d2ada0deeede930"
+          "$oid": "69ec8ae96b1a6d760c84fb1d"
         },
         "relationType": "parent"
       }
@@ -4278,7 +4648,11 @@
     "birthplace": [
       "Томская губерния, Каинский уезд, село Николаевка"
     ],
-    "birthplaceParsed": []
+    "birthplaceParsed": [],
+    "relationships": [],
+    "liveOrDead": 1,
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -4341,7 +4715,7 @@
           "$oid": "69ec8c092d2ada0deeede937"
         },
         "type": "official",
-        "finished": 0,
+        "finished": null,
         "from": [
           {
             "day": null,
@@ -4357,7 +4731,9 @@
           }
         ]
       }
-    ]
+    ],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -4387,7 +4763,7 @@
           "$oid": "69ec8bd9f361179d8a0747cd"
         },
         "type": "official",
-        "finished": 0,
+        "finished": null,
         "from": [
           {
             "day": null,
@@ -4414,7 +4790,12 @@
     "liveOrDead": 0,
     "surname": [
       "Середа"
-    ]
+    ],
+    "birthplace": [],
+    "name": [],
+    "middleName": [],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -4433,13 +4814,13 @@
     "relatives": [
       {
         "id": {
-          "$oid": "69ec8c092d2ada0deeede937"
+          "$oid": "69ec8bd9f361179d8a0747cd"
         },
         "relationType": "parent"
       },
       {
         "id": {
-          "$oid": "69ec8bd9f361179d8a0747cd"
+          "$oid": "69ec8c092d2ada0deeede937"
         },
         "relationType": "parent"
       }
@@ -4465,6 +4846,9 @@
     "birthplace": [
       "Томская губерния, Каинский уезд, село Николаевка"
     ],
-    "birthplaceParsed": []
+    "birthplaceParsed": [],
+    "relationships": [],
+    "hasMatch": false,
+    "sourceSearchCache": {}
   }
 ]

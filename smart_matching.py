@@ -103,6 +103,7 @@ class SmartMatching:
             "name": self._first_string(entry.get("name")),
             "lastName": self._first_string(entry.get("surname")),
             "middleName": self._first_string(entry.get("middleName")),
+            "maidenName": self._first_string(entry.get("maidenName")),
             "gender": self._normalize_gender(entry.get("gender")),
             "fatherId": None,
             "motherId": None,
@@ -393,28 +394,24 @@ class SmartMatching:
             weight_sum += weight
 
         # Фамилия
-        add(text_similarity(idx1.get("lastName"), idx2.get("lastName")), 0.25)
+        add(text_similarity(idx1.get("lastName"), idx2.get("lastName")), 0.28)
 
         # Имя
-        add(text_similarity(idx1.get("name"), idx2.get("name")), 0.20)
+        add(text_similarity(idx1.get("name"), idx2.get("name")), 0.24)
 
         # Отчество
         if idx1.get("middleName") or idx2.get("middleName"):
             add(text_similarity(idx1.get("middleName"), idx2.get("middleName")), 0.10)
 
         # Дата рождения
-        add(date_similarity(idx1.get("birthDate"), idx2.get("birthDate")), 0.25)
+        add(date_similarity(idx1.get("birthDate"), idx2.get("birthDate")), 0.28)
 
         # Место рождения (улучшенное сравнение)
         add(place_similarity(idx1.get("birthPlace"), idx2.get("birthPlace")), 0.10)
 
-        # Пол
-        if idx1.get("gender") and idx2.get("gender"):
-            add(100 if idx1["gender"] == idx2["gender"] else 0, 0.10)
-
-        # Статус жизни
-        if idx1.get("isAlive") is not None and idx2.get("isAlive") is not None:
-            add(100 if str(idx1["isAlive"]) == str(idx2["isAlive"]) else 0, 0.05)
+        # Девичья фамилия учитывается только при наличии в обеих записях
+        if idx1.get("maidenName") and idx2.get("maidenName"):
+            add(text_similarity(idx1.get("maidenName"), idx2.get("maidenName")), 0.12)
 
         if weight_sum == 0:
             return 0.0
