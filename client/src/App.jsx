@@ -21,7 +21,6 @@ import {
   Globe2,
   GitBranch,
   Briefcase,
-  RefreshCw,
   TreePine,
   ChevronRight,
   Users,
@@ -36,7 +35,6 @@ import {
   Send,
   CreditCard,
   Bell,
-  Coins,
   CircleUser
 } from 'lucide-react';
 
@@ -95,6 +93,23 @@ const getGenderClass = (person = {}) => (
     : person.gender === 'female'
       ? 'female'
       : ''
+);
+
+const FourPointStar = ({ size = 16, className = '' }) => (
+  <svg
+    className={className}
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    aria-hidden="true"
+  >
+    <path
+      d="M12 2L14.6 9.4L22 12L14.6 14.6L12 22L9.4 14.6L2 12L9.4 9.4L12 2Z"
+      fill="currentColor"
+    />
+  </svg>
 );
 
 const normalizeSearchValue = (value = '') => value.toLowerCase().replace(/\s+/g, ' ').trim();
@@ -1055,7 +1070,7 @@ const PersonNode = ({ person, position, isSelected, onClick, onMatchClick }) => 
             className="match-indicator"
             onClick={handleMatchClick}
           >
-            <RefreshCw size={14} />
+            <FourPointStar size={14} />
           </button>
           <div className="match-tooltip">
             Умный поиск — позволяет находить ваших родственников в деревьях других людей и архивных данных.
@@ -1863,7 +1878,7 @@ const BalancePanel = ({ balance, onAddBalance, onClose }) => {
         </div>
         <div className="balance-content">
           <div className="balance-amount">
-            <Coins size={24} />
+            <FourPointStar size={18} />
             <span className="balance-value">{balance}</span>
             <span className="balance-label">Совпадений</span>
           </div>
@@ -2210,7 +2225,7 @@ const MatchVerificationModal = ({
       <div className="modal-overlay confirm-purchase-modal" onClick={handleCancelPurchase}>
         <div className="modal-content confirm-purchase-content" onClick={e => e.stopPropagation()}>
           <div className="confirm-purchase-header">
-            <Coins size={32} className="confirm-purchase-icon" />
+            <FourPointStar size={24} className="confirm-purchase-icon" />
             <h3>Подтверждение</h3>
           </div>
           <p className="confirm-purchase-text">
@@ -2323,7 +2338,7 @@ const MatchVerificationModal = ({
                             </div>
 
                             <div className="match-arrow">
-                              <RefreshCw size={24} />
+                              <FourPointStar size={18} />
                             </div>
 
                             <div className="match-person found-person">
@@ -2440,7 +2455,7 @@ const MatchVerificationModal = ({
                             </div>
 
                             <div className="match-arrow archive-arrow">
-                              <RefreshCw size={24} />
+                              <FourPointStar size={18} />
                             </div>
 
                             <div className="match-person found-person archive-person">
@@ -2557,7 +2572,7 @@ function App() {
   const [showSmartSearchPaymentSuccess, setShowSmartSearchPaymentSuccess] = useState(false);
   const [smartSearchSelectedPlan, setSmartSearchSelectedPlan] = useState('basic');
   const [smartSearchBasicQuantity, setSmartSearchBasicQuantity] = useState(1);
-  const [rejectedSmartSearchIds, setRejectedSmartSearchIds] = useState([]);
+  const [rejectedSmartSearchEntries, setRejectedSmartSearchEntries] = useState([]);
   const [smartSearchMatchTab, setSmartSearchMatchTab] = useState('all');
   const [smartSearchViewMode, setSmartSearchViewMode] = useState('list');
   const [smartSearchExploringPersonId, setSmartSearchExploringPersonId] = useState(null);
@@ -2624,42 +2639,73 @@ function App() {
     })
   ), [smartSearchPeople]);
 
-  const smartSearchMatchedCards = useMemo(() => (
-    smartSearchPeopleWithStatus.filter((card) => card.hasMatches)
-  ), [smartSearchPeopleWithStatus]);
-  const smartSearchRejectedCards = useMemo(() => (
-    smartSearchMatchedCards.filter((card) => rejectedSmartSearchIds.includes(card.person.id))
-  ), [smartSearchMatchedCards, rejectedSmartSearchIds]);
-  const smartSearchActiveCards = useMemo(() => (
-    smartSearchMatchedCards.filter((card) => !rejectedSmartSearchIds.includes(card.person.id))
-  ), [smartSearchMatchedCards, rejectedSmartSearchIds]);
-  const smartSearchTreeCards = useMemo(
-    () => smartSearchActiveCards.filter((card) => card.sourceRecords.some((record) => isUserTreeRecord(record))),
-    [smartSearchActiveCards]
+  const smartSearchEntries = useMemo(() => {
+    const entries = [];
+    smartSearchPeopleWithStatus.forEach((card) => {
+      if (!card.hasMatches) return;
+      const treeRecords = card.sourceRecords.filter((record) => isUserTreeRecord(record));
+      const archiveRecords = card.sourceRecords.filter((record) => isArchiveRecord(record));
+      if (treeRecords.length > 0) {
+        entries.push({
+          id: `${card.person.id}:tree`,
+          person: card.person,
+          sourceType: 'tree',
+          sourceRecords: treeRecords
+        });
+      }
+      if (archiveRecords.length > 0) {
+        entries.push({
+          id: `${card.person.id}:archive`,
+          person: card.person,
+          sourceType: 'archive',
+          sourceRecords: archiveRecords
+        });
+      }
+    });
+    return entries;
+  }, [smartSearchPeopleWithStatus]);
+
+  const rejectedSmartSearchEntryIds = useMemo(
+    () => new Set(rejectedSmartSearchEntries.map((entry) => entry.id)),
+    [rejectedSmartSearchEntries]
   );
-  const smartSearchArchiveCards = useMemo(
-    () => smartSearchActiveCards.filter((card) => card.sourceRecords.some((record) => isArchiveRecord(record))),
-    [smartSearchActiveCards]
+  const smartSearchRejectedEntries = useMemo(
+    () => smartSearchEntries.filter((entry) => rejectedSmartSearchEntryIds.has(entry.id)),
+    [smartSearchEntries, rejectedSmartSearchEntryIds]
+  );
+  const smartSearchActiveEntries = useMemo(
+    () => smartSearchEntries.filter((entry) => !rejectedSmartSearchEntryIds.has(entry.id)),
+    [smartSearchEntries, rejectedSmartSearchEntryIds]
+  );
+  const smartSearchTreeEntries = useMemo(
+    () => smartSearchActiveEntries.filter((entry) => entry.sourceType === 'tree'),
+    [smartSearchActiveEntries]
+  );
+  const smartSearchArchiveEntries = useMemo(
+    () => smartSearchActiveEntries.filter((entry) => entry.sourceType === 'archive'),
+    [smartSearchActiveEntries]
   );
   const smartSearchTabCounts = useMemo(() => ({
-    all: smartSearchMatchedCards.length,
-    found: smartSearchActiveCards.length,
-    tree: smartSearchTreeCards.length,
-    archive: smartSearchArchiveCards.length,
-    rejected: smartSearchRejectedCards.length
+    all: smartSearchActiveEntries.length,
+    found: smartSearchActiveEntries.length,
+    tree: smartSearchTreeEntries.length,
+    archive: smartSearchArchiveEntries.length,
+    rejected: smartSearchRejectedEntries.length
   }), [
-    smartSearchMatchedCards.length,
-    smartSearchActiveCards.length,
-    smartSearchTreeCards.length,
-    smartSearchArchiveCards.length,
-    smartSearchRejectedCards.length
+    smartSearchActiveEntries.length,
+    smartSearchTreeEntries.length,
+    smartSearchArchiveEntries.length,
+    smartSearchRejectedEntries.length
   ]);
-  const smartSearchExploreCard = useMemo(
-    () => smartSearchPeopleWithStatus.find((card) => String(card.person.id) === String(smartSearchExploringPersonId)) || null,
-    [smartSearchPeopleWithStatus, smartSearchExploringPersonId]
+  const smartSearchExploreEntry = useMemo(
+    () => smartSearchEntries.find((entry) => entry.id === smartSearchExploringPersonId) || null,
+    [smartSearchEntries, smartSearchExploringPersonId]
   );
-  const smartSearchExplorePerson = smartSearchExploreCard?.person || null;
-  const smartSearchExploreSourceRecords = smartSearchExploreCard?.sourceRecords || [];
+  const smartSearchExplorePerson = smartSearchExploreEntry?.person || null;
+  const smartSearchExploreSourceRecords = smartSearchExploreEntry?.sourceRecords || [];
+  const isSmartSearchExploreRejected = Boolean(
+    smartSearchExploreEntry && rejectedSmartSearchEntryIds.has(smartSearchExploreEntry.id)
+  );
   const smartSearchExploreTreeRecords = useMemo(
     () => smartSearchExploreSourceRecords.filter((record) => isUserTreeRecord(record)),
     [smartSearchExploreSourceRecords]
@@ -2674,11 +2720,11 @@ function App() {
   );
   const smartSearchExploreLockedTreeRecords = useMemo(
     () => smartSearchExploreTreeRecords.filter((record) => !isSmartSearchRecordUnlocked(record)),
-    [smartSearchExploreTreeRecords]
+    [smartSearchExploreTreeRecords, grantedAccessIds]
   );
   const smartSearchExploreLockedArchiveRecords = useMemo(
     () => smartSearchExploreArchiveRecords.filter((record) => !isSmartSearchRecordUnlocked(record)),
-    [smartSearchExploreArchiveRecords]
+    [smartSearchExploreArchiveRecords, unlockedSmartSearchArchiveKeys]
   );
   const smartSearchExploreHasLockedRecords = smartSearchExploreLockedTreeRecords.length > 0 || smartSearchExploreLockedArchiveRecords.length > 0;
 
@@ -2830,31 +2876,30 @@ function App() {
   };
 
   const getSmartSearchCardsByTab = useCallback((tabKey) => {
-    const applyFocus = (cards) => (
+    const applyFocus = (entries) => (
       smartSearchFocusedPersonId
-        ? cards.filter((card) => String(card.person.id) === String(smartSearchFocusedPersonId))
-        : cards
+        ? entries.filter((entry) => String(entry.person.id) === String(smartSearchFocusedPersonId))
+        : entries
     );
     switch (tabKey) {
       case 'found':
-        return applyFocus(smartSearchActiveCards);
+        return applyFocus(smartSearchActiveEntries);
       case 'tree':
-        return applyFocus(smartSearchTreeCards);
+        return applyFocus(smartSearchTreeEntries);
       case 'archive':
-        return applyFocus(smartSearchArchiveCards);
+        return applyFocus(smartSearchArchiveEntries);
       case 'rejected':
-        return applyFocus(smartSearchRejectedCards);
+        return applyFocus(smartSearchRejectedEntries);
       case 'all':
       default:
-        return applyFocus(smartSearchMatchedCards);
+        return applyFocus(smartSearchActiveEntries);
     }
   }, [
     smartSearchFocusedPersonId,
-    smartSearchMatchedCards,
-    smartSearchActiveCards,
-    smartSearchTreeCards,
-    smartSearchArchiveCards,
-    smartSearchRejectedCards
+    smartSearchActiveEntries,
+    smartSearchTreeEntries,
+    smartSearchArchiveEntries,
+    smartSearchRejectedEntries
   ]);
 
   const handleSmartSearchTabChange = (tabKey) => {
@@ -2862,8 +2907,8 @@ function App() {
     setSmartSearchFocusedPersonId(null);
   };
 
-  const handleEnterSmartSearchExplore = (personId) => {
-    setSmartSearchExploringPersonId(personId);
+  const handleEnterSmartSearchExplore = (entryId) => {
+    setSmartSearchExploringPersonId(entryId);
     setSmartSearchViewMode('explore');
   };
 
@@ -2872,18 +2917,25 @@ function App() {
     setSmartSearchExploringPersonId(null);
   };
 
-  const handleRejectSmartSearchCard = (personId) => {
-    setRejectedSmartSearchIds((prev) => (
-      prev.includes(personId)
+  const handleRejectSmartSearchCard = (entry) => {
+    if (!entry) return;
+    setRejectedSmartSearchEntries((prev) => (
+      prev.some((item) => item.id === entry.id)
         ? prev
-        : [...prev, personId]
+        : [...prev, entry]
     ));
+    handleExitSmartSearchExplore();
+  };
+
+  const handleRestoreSmartSearchCard = (entry) => {
+    if (!entry) return;
+    setRejectedSmartSearchEntries((prev) => prev.filter((item) => item.id !== entry.id));
     handleExitSmartSearchExplore();
   };
 
   const visibleSmartSearchListCards = useMemo(
     () => getSmartSearchCardsByTab(smartSearchMatchTab)
-      .filter((card) => normalizeSearchValue(getFullName(card.person)).includes(normalizeSearchValue(smartSearchQuery))),
+      .filter((entry) => normalizeSearchValue(getFullName(entry.person)).includes(normalizeSearchValue(smartSearchQuery))),
     [getSmartSearchCardsByTab, smartSearchMatchTab, smartSearchQuery]
   );
 
@@ -3071,7 +3123,7 @@ function App() {
     { key: 'survey', label: 'Анкета', icon: ClipboardList },
     { key: 'origin', label: 'Происхождение', icon: Globe2 },
     { key: 'tree', label: 'Генеалогическое древо', icon: GitBranch },
-    { key: 'smart-search', label: 'Умный поиск', icon: Search },
+    { key: 'smart-search', label: 'Умный поиск', icon: FourPointStar },
     { key: 'services', label: 'Генеалогические услуги', icon: Briefcase },
     { key: 'pregnancy', label: 'Планирование беременности', icon: Baby }
   ];
@@ -3300,8 +3352,8 @@ function App() {
   }, [activeSection]);
 
   const smartSearchRequiredMatches = smartSearchActionContext?.requiredMatches || 1;
-  const smartSearchPaymentBasicPrice = 210;
-  const smartSearchPaymentPackagePrice = 1600;
+  const smartSearchPaymentBasicPrice = 199;
+  const smartSearchPaymentPackagePrice = 1790;
   const smartSearchPaymentBasicTotal = smartSearchBasicQuantity * smartSearchPaymentBasicPrice;
   const smartSearchActionTitle = 'разблокировки карточки';
 
@@ -3361,7 +3413,7 @@ function App() {
                         setShowNotifications(false);
                       }}
                     >
-                      <Coins size={18} />
+                    <FourPointStar size={16} />
                       {smartMatchBalance > 0 && (
                         <span className="balance-badge">{smartMatchBalance}</span>
                       )}
@@ -3467,7 +3519,7 @@ function App() {
                       </button>
                     </div>
                     <label className="smart-search-input-wrapper smart-search-cards-input">
-                      <Search size={16} />
+                      <Search size={14} />
                       <input
                         className="smart-search-input"
                         type="text"
@@ -3478,24 +3530,31 @@ function App() {
                         }}
                         placeholder="Поиск по карточкам"
                       />
+                      {smartSearchQuery && (
+                        <button
+                          type="button"
+                          className="smart-search-clear-btn"
+                          onClick={() => setSmartSearchQuery('')}
+                          title="Очистить поиск"
+                        >
+                          <X size={14} />
+                        </button>
+                      )}
                     </label>
                   </div>
 
                   <div className="smart-search-cards">
-                    {visibleSmartSearchListCards.map((card) => {
-                        const { person, sourceRecords } = card;
+                    {visibleSmartSearchListCards.map((entry) => {
+                        const { person, sourceRecords, sourceType, id } = entry;
                         const personName = getFullName(person) || 'Без имени';
                         const personGenderClass = getGenderClass(person);
                         const initials = getInitials(person);
                         const isSelected = selectedSmartSearchIds.includes(person.id);
-                        const hasTreeMatches = sourceRecords.some((record) => isUserTreeRecord(record));
-                        const hasArchiveMatches = sourceRecords.some((record) => isArchiveRecord(record));
-                        const foundIn = [];
-                        if (hasTreeMatches) foundIn.push('Древо');
-                        if (hasArchiveMatches) foundIn.push('Внешний источник');
+                        const genderVerb = person.gender === 'female' ? 'Найдена' : 'Найден';
+                        const foundIn = sourceType === 'tree' ? 'в древе' : 'в архиве';
 
                         return (
-                          <article key={person.id} className={`smart-match-card ${isSelected ? 'selected' : ''}`}>
+                          <article key={id} className={`smart-match-card ${isSelected ? 'selected' : ''}`}>
                             <div className={`smart-match-initials ${personGenderClass}`}>{initials}</div>
                             <div className="smart-match-content">
                               <div className="smart-match-top">
@@ -3509,11 +3568,11 @@ function App() {
                                 </label>
                               </div>
                               <div className="smart-match-footer">
-                                <p>Найден/на: {foundIn.join(', ') || '—'}</p>
+                                <p>{genderVerb} {foundIn}</p>
                                 <button
                                   type="button"
                                   className="smart-study-btn"
-                                  onClick={() => handleEnterSmartSearchExplore(person.id)}
+                                  onClick={() => handleEnterSmartSearchExplore(id)}
                                 >
                                   Изучить совпадения
                                 </button>
@@ -3538,31 +3597,43 @@ function App() {
                   <div className="smart-explore-header">
                     <h2>{getFullName(smartSearchExplorePerson) || 'Без имени'}</h2>
                     <div className="smart-explore-actions">
-                      <button
-                        type="button"
-                        className="smart-reject-btn"
-                        onClick={() => smartSearchExplorePerson && handleRejectSmartSearchCard(smartSearchExplorePerson.id)}
-                      >
-                        Отклонить
-                      </button>
-                      <button
-                        type="button"
-                        className="smart-access-btn"
-                        onClick={() => {
-                          if (!smartSearchExplorePerson) return;
-                          if (smartSearchExploreHasLockedRecords) {
-                            startSmartSearchCardPurchase(
-                              smartSearchExplorePerson,
-                              smartSearchExploreLockedTreeRecords,
-                              smartSearchExploreLockedArchiveRecords
-                            );
-                            return;
-                          }
-                          handleAddAllUnlockedDocumentsForPerson(smartSearchExplorePerson, smartSearchExploreRecords);
-                        }}
-                      >
-                        {smartSearchExploreHasLockedRecords ? 'Получить доступ' : 'Добавить'}
-                      </button>
+                      {isSmartSearchExploreRejected ? (
+                        <button
+                          type="button"
+                          className="smart-reject-btn"
+                          onClick={() => handleRestoreSmartSearchCard(smartSearchExploreEntry)}
+                        >
+                          Восстановить
+                        </button>
+                      ) : (
+                        <>
+                          <button
+                            type="button"
+                            className="smart-reject-btn"
+                            onClick={() => handleRejectSmartSearchCard(smartSearchExploreEntry)}
+                          >
+                            Отклонить
+                          </button>
+                          <button
+                            type="button"
+                            className="smart-access-btn"
+                            onClick={() => {
+                              if (!smartSearchExplorePerson) return;
+                              if (smartSearchExploreHasLockedRecords) {
+                                startSmartSearchCardPurchase(
+                                  smartSearchExplorePerson,
+                                  smartSearchExploreLockedTreeRecords,
+                                  smartSearchExploreLockedArchiveRecords
+                                );
+                                return;
+                              }
+                              handleAddAllUnlockedDocumentsForPerson(smartSearchExplorePerson, smartSearchExploreRecords);
+                            }}
+                          >
+                            {smartSearchExploreHasLockedRecords ? 'Получить доступ' : 'Добавить'}
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
 
@@ -3605,7 +3676,7 @@ function App() {
                           return (
                             <article key={`${getDocumentKey(record)}-${index}`} className="smart-detail-card">
                               <p className="smart-detail-source">{sourceLabel}</p>
-                              <div className={!isUnlocked ? 'blurred-info' : ''}>
+                              <div className={!isUnlocked && !isSmartSearchExploreRejected ? 'blurred-info' : ''}>
                                 <div className="smart-detail-person">
                                   <div className={`smart-match-initials ${getGenderClass(record)}`}>
                                     {getInitials(record)}
@@ -3671,7 +3742,7 @@ function App() {
                     setShowNotifications(false);
                   }}
                 >
-                  <Coins size={18} />
+                  <FourPointStar size={16} />
                   {smartMatchBalance > 0 && (
                     <span className="balance-badge">{smartMatchBalance}</span>
                   )}
@@ -3737,8 +3808,8 @@ function App() {
                   </div>
                 )}
               </div>
-              <button className="toolbar-btn" title="Поиск">
-                <Search size={18} />
+                      <button className="toolbar-btn" title="Поиск">
+                        <Search size={16} />
               </button>
               <button className="toolbar-btn" title="Где я" onClick={handleCenterTree}>
                 <Navigation size={18} />
@@ -3918,7 +3989,7 @@ function App() {
         <div className="modal-overlay confirm-purchase-modal" onClick={resetSmartSearchActionState}>
           <div className="modal-content confirm-purchase-content" onClick={(e) => e.stopPropagation()}>
             <div className="confirm-purchase-header">
-              <Coins size={32} className="confirm-purchase-icon" />
+              <FourPointStar size={24} className="confirm-purchase-icon" />
               <h3>Подтверждение</h3>
             </div>
             <p className="confirm-purchase-text">
@@ -3993,7 +4064,7 @@ function App() {
           onClick={handleMatchNotificationClick}
         >
           <div className="smartmatching-notification-icon">
-            <RefreshCw size={20} />
+            <FourPointStar size={16} />
           </div>
           <div className="smartmatching-notification-content">
             <p className="smartmatching-notification-title">Мы нашли ваших родственников</p>

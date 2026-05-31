@@ -362,6 +362,21 @@ body {
   padding: 8px 10px;
 }
 
+.smart-search-clear-btn {
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+}
+
+.smart-search-clear-btn:hover {
+  color: #475569;
+}
+
 .smart-search-input-wrapper svg {
   color: var(--text-muted);
   flex-shrink: 0;
@@ -584,6 +599,10 @@ body {
   border-radius: 8px;
   padding: 8px 14px;
   cursor: pointer;
+}
+
+.smart-reject-btn:hover {
+  background: rgba(220, 38, 38, 0.06);
 }
 
 .smart-access-btn {
