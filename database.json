@@ -3859,7 +3859,37 @@
         "matches": [],
         "errors": []
       }
-    }
+    },
+    "documents": [
+      {
+        "id": "69e51500f2f4ad946ba05d77",
+        "sourceKey": "userTrees",
+        "sourceLabel": "Деревья других пользователей",
+        "title": "Никитин Георгий Сергеевич",
+        "url": "",
+        "birthDate": "1860-04-23",
+        "birthPlace": "Акмолинская область",
+        "information": "",
+        "score": 100,
+        "tree_id": "68f36f8fda84114f6acf1ce4",
+        "tree_owner": "Слабкий Павел Андреевич",
+        "database_id": "69e51500f2f4ad946ba05d77"
+      },
+      {
+        "id": "",
+        "sourceKey": "openList",
+        "sourceLabel": "Открытый список",
+        "title": "Никитин Георгий Сергеевич (1917)",
+        "url": "https://ru.openlist.wiki/%D0%9D%D0%B8%D0%BA%D0%B8%D1%82%D0%B8%D0%BD_%D0%93%D0%B5%D0%BE%D1%80%D0%B3%D0%B8%D0%B9_%D0%A1%D0%B5%D1%80%D0%B3%D0%B5%D0%B5%D0%B2%D0%B8%D1%87_(1917)",
+        "birthDate": "",
+        "birthPlace": "",
+        "information": "",
+        "score": 71.96078431372551,
+        "tree_id": "",
+        "tree_owner": "",
+        "database_id": ""
+      }
+    ]
   },
   {
     "_id": {
