@@ -2561,7 +2561,6 @@ function App() {
   const [tutorialStep, setTutorialStep] = useState(1);
   const [smartSearchQuery, setSmartSearchQuery] = useState('');
   const [smartSearchFocusedPersonId, setSmartSearchFocusedPersonId] = useState(null);
-  const [selectedSmartSearchIds, setSelectedSmartSearchIds] = useState([]);
   const [unlockedSmartSearchArchiveKeys, setUnlockedSmartSearchArchiveKeys] = useState([]);
   const [showSmartSearchPaymentModal, setShowSmartSearchPaymentModal] = useState(false);
   const [showSmartSearchConfirmModal, setShowSmartSearchConfirmModal] = useState(false);
@@ -2865,14 +2864,6 @@ function App() {
   const handleTutorialClose = () => {
     setShowSmartMatchingTutorial(false);
     setTutorialStep(1);
-  };
-
-  const handleSmartSearchSelection = (personId) => {
-    setSelectedSmartSearchIds((prev) => (
-      prev.includes(personId)
-        ? prev.filter((id) => id !== personId)
-        : [...prev, personId]
-    ));
   };
 
   const getSmartSearchCardsByTab = useCallback((tabKey) => {
@@ -3549,23 +3540,15 @@ function App() {
                         const personName = getFullName(person) || 'Без имени';
                         const personGenderClass = getGenderClass(person);
                         const initials = getInitials(person);
-                        const isSelected = selectedSmartSearchIds.includes(person.id);
                         const genderVerb = person.gender === 'female' ? 'Найдена' : 'Найден';
                         const foundIn = sourceType === 'tree' ? 'в древе' : 'в архиве';
 
                         return (
-                          <article key={id} className={`smart-match-card ${isSelected ? 'selected' : ''}`}>
+                          <article key={id} className="smart-match-card">
                             <div className={`smart-match-initials ${personGenderClass}`}>{initials}</div>
                             <div className="smart-match-content">
                               <div className="smart-match-top">
                                 <h3 className="smart-match-name">{personName}</h3>
-                                <label className="smart-card-checkbox" title="Выбрать карточку">
-                                  <input
-                                    type="checkbox"
-                                    checked={isSelected}
-                                    onChange={() => handleSmartSearchSelection(person.id)}
-                                  />
-                                </label>
                               </div>
                               <div className="smart-match-footer">
                                 <p>{genderVerb} {foundIn}</p>
@@ -3670,13 +3653,26 @@ function App() {
                         {smartSearchExploreRecords.map((record, index) => {
                           const isTreeSource = isUserTreeRecord(record);
                           const isUnlocked = isSmartSearchRecordUnlocked(record);
-                          const sourceLabel = isTreeSource
-                            ? `Из древа ${record.tree_owner || 'пользователя'}`
-                            : `Из архива ${record.sourceLabel || 'Источник'}`;
+                          const archiveLabel = `Из архива ${record.sourceLabel || 'Источник'}`;
+                          const shouldBlurTreeOwner = isTreeSource && !isUnlocked;
+                          const shouldBlurArchiveSource = !isTreeSource && !isUnlocked;
                           return (
                             <article key={`${getDocumentKey(record)}-${index}`} className="smart-detail-card">
-                              <p className="smart-detail-source">{sourceLabel}</p>
-                              <div className={!isUnlocked && !isSmartSearchExploreRejected ? 'blurred-info' : ''}>
+                              <p className="smart-detail-source">
+                                {isTreeSource ? (
+                                  <>
+                                    Из древа{' '}
+                                    <span className={shouldBlurTreeOwner ? 'blurred-info' : ''}>
+                                      {record.tree_owner || 'пользователя'}
+                                    </span>
+                                  </>
+                                ) : (
+                                  <span className={shouldBlurArchiveSource ? 'blurred-info' : ''}>
+                                    {archiveLabel}
+                                  </span>
+                                )}
+                              </p>
+                              <div>
                                 <div className="smart-detail-person">
                                   <div className={`smart-match-initials ${getGenderClass(record)}`}>
                                     {getInitials(record)}
@@ -3692,7 +3688,7 @@ function App() {
                                       href={record.url}
                                       target="_blank"
                                       rel="noopener noreferrer"
-                                      className="smart-source-link"
+                                      className={`smart-source-link ${shouldBlurArchiveSource ? 'blurred-info' : ''}`}
                                     >
                                       Открыть ссылку
                                     </a>
