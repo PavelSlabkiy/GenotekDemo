@@ -3614,9 +3614,6 @@ function App() {
                           style={{ width: `${smartSearchProgressPercent}%` }}
                         />
                       </div>
-                      <p className="smart-search-progress-text">
-                        Поиск: {smartSearchProgressPercent}%{smartSearchStatus.currentSource ? ` (${smartSearchStatus.currentSource})` : ''}
-                      </p>
                     </div>
                   )}
 

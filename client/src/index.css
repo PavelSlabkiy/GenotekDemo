@@ -492,13 +492,14 @@ body {
     #34d399 10px,
     #34d399 20px
   );
-  transition: width 0.3s ease;
+  background-size: 28px 28px;
+  animation: smart-progress-stripes 0.9s linear infinite;
+  transition: width 0.25s ease;
 }
 
-.smart-search-progress-text {
-  margin: 6px 0 0;
-  font-size: 0.76rem;
-  color: #047857;
+@keyframes smart-progress-stripes {
+  from { background-position: 0 0; }
+  to { background-position: 28px 0; }
 }
 
 .smart-match-card {

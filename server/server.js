@@ -1140,10 +1140,58 @@ const shouldRunSourceForPerson = (person, sourceKey) => {
   return requirement.hasRequiredFields(person);
 };
 
+const runParserPerPerson = async ({
+  parser,
+  sourceKey,
+  sourceLabel,
+  people,
+  personIds,
+  searchCriteria,
+  runtimeOptions,
+  onPersonCompleted
+}) => {
+  const aggregated = buildEmptySourceResult({
+    sourceKey,
+    sourceLabel,
+    personIds
+  });
+
+  for (const personId of personIds) {
+    try {
+      const parserResult = await parser({
+        people,
+        personIds: [personId],
+        searchCriteria,
+        runtimeOptions
+      });
+      if (Array.isArray(parserResult?.matches)) {
+        aggregated.matches.push(...parserResult.matches);
+      }
+      if (Array.isArray(parserResult?.matchedDataIds)) {
+        aggregated.matchedDataIds.push(...parserResult.matchedDataIds);
+      }
+      if (Array.isArray(parserResult?.errors)) {
+        aggregated.errors.push(...parserResult.errors);
+      }
+    } catch (error) {
+      aggregated.errors.push({
+        person_id: personId,
+        message: error?.message || `Parser ${sourceKey} failed`
+      });
+    } finally {
+      if (onPersonCompleted) onPersonCompleted(personId);
+    }
+  }
+
+  aggregated.matchedDataIds = Array.from(new Set(aggregated.matchedDataIds.map(String)));
+  return aggregated;
+};
+
 const runSmartMatchingForPeople = async ({ people, personIds, searchCriteria = AUTO_SMART_SEARCH_CRITERIA, runtimeOptions = {} }) => {
   const trackProgress = runtimeOptions.trackProgress !== false;
-  const progressSources = [USER_TREES_SOURCE.label, ...SUPPORTED_SMART_SOURCES.map((source) => source.label)];
+  const progressSources = [USER_TREES_SOURCE_KEY, ...SUPPORTED_SMART_SOURCES.map((source) => source.key)];
   const runId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const normalizedPersonIds = normalizePersonIds(personIds, people);
   const applyProgress = (partial) => {
     Object.assign(smartSearchRuntimeState, partial);
   };
@@ -1155,7 +1203,7 @@ const runSmartMatchingForPeople = async ({ people, personIds, searchCriteria = A
       runId,
       startedAt: new Date().toISOString(),
       finishedAt: null,
-      totalSteps: progressSources.length,
+      totalSteps: Math.max(1, normalizedPersonIds.length * progressSources.length),
       completedSteps: 0,
       currentSource: null,
       lastError: null
@@ -1163,56 +1211,98 @@ const runSmartMatchingForPeople = async ({ people, personIds, searchCriteria = A
   }
 
   try {
-  const normalizedPersonIds = normalizePersonIds(personIds, people);
-  if (!normalizedPersonIds.length) {
-    if (trackProgress) {
-      applyProgress({
-        running: false,
-        finishedAt: new Date().toISOString(),
-        completedSteps: progressSources.length,
-        currentSource: null
-      });
+    if (!normalizedPersonIds.length) {
+      if (trackProgress) {
+        applyProgress({
+          running: false,
+          finishedAt: new Date().toISOString(),
+          completedSteps: 0,
+          currentSource: null
+        });
+      }
+      return { people, processedPersonIds: [] };
     }
-    return { people, processedPersonIds: [] };
-  }
 
-  let treeParserResult = {
-    matches: [],
-    errors: [],
-    matchedDataIds: [],
-    processedPersonIds: normalizedPersonIds
-  };
+    const markPersonSourceProcessed = (sourceKey, personId) => {
+      if (!trackProgress) return;
+      const sourceLabel = sourceKey === USER_TREES_SOURCE_KEY
+        ? USER_TREES_SOURCE.label
+        : (SUPPORTED_SMART_SOURCES.find((item) => item.key === sourceKey)?.label || sourceKey);
+      applyProgress({
+        currentSource: `${sourceLabel}: ${personId}`,
+        completedSteps: Math.min(
+          smartSearchRuntimeState.totalSteps,
+          (smartSearchRuntimeState.completedSteps || 0) + 1
+        )
+      });
+    };
 
-  const treePersonIds = normalizedPersonIds.filter((personId) => (
-    shouldRunSourceForPerson(people[personId], USER_TREES_SOURCE_KEY)
-  ));
-  if (trackProgress) {
-    applyProgress({ currentSource: USER_TREES_SOURCE.label });
-  }
-  if (treePersonIds.length > 0) {
-    treeParserResult = await runTreeMatchingParser({
+    let treeParserResult = {
+      matches: [],
+      errors: [],
+      matchedDataIds: [],
+      processedPersonIds: normalizedPersonIds
+    };
+
+    const treePersonIds = [];
+    normalizedPersonIds.forEach((personId) => {
+    const person = people[personId];
+    if (!person) {
+      markPersonSourceProcessed(USER_TREES_SOURCE_KEY, personId);
+      return;
+    }
+    person.sourceSearchCache = person.sourceSearchCache || {};
+    if (!shouldRunSourceForPerson(person, USER_TREES_SOURCE_KEY)) {
+      delete person.sourceSearchCache[USER_TREES_SOURCE_KEY];
+      person.hasMatch = calculatePersonHasMatch(person);
+      markPersonSourceProcessed(USER_TREES_SOURCE_KEY, personId);
+      return;
+    }
+    const sourceCache = person.sourceSearchCache[USER_TREES_SOURCE_KEY];
+    const expectedSignature = buildAutoSearchSignature(person, USER_TREES_SOURCE_KEY);
+    const hasMatchingCriteria = sourceCache
+      && typeof sourceCache === 'object'
+      && areSearchCriteriaEqual(sourceCache.searchCriteria, searchCriteria);
+    const hasCurrentSignature = sourceCache?.autoSearchSignature === expectedSignature;
+    const hasCache = hasMatchingCriteria && hasCurrentSignature && Array.isArray(sourceCache.matches);
+    if (hasCache) {
+      person.hasMatch = calculatePersonHasMatch(person);
+      markPersonSourceProcessed(USER_TREES_SOURCE_KEY, personId);
+      return;
+    }
+    treePersonIds.push(personId);
+    });
+
+    if (treePersonIds.length > 0) {
+      treeParserResult = await runParserPerPerson({
+      parser: runTreeMatchingParser,
+      sourceKey: USER_TREES_SOURCE_KEY,
+      sourceLabel: USER_TREES_SOURCE.label,
       people,
       personIds: treePersonIds,
-      searchCriteria
-    });
-  }
-  if (trackProgress) {
-    applyProgress({ completedSteps: 1 });
-  }
+      searchCriteria,
+      runtimeOptions,
+      onPersonCompleted: (personId) => markPersonSourceProcessed(USER_TREES_SOURCE_KEY, personId)
+      });
+    }
 
-  const treeMatchesByPersonId = {};
-  (treeParserResult.matches || []).forEach((match) => {
+    const treeMatchesByPersonId = {};
+    (treeParserResult.matches || []).forEach((match) => {
     const personId = String(match.data_id);
     if (!treeMatchesByPersonId[personId]) treeMatchesByPersonId[personId] = [];
     treeMatchesByPersonId[personId].push(match);
-  });
+    });
 
-  normalizedPersonIds.forEach((personId) => {
+    normalizedPersonIds.forEach((personId) => {
     const person = people[personId];
     if (!person) return;
     person.sourceSearchCache = person.sourceSearchCache || {};
-    if (!treePersonIds.includes(personId)) {
+    if (!treePersonIds.includes(personId) && !person.sourceSearchCache[USER_TREES_SOURCE_KEY]) {
       delete person.sourceSearchCache[USER_TREES_SOURCE_KEY];
+      person.hasMatch = calculatePersonHasMatch(person);
+      return;
+    }
+    if (!treePersonIds.includes(personId)) {
       person.hasMatch = calculatePersonHasMatch(person);
       return;
     }
@@ -1226,21 +1316,21 @@ const runSmartMatchingForPeople = async ({ people, personIds, searchCriteria = A
     });
     person.sourceSearchCache[USER_TREES_SOURCE_KEY].autoSearchSignature = buildAutoSearchSignature(person, USER_TREES_SOURCE_KEY);
     person.hasMatch = calculatePersonHasMatch(person);
-  });
+    });
 
-  for (let index = 0; index < SUPPORTED_SMART_SOURCES.length; index += 1) {
-    const source = SUPPORTED_SMART_SOURCES[index];
-    if (trackProgress) {
-      applyProgress({ currentSource: source.label });
-    }
+    for (const source of SUPPORTED_SMART_SOURCES) {
     const peopleToSearch = [];
     normalizedPersonIds.forEach((personId) => {
       const person = people[personId];
-      if (!person) return;
+      if (!person) {
+        markPersonSourceProcessed(source.key, personId);
+        return;
+      }
       person.sourceSearchCache = person.sourceSearchCache || {};
       if (!shouldRunSourceForPerson(person, source.key)) {
         delete person.sourceSearchCache[source.key];
         person.hasMatch = calculatePersonHasMatch(person);
+        markPersonSourceProcessed(source.key, personId);
         return;
       }
 
@@ -1255,6 +1345,7 @@ const runSmartMatchingForPeople = async ({ people, personIds, searchCriteria = A
         peopleToSearch.push(personId);
       } else {
         person.hasMatch = calculatePersonHasMatch(person);
+        markPersonSourceProcessed(source.key, personId);
       }
     });
 
@@ -1264,11 +1355,15 @@ const runSmartMatchingForPeople = async ({ people, personIds, searchCriteria = A
       personIds: peopleToSearch
     });
     if (peopleToSearch.length > 0) {
-      parserResult = await source.parser({
+      parserResult = await runParserPerPerson({
+        parser: source.parser,
+        sourceKey: source.key,
+        sourceLabel: source.label,
         people,
         personIds: peopleToSearch,
         searchCriteria,
-        runtimeOptions
+        runtimeOptions,
+        onPersonCompleted: (personId) => markPersonSourceProcessed(source.key, personId)
       });
     }
 
@@ -1307,24 +1402,21 @@ const runSmartMatchingForPeople = async ({ people, personIds, searchCriteria = A
       person.sourceSearchCache[source.key].autoSearchSignature = buildAutoSearchSignature(person, source.key);
       person.hasMatch = calculatePersonHasMatch(person);
     });
-    if (trackProgress) {
-      applyProgress({ completedSteps: 2 + index });
     }
-  }
 
-  if (trackProgress) {
-    applyProgress({
-      running: false,
-      finishedAt: new Date().toISOString(),
-      completedSteps: progressSources.length,
-      currentSource: null
-    });
-  }
+    if (trackProgress) {
+      applyProgress({
+        running: false,
+        finishedAt: new Date().toISOString(),
+        completedSteps: smartSearchRuntimeState.totalSteps,
+        currentSource: null
+      });
+    }
 
-  return {
-    people,
-    processedPersonIds: normalizedPersonIds
-  };
+    return {
+      people,
+      processedPersonIds: normalizedPersonIds
+    };
   } catch (error) {
     if (trackProgress) {
       applyProgress({
