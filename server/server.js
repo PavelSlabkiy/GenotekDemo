@@ -769,7 +769,7 @@ app.post('/api/people', async (req, res) => {
   });
 
   if (writeCurrentPeople(people)) {
-    res.status(201).json(newPerson);
+    res.status(201).json(people[newPerson.id]);
   } else {
     res.status(500).json({ error: 'Failed to save data' });
   }
@@ -801,7 +801,7 @@ app.put('/api/people/:id', async (req, res) => {
   });
 
   if (writeCurrentPeople(people)) {
-    res.json(updatedPerson);
+    res.json(people[req.params.id]);
   } else {
     res.status(500).json({ error: 'Failed to save data' });
   }
@@ -972,7 +972,10 @@ app.post('/api/people/:id/relative', async (req, res) => {
   });
 
   if (writeCurrentPeople(people)) {
-    res.status(201).json({ person, newRelative });
+    res.status(201).json({
+      person: people[personId],
+      newRelative: people[newRelativeId]
+    });
   } else {
     res.status(500).json({ error: 'Failed to save data' });
   }
@@ -1486,24 +1489,29 @@ app.post('/api/database/upload', async (req, res) => {
   }
 
   const state = readDatabaseState();
-  const people = { ...state.people };
-  const personIds = Object.keys(people);
-  if (personIds.length > 0) {
-    await runSmartMatchingForPeople({
-      people,
-      personIds,
-      searchCriteria: AUTO_SMART_SEARCH_CRITERIA
-    });
-    if (!writeCurrentPeople(people)) {
-      return res.status(500).json({ error: 'Failed to save auto-search results' });
-    }
-  }
-  const refreshedState = readDatabaseState();
   res.json({
     success: true,
-    people: refreshedState.people,
+    people: state.people,
     records: entries.length
   });
+
+  // Start auto-search slightly later, after client renders uploaded tree.
+  setTimeout(async () => {
+    try {
+      const freshState = readDatabaseState();
+      const people = { ...freshState.people };
+      const personIds = Object.keys(people);
+      if (personIds.length === 0) return;
+      await runSmartMatchingForPeople({
+        people,
+        personIds,
+        searchCriteria: AUTO_SMART_SEARCH_CRITERIA
+      });
+      writeCurrentPeople(people);
+    } catch (error) {
+      console.error('Deferred auto-search after upload failed:', error);
+    }
+  }, 600);
 });
 
 app.get('/api/database/export', (req, res) => {

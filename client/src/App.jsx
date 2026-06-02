@@ -2785,6 +2785,28 @@ function App() {
       allTreeMatchesRef.current = [];
       allArchiveMatchesRef.current = [];
       showToast('Новый JSON загружен, прежние данные заменены');
+
+      // Poll briefly to pick up deferred auto-search results without page refresh.
+      const pollAttempts = 6;
+      const pollDelayMs = 900;
+      for (let attempt = 0; attempt < pollAttempts; attempt += 1) {
+        await new Promise((resolve) => setTimeout(resolve, pollDelayMs));
+        try {
+          const pollResponse = await fetch(`${API_URL}/people`);
+          if (!pollResponse.ok) continue;
+          const polledPeople = await pollResponse.json();
+          const hasNewMatches = Object.values(polledPeople).some((person) => person?.hasMatch);
+          if (hasNewMatches) {
+            setPeople(polledPeople);
+            break;
+          }
+          if (attempt === pollAttempts - 1) {
+            setPeople(polledPeople);
+          }
+        } catch (pollError) {
+          console.error('Deferred smart-search polling error:', pollError);
+        }
+      }
     } catch (error) {
       console.error('Upload error:', error);
       showToast('Ошибка загрузки JSON', 'error');
