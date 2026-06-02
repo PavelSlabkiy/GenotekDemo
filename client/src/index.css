@@ -470,6 +470,37 @@ body {
   gap: 12px;
 }
 
+.smart-search-progress {
+  margin-bottom: 12px;
+}
+
+.smart-search-progress-track {
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: #d1fae5;
+  overflow: hidden;
+}
+
+.smart-search-progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: repeating-linear-gradient(
+    -45deg,
+    #10b981 0,
+    #10b981 10px,
+    #34d399 10px,
+    #34d399 20px
+  );
+  transition: width 0.3s ease;
+}
+
+.smart-search-progress-text {
+  margin: 6px 0 0;
+  font-size: 0.76rem;
+  color: #047857;
+}
+
 .smart-match-card {
   background: #ffffff;
   border: 1px solid #e2e8f0;

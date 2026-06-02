@@ -16,6 +16,17 @@ const PAMYAT_PARSER_SCRIPT = path.join(__dirname, '..', 'pamyat_parser.py');
 const OPENLIST_PARSER_SCRIPT = path.join(__dirname, '..', 'openlist_parser.py');
 const GWAR_PARSER_SCRIPT = path.join(__dirname, '..', 'gwar_parser.py');
 const SMART_MATCHING_SCRIPT = path.join(__dirname, '..', 'smart_matching.py');
+const smartSearchRuntimeState = {
+  running: false,
+  trigger: null,
+  runId: null,
+  startedAt: null,
+  finishedAt: null,
+  totalSteps: 0,
+  completedSteps: 0,
+  currentSource: null,
+  lastError: null
+};
 
 const getOid = (value) => {
   if (value && typeof value === 'object' && '$oid' in value) {
@@ -809,7 +820,8 @@ app.post('/api/people', async (req, res) => {
   await runSmartMatchingForPeople({
     people,
     personIds: [newPerson.id],
-    searchCriteria: AUTO_SMART_SEARCH_CRITERIA
+    searchCriteria: AUTO_SMART_SEARCH_CRITERIA,
+    runtimeOptions: { trigger: 'person_created' }
   });
 
   if (writeCurrentPeople(people)) {
@@ -841,7 +853,8 @@ app.put('/api/people/:id', async (req, res) => {
   await runSmartMatchingForPeople({
     people,
     personIds: [updatedPerson.id],
-    searchCriteria: AUTO_SMART_SEARCH_CRITERIA
+    searchCriteria: AUTO_SMART_SEARCH_CRITERIA,
+    runtimeOptions: { trigger: 'person_updated' }
   });
 
   if (writeCurrentPeople(people)) {
@@ -1012,7 +1025,8 @@ app.post('/api/people/:id/relative', async (req, res) => {
   await runSmartMatchingForPeople({
     people,
     personIds: [personId, newRelativeId],
-    searchCriteria: AUTO_SMART_SEARCH_CRITERIA
+    searchCriteria: AUTO_SMART_SEARCH_CRITERIA,
+    runtimeOptions: { trigger: 'relative_added' }
   });
 
   if (writeCurrentPeople(people)) {
@@ -1127,8 +1141,38 @@ const shouldRunSourceForPerson = (person, sourceKey) => {
 };
 
 const runSmartMatchingForPeople = async ({ people, personIds, searchCriteria = AUTO_SMART_SEARCH_CRITERIA, runtimeOptions = {} }) => {
+  const trackProgress = runtimeOptions.trackProgress !== false;
+  const progressSources = [USER_TREES_SOURCE.label, ...SUPPORTED_SMART_SOURCES.map((source) => source.label)];
+  const runId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const applyProgress = (partial) => {
+    Object.assign(smartSearchRuntimeState, partial);
+  };
+
+  if (trackProgress) {
+    applyProgress({
+      running: true,
+      trigger: runtimeOptions.trigger || 'auto',
+      runId,
+      startedAt: new Date().toISOString(),
+      finishedAt: null,
+      totalSteps: progressSources.length,
+      completedSteps: 0,
+      currentSource: null,
+      lastError: null
+    });
+  }
+
+  try {
   const normalizedPersonIds = normalizePersonIds(personIds, people);
   if (!normalizedPersonIds.length) {
+    if (trackProgress) {
+      applyProgress({
+        running: false,
+        finishedAt: new Date().toISOString(),
+        completedSteps: progressSources.length,
+        currentSource: null
+      });
+    }
     return { people, processedPersonIds: [] };
   }
 
@@ -1142,12 +1186,18 @@ const runSmartMatchingForPeople = async ({ people, personIds, searchCriteria = A
   const treePersonIds = normalizedPersonIds.filter((personId) => (
     shouldRunSourceForPerson(people[personId], USER_TREES_SOURCE_KEY)
   ));
+  if (trackProgress) {
+    applyProgress({ currentSource: USER_TREES_SOURCE.label });
+  }
   if (treePersonIds.length > 0) {
     treeParserResult = await runTreeMatchingParser({
       people,
       personIds: treePersonIds,
       searchCriteria
     });
+  }
+  if (trackProgress) {
+    applyProgress({ completedSteps: 1 });
   }
 
   const treeMatchesByPersonId = {};
@@ -1178,7 +1228,11 @@ const runSmartMatchingForPeople = async ({ people, personIds, searchCriteria = A
     person.hasMatch = calculatePersonHasMatch(person);
   });
 
-  for (const source of SUPPORTED_SMART_SOURCES) {
+  for (let index = 0; index < SUPPORTED_SMART_SOURCES.length; index += 1) {
+    const source = SUPPORTED_SMART_SOURCES[index];
+    if (trackProgress) {
+      applyProgress({ currentSource: source.label });
+    }
     const peopleToSearch = [];
     normalizedPersonIds.forEach((personId) => {
       const person = people[personId];
@@ -1253,12 +1307,35 @@ const runSmartMatchingForPeople = async ({ people, personIds, searchCriteria = A
       person.sourceSearchCache[source.key].autoSearchSignature = buildAutoSearchSignature(person, source.key);
       person.hasMatch = calculatePersonHasMatch(person);
     });
+    if (trackProgress) {
+      applyProgress({ completedSteps: 2 + index });
+    }
+  }
+
+  if (trackProgress) {
+    applyProgress({
+      running: false,
+      finishedAt: new Date().toISOString(),
+      completedSteps: progressSources.length,
+      currentSource: null
+    });
   }
 
   return {
     people,
     processedPersonIds: normalizedPersonIds
   };
+  } catch (error) {
+    if (trackProgress) {
+      applyProgress({
+        running: false,
+        finishedAt: new Date().toISOString(),
+        currentSource: null,
+        lastError: error?.message || 'Unknown smart-search error'
+      });
+    }
+    throw error;
+  }
 };
 
 const isReadyForSmartSearch = (person, searchCriteria = DEFAULT_SMART_SEARCH_CRITERIA) => {
@@ -1316,7 +1393,10 @@ app.post('/api/smart-matching', async (req, res) => {
       people: data.people,
       personIds: Array.from(idsToProcess),
       searchCriteria,
-      runtimeOptions
+      runtimeOptions: {
+        ...runtimeOptions,
+        trigger: runtimeOptions.trigger || 'manual'
+      }
     });
 
     personIds.forEach((personId) => {
@@ -1400,6 +1480,10 @@ app.get('/api/people/:id/matches', async (req, res) => {
     console.error('Get matches error:', error);
     res.status(500).json({ error: 'Failed to get matches', details: error.message });
   }
+});
+
+app.get('/api/smart-matching/status', (req, res) => {
+  res.json(smartSearchRuntimeState);
 });
 
 // Confirm match and add fragment to tree
@@ -1556,7 +1640,8 @@ app.post('/api/database/upload', async (req, res) => {
       await runSmartMatchingForPeople({
         people,
         personIds,
-        searchCriteria: AUTO_SMART_SEARCH_CRITERIA
+        searchCriteria: AUTO_SMART_SEARCH_CRITERIA,
+        runtimeOptions: { trigger: 'database_upload' }
       });
       writeCurrentPeople(people);
     } catch (error) {

@@ -2575,6 +2575,12 @@ function App() {
   const [smartSearchMatchTab, setSmartSearchMatchTab] = useState('all');
   const [smartSearchViewMode, setSmartSearchViewMode] = useState('list');
   const [smartSearchExploringPersonId, setSmartSearchExploringPersonId] = useState(null);
+  const [smartSearchStatus, setSmartSearchStatus] = useState({
+    running: false,
+    totalSteps: 0,
+    completedSteps: 0,
+    currentSource: null
+  });
 
   // Show notification as long as there are any unconfirmed matches (people with hasMatch = true)
   const showMatchFoundNotification = useMemo(() => {
@@ -3159,6 +3165,46 @@ function App() {
     fetchPeople();
   }, [fetchPeople]);
 
+  useEffect(() => {
+    let isMounted = true;
+    let timerId = null;
+    let lastFinishedAt = null;
+
+    const pollSmartSearchStatus = async () => {
+      try {
+        const response = await fetch(`${API_URL}/smart-matching/status`);
+        if (!response.ok) return;
+        const status = await response.json();
+        if (!isMounted) return;
+
+        setSmartSearchStatus({
+          running: Boolean(status?.running),
+          totalSteps: Number(status?.totalSteps) || 0,
+          completedSteps: Number(status?.completedSteps) || 0,
+          currentSource: status?.currentSource || null
+        });
+
+        if (status?.running === false && status?.finishedAt && status.finishedAt !== lastFinishedAt) {
+          lastFinishedAt = status.finishedAt;
+          await fetchPeople();
+        }
+      } catch (error) {
+        console.error('Smart-search status polling error:', error);
+      } finally {
+        if (isMounted) {
+          timerId = setTimeout(pollSmartSearchStatus, 1200);
+        }
+      }
+    };
+
+    pollSmartSearchStatus();
+
+    return () => {
+      isMounted = false;
+      if (timerId) clearTimeout(timerId);
+    };
+  }, [fetchPeople]);
+
   // Toast helper - also adds to notifications
   const showToast = (message, type = 'success') => {
     const id = Date.now();
@@ -3369,6 +3415,10 @@ function App() {
   const smartSearchPaymentPackagePrice = 1790;
   const smartSearchPaymentBasicTotal = smartSearchBasicQuantity * smartSearchPaymentBasicPrice;
   const smartSearchActionTitle = 'разблокировки карточки';
+  const smartSearchProgressPercent = useMemo(() => {
+    if (!smartSearchStatus.running || !smartSearchStatus.totalSteps) return 0;
+    return Math.min(100, Math.round((smartSearchStatus.completedSteps / smartSearchStatus.totalSteps) * 100));
+  }, [smartSearchStatus]);
 
   if (loading) {
     return (
@@ -3555,6 +3605,20 @@ function App() {
                       )}
                     </label>
                   </div>
+
+                  {smartSearchStatus.running && (
+                    <div className="smart-search-progress">
+                      <div className="smart-search-progress-track">
+                        <div
+                          className="smart-search-progress-fill"
+                          style={{ width: `${smartSearchProgressPercent}%` }}
+                        />
+                      </div>
+                      <p className="smart-search-progress-text">
+                        Поиск: {smartSearchProgressPercent}%{smartSearchStatus.currentSource ? ` (${smartSearchStatus.currentSource})` : ''}
+                      </p>
+                    </div>
+                  )}
 
                   <div className="smart-search-cards">
                     {visibleSmartSearchListCards.map((entry) => {
