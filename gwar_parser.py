@@ -13,6 +13,8 @@ from datetime import datetime, timezone
 from difflib import SequenceMatcher
 from typing import Any
 
+from parser_runtime import RESULT_BLOCKED, ParserRuntime, RuntimeOptions
+
 
 API_URL = "https://gwar.mil.ru/gt_data/?builder=Heroes"
 ORIGIN = "https://gwar.mil.ru"
@@ -232,6 +234,8 @@ def search_gwar_raw(
                 "status_code": exc.code,
                 "completed_at": utc_now(),
                 "error": parse_json_or_text(body),
+                "retry_after": exc.headers.get("Retry-After"),
+                "response_headers": dict(exc.headers.items()),
             }
         )
         if not verify_tls:
@@ -643,6 +647,15 @@ def maybe_run_app_search(payload: dict[str, Any]) -> dict[str, Any] | None:
     verify_tls = not bool(payload.get("insecureTls", False))
     user_agent = str(payload.get("userAgent") or DEFAULT_USER_AGENT)
     accept_language = str(payload.get("acceptLanguage") or DEFAULT_ACCEPT_LANGUAGE)
+    runtime = ParserRuntime(
+        RuntimeOptions.from_payload(
+            payload,
+            source=SOURCE_KEY,
+            default_request_delay_sec=1.25,
+            default_request_jitter_sec=0.5,
+            default_min_rate_interval_sec=1.25,
+        )
+    )
 
     search_criteria = normalize_search_criteria(payload.get("searchCriteria"))
     queries = app_queries_from_people(people, person_ids, search_criteria)
@@ -654,6 +667,7 @@ def maybe_run_app_search(payload: dict[str, Any]) -> dict[str, Any] | None:
             "matchedDataIds": [],
             "processedPersonIds": [],
             "errors": [],
+            "metrics": runtime.summary(),
         }
 
     matches: list[dict[str, Any]] = []
@@ -664,14 +678,19 @@ def maybe_run_app_search(payload: dict[str, Any]) -> dict[str, Any] | None:
     for query in queries:
         person_id = str(query["person_id"])
         processed_ids.append(person_id)
-        raw_result = search_gwar_once(
-            query,
-            page=1,
-            size=max(10, max_records * 3),
-            timeout=timeout,
-            user_agent=user_agent,
-            accept_language=accept_language,
-            verify_tls=verify_tls,
+        raw_result = runtime.run_query(
+            query=query,
+            url=API_URL,
+            query_key=f"{query['query_key']}|{SOURCE_KEY}",
+            request_fn=lambda attempt, query=query: search_gwar_once(
+                query,
+                page=1,
+                size=max(10, max_records * 3),
+                timeout=timeout,
+                user_agent=user_agent,
+                accept_language=accept_language,
+                verify_tls=verify_tls,
+            ),
         )
         if raw_result.get("status") != "ok":
             errors.append(
@@ -682,6 +701,8 @@ def maybe_run_app_search(payload: dict[str, Any]) -> dict[str, Any] | None:
                     "details": raw_result.get("error"),
                 }
             )
+            if raw_result.get("classification") == RESULT_BLOCKED and runtime.options.stop_on_blocked:
+                break
             continue
 
         records = app_records_from_response(query, raw_result.get("response"), max_records=max_records)
@@ -709,6 +730,7 @@ def maybe_run_app_search(payload: dict[str, Any]) -> dict[str, Any] | None:
         matches.append(match_payload)
         matched_ids.append(person_id)
 
+    runtime.log_summary()
     return {
         "source": SOURCE_KEY,
         "sourceLabel": SOURCE_LABEL,
@@ -716,6 +738,7 @@ def maybe_run_app_search(payload: dict[str, Any]) -> dict[str, Any] | None:
         "matchedDataIds": sorted(set(matched_ids)),
         "processedPersonIds": processed_ids,
         "errors": errors,
+        "metrics": runtime.summary(),
     }
 
 

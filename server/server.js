@@ -169,6 +169,45 @@ const normalizeSearchCriteria = (rawCriteria = {}) => ({
   birthPlace: rawCriteria?.birthPlace !== false
 });
 
+const numberOption = (value) => {
+  if (value === undefined || value === null || value === '') return undefined;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : undefined;
+};
+
+const booleanOption = (value) => {
+  if (value === undefined || value === null) return undefined;
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    if (['1', 'true', 'yes', 'on'].includes(normalized)) return true;
+    if (['0', 'false', 'no', 'off'].includes(normalized)) return false;
+  }
+  return Boolean(value);
+};
+
+const normalizeParserRuntimeOptions = (raw = {}) => {
+  const options = {};
+  [
+    'requestDelaySec',
+    'requestJitterSec',
+    'maxRetries',
+    'minRateIntervalSec',
+    'parserTimeoutMs'
+  ].forEach((key) => {
+    const value = numberOption(raw?.[key]);
+    if (value !== undefined) options[key] = value;
+  });
+
+  const stopOnBlocked = booleanOption(raw?.stopOnBlocked);
+  if (stopOnBlocked !== undefined) options.stopOnBlocked = stopOnBlocked;
+
+  const chromeHeadless = booleanOption(raw?.chromeHeadless ?? raw?.chrome_headless);
+  if (chromeHeadless !== undefined) options.chromeHeadless = chromeHeadless;
+
+  return options;
+};
+
 const areSearchCriteriaEqual = (left, right) => {
   const normalizedLeft = normalizeSearchCriteria(left);
   const normalizedRight = normalizeSearchCriteria(right);
@@ -550,10 +589,11 @@ const buildEmptySourceResult = ({ sourceKey, sourceLabel, personIds }) => ({
   errors: []
 });
 
-const runSourceParser = ({ scriptPath, sourceKey, sourceLabel, people, personIds, searchCriteria }) => {
+const runSourceParser = ({ scriptPath, sourceKey, sourceLabel, people, personIds, searchCriteria, runtimeOptions = {} }) => {
   return new Promise((resolve, reject) => {
+    const parserTimeoutMs = numberOption(runtimeOptions.parserTimeoutMs) || 600000;
     const python = spawn('python3', [scriptPath], {
-      timeout: 120000
+      timeout: parserTimeoutMs
     });
     let stdout = '';
     let stderr = '';
@@ -607,7 +647,8 @@ const runSourceParser = ({ scriptPath, sourceKey, sourceLabel, people, personIds
       personIds,
       searchCriteria: normalizeSearchCriteria(searchCriteria),
       maxRecordsPerPerson: 5,
-      scoreThreshold: 70
+      scoreThreshold: 70,
+      ...runtimeOptions
     });
     python.stdin.write(input);
     python.stdin.end();
@@ -615,36 +656,39 @@ const runSourceParser = ({ scriptPath, sourceKey, sourceLabel, people, personIds
 };
 
 // Run pamyat parser in app-search mode
-const runPamyatParser = ({ people, personIds, searchCriteria }) => {
+const runPamyatParser = ({ people, personIds, searchCriteria, runtimeOptions }) => {
   return runSourceParser({
     scriptPath: PAMYAT_PARSER_SCRIPT,
     sourceKey: PAMYAT_SOURCE_KEY,
     sourceLabel: 'Память народа',
     people,
     personIds,
-    searchCriteria
+    searchCriteria,
+    runtimeOptions
   });
 };
 
-const runOpenlistParser = ({ people, personIds, searchCriteria }) => {
+const runOpenlistParser = ({ people, personIds, searchCriteria, runtimeOptions }) => {
   return runSourceParser({
     scriptPath: OPENLIST_PARSER_SCRIPT,
     sourceKey: OPENLIST_SOURCE_KEY,
     sourceLabel: 'Открытый список',
     people,
     personIds,
-    searchCriteria
+    searchCriteria,
+    runtimeOptions
   });
 };
 
-const runGwarParser = ({ people, personIds, searchCriteria }) => {
+const runGwarParser = ({ people, personIds, searchCriteria, runtimeOptions }) => {
   return runSourceParser({
     scriptPath: GWAR_PARSER_SCRIPT,
     sourceKey: GWAR_SOURCE_KEY,
     sourceLabel: 'Герои великой войны',
     people,
     personIds,
-    searchCriteria
+    searchCriteria,
+    runtimeOptions
   });
 };
 
@@ -1082,7 +1126,7 @@ const shouldRunSourceForPerson = (person, sourceKey) => {
   return requirement.hasRequiredFields(person);
 };
 
-const runSmartMatchingForPeople = async ({ people, personIds, searchCriteria = AUTO_SMART_SEARCH_CRITERIA }) => {
+const runSmartMatchingForPeople = async ({ people, personIds, searchCriteria = AUTO_SMART_SEARCH_CRITERIA, runtimeOptions = {} }) => {
   const normalizedPersonIds = normalizePersonIds(personIds, people);
   if (!normalizedPersonIds.length) {
     return { people, processedPersonIds: [] };
@@ -1169,7 +1213,8 @@ const runSmartMatchingForPeople = async ({ people, personIds, searchCriteria = A
       parserResult = await source.parser({
         people,
         personIds: peopleToSearch,
-        searchCriteria
+        searchCriteria,
+        runtimeOptions
       });
     }
 
@@ -1181,9 +1226,13 @@ const runSmartMatchingForPeople = async ({ people, personIds, searchCriteria = A
     });
 
     const errorsByPersonId = {};
+    const globalSourceErrors = [];
     (parserResult.errors || []).forEach((entry) => {
       const personId = entry?.person_id ? String(entry.person_id) : null;
-      if (!personId) return;
+      if (!personId) {
+        globalSourceErrors.push(entry);
+        return;
+      }
       if (!errorsByPersonId[personId]) errorsByPersonId[personId] = [];
       errorsByPersonId[personId].push(entry);
     });
@@ -1192,7 +1241,7 @@ const runSmartMatchingForPeople = async ({ people, personIds, searchCriteria = A
       const person = people[personId];
       if (!person) return;
       const personMatches = matchesByPersonId[personId] || [];
-      const personErrors = errorsByPersonId[personId] || [];
+      const personErrors = [...globalSourceErrors, ...(errorsByPersonId[personId] || [])];
       person.sourceSearchCache = person.sourceSearchCache || {};
       person.sourceSearchCache[source.key] = sourceCacheEntry({
         sourceKey: source.key,
@@ -1236,6 +1285,7 @@ app.post('/api/smart-matching', async (req, res) => {
     const personIds = normalizePersonIds(req.body?.personIds, data.people);
     const sources = req.body?.sources || {};
     const searchCriteria = normalizeSearchCriteria(req.body?.searchCriteria || DEFAULT_SMART_SEARCH_CRITERIA);
+    const runtimeOptions = normalizeParserRuntimeOptions(req.body || {});
 
     const enabledSourceKeys = new Set([
       ...(sources[USER_TREES_SOURCE_KEY] !== false ? [USER_TREES_SOURCE_KEY] : []),
@@ -1265,7 +1315,8 @@ app.post('/api/smart-matching', async (req, res) => {
     await runSmartMatchingForPeople({
       people: data.people,
       personIds: Array.from(idsToProcess),
-      searchCriteria
+      searchCriteria,
+      runtimeOptions
     });
 
     personIds.forEach((personId) => {

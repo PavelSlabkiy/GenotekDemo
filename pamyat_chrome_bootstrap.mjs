@@ -16,6 +16,7 @@ function parseArgs(argv) {
   const options = {
     chromeBin: DEFAULT_CHROME_BIN,
     acceptLanguage: DEFAULT_ACCEPT_LANGUAGE,
+    headless: process.env.PAMYAT_CHROME_HEADLESS !== "false",
     searchPayloadBase64: "",
     timeoutMs: DEFAULT_TIMEOUT_MS,
     url: PAMYAT_URL,
@@ -28,6 +29,9 @@ function parseArgs(argv) {
     else if (arg === "--timeout-ms") options.timeoutMs = Number(argv[++index] || DEFAULT_TIMEOUT_MS);
     else if (arg === "--url") options.url = argv[++index] || PAMYAT_URL;
     else if (arg === "--user-data-dir") options.userDataDir = argv[++index];
+    else if (arg === "--chrome-visible") options.headless = false;
+    else if (arg === "--headless") options.headless = true;
+    else if (arg === "--headless=false") options.headless = false;
   }
   return options;
 }
@@ -210,6 +214,7 @@ async function main() {
     chrome = spawn(
       options.chromeBin,
       [
+        ...(options.headless ? ["--headless=new"] : []),
         `--remote-debugging-port=${port}`,
         `--user-data-dir=${userDataDir}`,
         "--no-first-run",

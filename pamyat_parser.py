@@ -2,15 +2,16 @@
 from __future__ import annotations
 
 import argparse
-import base64
 import hashlib
 import json
 import os
+import queue
 import random
 import re
 import ssl
 import subprocess
 import sys
+import threading
 import time
 import urllib.error
 import urllib.parse
@@ -21,6 +22,15 @@ from datetime import datetime, timezone
 from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Any, Iterable
+
+from parser_runtime import (
+    RESULT_BLOCKED,
+    ParserRuntime,
+    RuntimeOptions,
+    blocked_reason_from_value,
+    bool_from_payload,
+    classify_result,
+)
 
 try:
     from gedcom_parser import build_tree, default_gedcom_path, parse_gedcom  # type: ignore[import-not-found]
@@ -117,6 +127,189 @@ def tls_context(verify: bool) -> ssl.SSLContext | None:
     return None if verify else ssl._create_unverified_context()
 
 
+class ChromeWorkerClient:
+    def __init__(
+        self,
+        *,
+        accept_language: str,
+        timeout: float,
+        chrome_headless: bool = True,
+        node_bin: str = "node",
+    ) -> None:
+        self.accept_language = accept_language
+        self.timeout = timeout
+        self.chrome_headless = chrome_headless
+        self.node_bin = node_bin
+        self.script_path = Path(__file__).with_name("pamyat_chrome_worker.mjs")
+        self.process: subprocess.Popen[str] | None = None
+        self._next_id = 0
+        self._stdout_queue: queue.Queue[dict[str, Any]] = queue.Queue()
+        self._pending: dict[int, dict[str, Any]] = {}
+        self._stderr_lines: list[str] = []
+
+    def start(self) -> None:
+        if self.process and self.process.poll() is None:
+            return
+        if not self.script_path.exists():
+            raise ValueError(f"Chrome worker helper not found: {self.script_path}")
+
+        command = [
+            self.node_bin,
+            str(self.script_path),
+            "--accept-language",
+            self.accept_language,
+            "--timeout-ms",
+            str(max(int(self.timeout * 1000), 15000)),
+        ]
+        if not self.chrome_headless:
+            command.append("--chrome-visible")
+
+        try:
+            self.process = subprocess.Popen(
+                command,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                bufsize=1,
+            )
+        except FileNotFoundError as exc:
+            raise ValueError("Node.js is required for the Chrome DevTools fallback.") from exc
+
+        threading.Thread(target=self._read_stdout, daemon=True).start()
+        threading.Thread(target=self._read_stderr, daemon=True).start()
+        self._call_no_restart("ping", {}, timeout=5.0)
+
+    def restart(self) -> None:
+        self.close()
+        self.start()
+
+    def bootstrap(self, query: dict[str, Any], *, timeout: float) -> dict[str, Any]:
+        return self.call(
+            "bootstrap",
+            {
+                "url": referer_for_query(query),
+                "timeoutMs": max(int(timeout * 1000), 15000),
+            },
+            timeout=max(timeout + 20.0, 45.0),
+        )
+
+    def refresh(self, query: dict[str, Any], *, timeout: float) -> dict[str, Any]:
+        return self.call(
+            "refresh",
+            {
+                "url": referer_for_query(query),
+                "timeoutMs": max(int(timeout * 1000), 15000),
+            },
+            timeout=max(timeout + 20.0, 45.0),
+        )
+
+    def search(self, query: dict[str, Any], payload: dict[str, Any], *, timeout: float) -> dict[str, Any]:
+        return self.call(
+            "search",
+            {
+                "url": referer_for_query(query),
+                "payload": payload,
+                "timeoutMs": max(int(timeout * 1000), 15000),
+            },
+            timeout=max(timeout + 25.0, 50.0),
+        )
+
+    def call(self, command: str, params: dict[str, Any], *, timeout: float) -> dict[str, Any]:
+        try:
+            self.start()
+            return self._call_no_restart(command, params, timeout=timeout)
+        except Exception:
+            if command == "close":
+                raise
+            self.restart()
+            return self._call_no_restart(command, params, timeout=timeout)
+
+    def close(self) -> None:
+        process = self.process
+        if not process:
+            return
+        if process.poll() is None:
+            try:
+                self._call_no_restart("close", {}, timeout=5.0)
+            except Exception:
+                try:
+                    process.terminate()
+                    process.wait(timeout=5.0)
+                except Exception:
+                    process.kill()
+        self.process = None
+
+    def _call_no_restart(self, command: str, params: dict[str, Any], *, timeout: float) -> dict[str, Any]:
+        process = self.process
+        if not process or process.poll() is not None or process.stdin is None:
+            raise ValueError(self._worker_error("Chrome worker is not running."))
+
+        self._next_id += 1
+        request_id = self._next_id
+        process.stdin.write(json.dumps({"id": request_id, "command": command, "params": params}, ensure_ascii=False) + "\n")
+        process.stdin.flush()
+
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
+            pending = self._pending.pop(request_id, None)
+            if pending is not None:
+                return self._response_payload(pending)
+            wait_for = max(0.05, min(0.5, deadline - time.monotonic()))
+            try:
+                message = self._stdout_queue.get(timeout=wait_for)
+            except queue.Empty:
+                if process.poll() is not None:
+                    raise ValueError(self._worker_error(f"Chrome worker exited with code {process.returncode}."))
+                continue
+            message_id = message.get("id")
+            if message_id == request_id:
+                return self._response_payload(message)
+            if isinstance(message_id, int):
+                self._pending[message_id] = message
+
+        raise TimeoutError(self._worker_error(f"Chrome worker command timed out: {command}."))
+
+    def _response_payload(self, message: dict[str, Any]) -> dict[str, Any]:
+        if message.get("ok") is True and isinstance(message.get("result"), dict):
+            return message["result"]
+        error = message.get("error") or "Unknown Chrome worker error."
+        raise ValueError(self._worker_error(str(error)))
+
+    def _read_stdout(self) -> None:
+        process = self.process
+        stream = process.stdout if process else None
+        if stream is None:
+            return
+        for line in stream:
+            text = line.strip()
+            if not text:
+                continue
+            try:
+                payload = json.loads(text)
+            except json.JSONDecodeError:
+                payload = {"id": None, "ok": False, "error": f"Invalid worker JSON: {text[:240]}"}
+            if isinstance(payload, dict):
+                self._stdout_queue.put(payload)
+
+    def _read_stderr(self) -> None:
+        process = self.process
+        stream = process.stderr if process else None
+        if stream is None:
+            return
+        for line in stream:
+            text = line.strip()
+            if not text:
+                continue
+            self._stderr_lines.append(text)
+            self._stderr_lines = self._stderr_lines[-20:]
+
+    def _worker_error(self, message: str) -> str:
+        if not self._stderr_lines:
+            return message
+        return f"{message} Worker stderr: {' | '.join(self._stderr_lines[-3:])}"
+
+
 def bootstrap_config(
     first_query: dict[str, Any],
     *,
@@ -144,7 +337,7 @@ def bootstrap_config(
             csrf_token="",
             user_agent=user_agent,
             accept_language=accept_language,
-            source="chrome_devtools",
+            source="chrome_pending",
         )
 
 
@@ -199,51 +392,30 @@ def bootstrap_config_via_chrome(
     user_agent: str,
     accept_language: str,
     timeout: float,
+    chrome_headless: bool = True,
 ) -> SearchConfig:
-    script_path = Path(__file__).with_name("pamyat_chrome_bootstrap.mjs")
-    if not script_path.exists():
-        raise ValueError(f"Chrome bootstrap helper not found: {script_path}")
-
-    command = [
-        "node",
-        str(script_path),
-        "--url",
-        referer_for_query(first_query),
-        "--accept-language",
-        accept_language,
-        "--timeout-ms",
-        str(max(int(timeout * 1000), 15000)),
-    ]
-    try:
-        completed = subprocess.run(
-            command,
-            check=True,
-            capture_output=True,
-            text=True,
-            timeout=max(timeout + 20.0, 40.0),
-        )
-    except FileNotFoundError as exc:
-        raise ValueError("Node.js is required for the Chrome DevTools bootstrap fallback.") from exc
-    except subprocess.TimeoutExpired as exc:
-        raise ValueError("Chrome DevTools bootstrap timed out before the page exposed cookies and CSRF token.") from exc
-    except subprocess.CalledProcessError as exc:
-        message = exc.stderr.strip() or exc.stdout.strip() or "Unknown Chrome DevTools bootstrap error."
-        raise ValueError(message) from exc
-
-    payload = parse_chrome_bootstrap_output(completed.stdout)
-    return SearchConfig(
-        cookie=payload["cookie"],
-        csrf_token=payload["csrf_token"],
-        user_agent=payload.get("user_agent") or user_agent,
-        accept_language=payload.get("accept_language") or accept_language,
-        source=payload.get("source") or "chrome_devtools",
+    client = ChromeWorkerClient(
+        accept_language=accept_language,
+        timeout=timeout,
+        chrome_headless=chrome_headless,
     )
+    try:
+        payload = client.bootstrap(first_query, timeout=timeout)
+        return SearchConfig(
+            cookie=payload["cookie"],
+            csrf_token=payload["csrf_token"],
+            user_agent=payload.get("user_agent") or user_agent,
+            accept_language=payload.get("accept_language") or accept_language,
+            source=payload.get("source") or "chrome_devtools",
+        )
+    finally:
+        client.close()
 
 
 def ensure_chrome_devtools_fallback_available() -> None:
-    script_path = Path(__file__).with_name("pamyat_chrome_bootstrap.mjs")
+    script_path = Path(__file__).with_name("pamyat_chrome_worker.mjs")
     if not script_path.exists():
-        raise ValueError(f"Chrome bootstrap helper not found: {script_path}")
+        raise ValueError(f"Chrome worker helper not found: {script_path}")
     try:
         subprocess.run(
             ["node", "--version"],
@@ -296,7 +468,7 @@ def describe_bootstrap_failure(html: str, *, cookie: str) -> str:
         return (
             "Pamyat Naroda returned a Servicepipe anti-bot challenge instead of the search page, "
             "so direct Python bootstrap is blocked. "
-            "The app will try a visible Chrome DevTools fallback first. "
+            "The app will try a background headless Chrome DevTools fallback first. "
             f"If that also fails, fill {DEFAULT_CONFIG_PATH} with a fresh browser Cookie header and csrf_token."
         )
 
@@ -439,9 +611,24 @@ def search_once(
     size: int,
     timeout: float,
     verify_tls: bool,
+    chrome_client: ChromeWorkerClient | None = None,
 ) -> dict[str, Any]:
-    if config.source == "chrome_devtools":
-        return search_once_via_chrome(config, query, page=page, size=size, timeout=timeout)
+    if not config.cookie or not config.csrf_token:
+        if chrome_client is None:
+            return {
+                "query_key": query["query_key"],
+                "person_id": query.get("person_id"),
+                "display_name": query.get("display_name"),
+                "query": query,
+                "request": pamyat_payload(query, page=page, size=size),
+                "auth_source": config.source,
+                "status": "error",
+                "status_code": None,
+                "started_at": utc_now(),
+                "completed_at": utc_now(),
+                "error": "Chrome worker is required because the HTTP session has no cookie/csrf token.",
+            }
+        return search_once_via_chrome(config, query, page=page, size=size, timeout=timeout, chrome_client=chrome_client)
 
     payload = pamyat_payload(query, page=page, size=size)
     request = urllib.request.Request(
@@ -489,6 +676,8 @@ def search_once(
             "started_at": started_at,
             "completed_at": utc_now(),
             "error": parse_json_or_text(body),
+            "retry_after": exc.headers.get("Retry-After"),
+            "response_headers": dict(exc.headers.items()),
         }
     except urllib.error.URLError as exc:
         return {
@@ -506,6 +695,44 @@ def search_once(
         }
 
 
+def search_once_with_browser_fallback(
+    config: SearchConfig,
+    query: dict[str, Any],
+    *,
+    page: int,
+    size: int,
+    timeout: float,
+    verify_tls: bool,
+    chrome_client: ChromeWorkerClient,
+) -> dict[str, Any]:
+    result = search_once(
+        config,
+        query,
+        page=page,
+        size=size,
+        timeout=timeout,
+        verify_tls=verify_tls,
+        chrome_client=chrome_client,
+    )
+    classification, blocked_reason = classify_result(result)
+    if classification != RESULT_BLOCKED or result.get("browserSessionUsed"):
+        return result
+
+    chrome_result = search_once_via_chrome(
+        config,
+        query,
+        page=page,
+        size=size,
+        timeout=timeout,
+        chrome_client=chrome_client,
+    )
+    chrome_result["browserFallbackUsed"] = True
+    chrome_result["fallbackReason"] = blocked_reason or result.get("status") or "blocked"
+    chrome_result["fallbackStatus"] = result.get("status")
+    chrome_result["fallbackStatusCode"] = result.get("status_code")
+    return chrome_result
+
+
 def search_once_via_chrome(
     config: SearchConfig,
     query: dict[str, Any],
@@ -513,34 +740,25 @@ def search_once_via_chrome(
     page: int,
     size: int,
     timeout: float,
+    chrome_client: ChromeWorkerClient,
 ) -> dict[str, Any]:
     payload = pamyat_payload(query, page=page, size=size)
-    encoded_payload = base64.b64encode(json.dumps(payload, ensure_ascii=False).encode("utf-8")).decode("ascii")
-    command = [
-        "node",
-        str(Path(__file__).with_name("pamyat_chrome_bootstrap.mjs")),
-        "--url",
-        referer_for_query(query),
-        "--accept-language",
-        config.accept_language,
-        "--timeout-ms",
-        str(max(int(timeout * 1000), 15000)),
-        "--search-payload-base64",
-        encoded_payload,
-    ]
 
     started_at = utc_now()
     try:
-        completed = subprocess.run(
-            command,
-            check=True,
-            capture_output=True,
-            text=True,
-            timeout=max(timeout + 20.0, 40.0),
-        )
-        browser_result = parse_chrome_search_output(completed.stdout)
+        browser_result = chrome_client.search(query, payload, timeout=timeout)
+        update_config_from_chrome_payload(config, browser_result)
         parsed_response = parse_json_or_text(browser_result["body"])
         status, error = classify_search_response(parsed_response)
+        browser_refresh_used = False
+        if status == "blocked" or browser_result.get("status_code") in {401, 403, 419}:
+            refresh_payload = chrome_client.refresh(query, timeout=timeout)
+            update_config_from_chrome_payload(config, refresh_payload)
+            browser_result = chrome_client.search(query, payload, timeout=timeout)
+            update_config_from_chrome_payload(config, browser_result)
+            parsed_response = parse_json_or_text(browser_result["body"])
+            status, error = classify_search_response(parsed_response)
+            browser_refresh_used = True
         result = {
             "query_key": query["query_key"],
             "person_id": query.get("person_id"),
@@ -554,16 +772,16 @@ def search_once_via_chrome(
             "completed_at": utc_now(),
             "response": parsed_response,
             "browser_content_type": browser_result.get("content_type"),
+            "browserSessionUsed": True,
+            "browserRefreshUsed": browser_refresh_used,
+            "response_headers": browser_result.get("response_headers") or {},
+            "retry_after": (browser_result.get("response_headers") or {}).get("retry-after"),
         }
         if error:
             result["error"] = error
         return result
-    except FileNotFoundError as exc:
-        error_message = f"Node.js is required for the Chrome DevTools search fallback: {exc}"
-    except subprocess.TimeoutExpired:
-        error_message = "Chrome DevTools search fallback timed out."
-    except subprocess.CalledProcessError as exc:
-        error_message = exc.stderr.strip() or exc.stdout.strip() or "Unknown Chrome DevTools search fallback error."
+    except Exception as exc:
+        error_message = f"Chrome DevTools search fallback failed: {exc}"
 
     return {
         "query_key": query["query_key"],
@@ -578,6 +796,23 @@ def search_once_via_chrome(
         "completed_at": utc_now(),
         "error": error_message,
     }
+
+
+def update_config_from_chrome_payload(config: SearchConfig, payload: dict[str, Any]) -> None:
+    cookie = payload.get("cookie")
+    csrf_token = payload.get("csrf_token")
+    if isinstance(cookie, str) and cookie.strip():
+        config.cookie = cookie
+    if isinstance(csrf_token, str) and csrf_token.strip():
+        config.csrf_token = csrf_token
+    user_agent = payload.get("user_agent")
+    if isinstance(user_agent, str) and user_agent.strip():
+        config.user_agent = user_agent
+    accept_language = payload.get("accept_language")
+    if isinstance(accept_language, str) and accept_language.strip():
+        config.accept_language = accept_language
+    if payload.get("source"):
+        config.source = str(payload.get("source"))
 
 
 def parse_chrome_search_output(output: str) -> dict[str, Any]:
@@ -597,6 +832,10 @@ def parse_json_or_text(body: str) -> Any:
 
 
 def classify_search_response(response: Any) -> tuple[str, str | None]:
+    blocked_reason = blocked_reason_from_value(response)
+    if blocked_reason:
+        return "blocked", f"Portal returned anti-bot content: {blocked_reason}"
+
     if isinstance(response, dict):
         api_status = response.get("status")
         if api_status and api_status != "success":
@@ -739,6 +978,16 @@ def maybe_run_app_search(payload: dict[str, Any]) -> dict[str, Any] | None:
     max_records = int(payload.get("maxRecordsPerPerson", 5))
     timeout = float(payload.get("timeout", 25))
     verify_tls = not bool(payload.get("insecureTls", False))
+    chrome_headless = bool_from_payload(payload, "chromeHeadless", bool_from_payload(payload, "chrome_headless", True))
+    runtime = ParserRuntime(
+        RuntimeOptions.from_payload(
+            payload,
+            source=APP_SOURCE_KEY,
+            default_request_delay_sec=2.0,
+            default_request_jitter_sec=0.75,
+            default_min_rate_interval_sec=2.0,
+        )
+    )
 
     search_criteria = normalize_search_criteria(payload.get("searchCriteria"))
     queries = app_queries_from_people(people, person_ids, search_criteria)
@@ -750,8 +999,14 @@ def maybe_run_app_search(payload: dict[str, Any]) -> dict[str, Any] | None:
             "matchedDataIds": [],
             "processedPersonIds": [],
             "errors": [],
+            "metrics": runtime.summary(),
         }
 
+    chrome_client = ChromeWorkerClient(
+        accept_language=os.environ.get("PAMYAT_ACCEPT_LANGUAGE") or DEFAULT_ACCEPT_LANGUAGE,
+        timeout=timeout,
+        chrome_headless=chrome_headless,
+    )
     try:
         config = load_config(DEFAULT_CONFIG_PATH, required=False)
         if config is None:
@@ -765,6 +1020,8 @@ def maybe_run_app_search(payload: dict[str, Any]) -> dict[str, Any] | None:
             )
     except ValueError as exc:
         message = str(exc)
+        chrome_client.close()
+        runtime.log_summary()
         return {
             "source": APP_SOURCE_KEY,
             "sourceLabel": APP_SOURCE_LABEL,
@@ -773,6 +1030,7 @@ def maybe_run_app_search(payload: dict[str, Any]) -> dict[str, Any] | None:
             "processedPersonIds": [],
             "errors": [{"person_id": None, "message": message}],
             "fatalError": message,
+            "metrics": runtime.summary(),
         }
 
     matches: list[dict[str, Any]] = []
@@ -780,36 +1038,44 @@ def maybe_run_app_search(payload: dict[str, Any]) -> dict[str, Any] | None:
     errors: list[dict[str, Any]] = []
     processed_ids: list[str] = []
 
-    for query in queries:
-        person_id = str(query["person_id"])
-        processed_ids.append(person_id)
-        raw_result = search_once(
-            config,
-            query,
-            page=1,
-            size=max(10, max_records * 2),
-            timeout=timeout,
-            verify_tls=verify_tls,
-        )
-        if raw_result.get("status") != "ok":
-            errors.append(
-                {
-                    "person_id": person_id,
-                    "message": f"Search failed with status={raw_result.get('status')}",
-                    "status_code": raw_result.get("status_code"),
-                    "details": raw_result.get("error"),
-                }
+    try:
+        for query in queries:
+            person_id = str(query["person_id"])
+            processed_ids.append(person_id)
+            raw_result = runtime.run_query(
+                query=query,
+                url=API_URL,
+                query_key=query["query_key"],
+                request_fn=lambda attempt, query=query: search_once_with_browser_fallback(
+                    config,
+                    query,
+                    page=1,
+                    size=max(10, max_records * 2),
+                    timeout=timeout,
+                    verify_tls=verify_tls,
+                    chrome_client=chrome_client,
+                ),
             )
-            continue
+            if raw_result.get("status") != "ok":
+                errors.append(
+                    {
+                        "person_id": person_id,
+                        "message": f"Search failed with status={raw_result.get('status')}",
+                        "status_code": raw_result.get("status_code"),
+                        "details": raw_result.get("error"),
+                    }
+                )
+                if raw_result.get("classification") == RESULT_BLOCKED and runtime.options.stop_on_blocked:
+                    break
+                continue
 
-        documents = app_documents_from_response(query, raw_result.get("response"), score_threshold=score_threshold)
-        if not documents:
-            continue
+            documents = app_documents_from_response(query, raw_result.get("response"), score_threshold=score_threshold)
+            if not documents:
+                continue
 
-        documents = documents[: max(1, max_records)]
-        top_document = documents[0]
-        matches.append(
-            {
+            documents = documents[: max(1, max_records)]
+            top_document = documents[0]
+            match_payload = {
                 "data_id": person_id,
                 "source": APP_SOURCE_KEY,
                 "sourceLabel": APP_SOURCE_LABEL,
@@ -825,9 +1091,14 @@ def maybe_run_app_search(payload: dict[str, Any]) -> dict[str, Any] | None:
                 "records": documents,
                 "searchedAt": utc_now(),
             }
-        )
-        matched_ids.append(person_id)
+            if raw_result.get("browserFallbackUsed"):
+                match_payload["browserFallbackUsed"] = True
+            matches.append(match_payload)
+            matched_ids.append(person_id)
+    finally:
+        chrome_client.close()
 
+    runtime.log_summary()
     return {
         "source": APP_SOURCE_KEY,
         "sourceLabel": APP_SOURCE_LABEL,
@@ -835,6 +1106,7 @@ def maybe_run_app_search(payload: dict[str, Any]) -> dict[str, Any] | None:
         "matchedDataIds": sorted(set(matched_ids)),
         "processedPersonIds": processed_ids,
         "errors": errors,
+        "metrics": runtime.summary(),
     }
 
 
@@ -1082,6 +1354,10 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--size", type=int, default=10)
     parser.add_argument("--timeout", type=float, default=30.0)
     parser.add_argument("--max-retries", type=int, default=1, help="Retries for 429/5xx responses.")
+    parser.add_argument("--min-rate-interval", type=float, default=None, help="Minimum per-host interval between requests.")
+    parser.add_argument("--stop-on-blocked", dest="stop_on_blocked", action="store_true", default=True, help="Stop the run when captcha/challenge/rate-limit is detected.")
+    parser.add_argument("--continue-on-blocked", dest="stop_on_blocked", action="store_false", help="Continue after blocked results when the circuit breaker allows it.")
+    parser.add_argument("--chrome-visible", action="store_true", help="Opt in to a visible Chrome window for the fallback. Default is headless background Chrome.")
     parser.add_argument("--insecure-tls", action="store_true", help="Disable TLS certificate verification if local Python cannot verify the portal certificate.")
     return parser.parse_args(argv)
 
@@ -1135,52 +1411,69 @@ def main(argv: list[str] | None = None) -> int:
         print(str(exc), file=sys.stderr)
         return 2
 
+    runtime = ParserRuntime(
+        RuntimeOptions(
+            source=APP_SOURCE_KEY,
+            request_delay_sec=max(0.0, args.delay),
+            request_jitter_sec=max(0.0, args.jitter),
+            max_retries=max(0, args.max_retries),
+            min_rate_interval_sec=max(0.0, args.min_rate_interval if args.min_rate_interval is not None else args.delay),
+            stop_on_blocked=bool(args.stop_on_blocked),
+        )
+    )
+    chrome_client = ChromeWorkerClient(
+        accept_language=config.accept_language,
+        timeout=args.timeout,
+        chrome_headless=not args.chrome_visible,
+    )
+
     print(
         f"Executing {len(limited_queries)} query/queries with {config.source} auth and delay {args.delay}+0..{args.jitter}s. "
         f"Results: {args.results}"
     )
-    for index, query in enumerate(limited_queries, start=1):
-        result = run_with_retries(config, query, args)
-        append_result(args.results, result)
-        print(
-            f"{index}/{len(limited_queries)} {result['status']} {result.get('status_code')}: "
-            f"{query_label(query)}{result_short_summary(result)}"
-        )
+    exit_code = 0
+    try:
+        for index, query in enumerate(limited_queries, start=1):
+            result = run_with_retries(config, query, args, runtime=runtime, chrome_client=chrome_client)
+            append_result(args.results, result)
+            print(
+                f"{index}/{len(limited_queries)} {result['status']} {result.get('status_code')}: "
+                f"{query_label(query)}{result_short_summary(result)}"
+            )
 
-        if result.get("status_code") == 429:
-            print("Portal returned HTTP 429. Stopping this run to avoid spam.", file=sys.stderr)
-            return 1
+            if result.get("classification") == RESULT_BLOCKED and runtime.options.stop_on_blocked:
+                print("Portal returned an anti-bot/rate-limit response. Stopping this run to avoid spam.", file=sys.stderr)
+                exit_code = 1
+                break
+    finally:
+        chrome_client.close()
+        runtime.log_summary()
 
-        if index < len(limited_queries):
-            wait_between_requests(args.delay, args.jitter)
-
-    return 0
+    return exit_code
 
 
-def run_with_retries(config: SearchConfig, query: dict[str, Any], args: argparse.Namespace) -> dict[str, Any]:
-    attempt = 0
-    while True:
-        result = search_once(
+def run_with_retries(
+    config: SearchConfig,
+    query: dict[str, Any],
+    args: argparse.Namespace,
+    *,
+    runtime: ParserRuntime,
+    chrome_client: ChromeWorkerClient,
+) -> dict[str, Any]:
+    return runtime.run_query(
+        query=query,
+        url=API_URL,
+        query_key=query["query_key"],
+        request_fn=lambda attempt: search_once_with_browser_fallback(
             config,
             query,
             page=args.page,
             size=args.size,
             timeout=args.timeout,
             verify_tls=not args.insecure_tls,
-        )
-        status_code = result.get("status_code")
-        if status_code not in {429, 500, 502, 503, 504} or attempt >= args.max_retries:
-            if attempt:
-                result["attempts"] = attempt + 1
-            return result
-
-        attempt += 1
-        retry_delay = max(args.delay, 30.0) * attempt
-        print(
-            f"Retryable status {status_code} for {query_label(query)}; sleeping {retry_delay:.0f}s.",
-            file=sys.stderr,
-        )
-        time.sleep(retry_delay)
+            chrome_client=chrome_client,
+        ),
+    )
 
 
 if __name__ == "__main__":
