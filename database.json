@@ -64,7 +64,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.097Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -578,46 +578,8 @@
             }
           }
         ],
-        "errors": []
-      },
-      "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
-        "status": "no_matches",
-        "source": "pamyatNaroda",
-        "sourceLabel": "Память народа",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
-      },
-      "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
-        "status": "no_matches",
-        "source": "openList",
-        "sourceLabel": "Открытый список",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
-      },
-      "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
-        "status": "no_matches",
-        "source": "gwar",
-        "sourceLabel": "Герои великой войны",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Слабкий\",\"name\":\"Павел\",\"middleName\":\"Андреевич\",\"birthDate\":\"2002-10-04\",\"birthPlace\":\"Россия, г Москва, р-н Восточное Измайлово\"}"
       }
     }
   },
@@ -713,7 +675,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -754,23 +716,11 @@
             }
           }
         ],
-        "errors": []
-      },
-      "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
-        "status": "no_matches",
-        "source": "pamyatNaroda",
-        "sourceLabel": "Память народа",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Слабкий\",\"name\":\"Андрей\",\"middleName\":\"Антонович\",\"birthDate\":\"1972-04-12\",\"birthPlace\":\"Россия, г Москва\"}"
       },
       "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
+        "searchedAt": "2026-06-02T19:01:33.535Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -780,20 +730,8 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
-      },
-      "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
-        "status": "no_matches",
-        "source": "gwar",
-        "sourceLabel": "Герои великой войны",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"openList\",\"lastName\":\"Слабкий\",\"name\":\"Андрей\",\"middleName\":\"Антонович\",\"birthDate\":\"1972-04-12\",\"birthPlace\":\"Россия, г Москва\"}"
       }
     }
   },
@@ -901,7 +839,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -1376,46 +1314,8 @@
             }
           }
         ],
-        "errors": []
-      },
-      "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
-        "status": "no_matches",
-        "source": "pamyatNaroda",
-        "sourceLabel": "Память народа",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
-      },
-      "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
-        "status": "no_matches",
-        "source": "openList",
-        "sourceLabel": "Открытый список",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
-      },
-      "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
-        "status": "no_matches",
-        "source": "gwar",
-        "sourceLabel": "Герои великой войны",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Середа\",\"name\":\"Елена\",\"middleName\":\"Геннадьевна\",\"birthDate\":\"1978-05-20\",\"birthPlace\":\"Россия, г Москва\"}"
       }
     }
   },
@@ -1500,7 +1400,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -1760,23 +1660,11 @@
             }
           }
         ],
-        "errors": []
-      },
-      "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
-        "status": "no_matches",
-        "source": "pamyatNaroda",
-        "sourceLabel": "Память народа",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Никитина\",\"name\":\"Галина\",\"middleName\":\"Павловна\",\"birthDate\":\"1940-06-01\",\"birthPlace\":\"г. Семипалатинск Семипалатинской области Казахской ССР\"}"
       },
       "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
+        "searchedAt": "2026-06-02T19:01:33.538Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -1786,20 +1674,8 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
-      },
-      "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
-        "status": "no_matches",
-        "source": "gwar",
-        "sourceLabel": "Герои великой войны",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"openList\",\"lastName\":\"Никитина\",\"name\":\"Галина\",\"middleName\":\"Павловна\",\"birthDate\":\"1940-06-01\",\"birthPlace\":\"г. Семипалатинск Семипалатинской области Казахской ССР\"}"
       }
     }
   },
@@ -1901,7 +1777,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -2115,23 +1991,11 @@
             }
           }
         ],
-        "errors": []
-      },
-      "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
-        "status": "no_matches",
-        "source": "pamyatNaroda",
-        "sourceLabel": "Память народа",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Середа\",\"name\":\"Геннадий\",\"middleName\":\"Емельянович\",\"birthDate\":\"1941-08-17\",\"birthPlace\":\"Россия, г Омск\"}"
       },
       "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
+        "searchedAt": "2026-06-02T19:01:33.538Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -2141,20 +2005,8 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
-      },
-      "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
-        "status": "no_matches",
-        "source": "gwar",
-        "sourceLabel": "Герои великой войны",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"openList\",\"lastName\":\"Середа\",\"name\":\"Геннадий\",\"middleName\":\"Емельянович\",\"birthDate\":\"1941-08-17\",\"birthPlace\":\"Россия, г Омск\"}"
       }
     }
   },
@@ -2239,7 +2091,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -2417,23 +2269,11 @@
             }
           }
         ],
-        "errors": []
-      },
-      "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
-        "status": "no_matches",
-        "source": "pamyatNaroda",
-        "sourceLabel": "Память народа",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Ворожейкина\",\"name\":\"Мария\",\"middleName\":\"Петровна\",\"birthDate\":\"1921-01-20\",\"birthPlace\":\"г. Семипалатинск Семипалатинского уезда Семипалатинской губернии\"}"
       },
       "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
+        "searchedAt": "2026-06-02T19:01:33.538Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -2443,20 +2283,8 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
-      },
-      "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
-        "status": "no_matches",
-        "source": "gwar",
-        "sourceLabel": "Герои великой войны",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"openList\",\"lastName\":\"Ворожейкина\",\"name\":\"Мария\",\"middleName\":\"Петровна\",\"birthDate\":\"1921-01-20\",\"birthPlace\":\"г. Семипалатинск Семипалатинского уезда Семипалатинской губернии\"}"
       }
     }
   },
@@ -2541,7 +2369,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -2623,23 +2451,11 @@
             }
           }
         ],
-        "errors": []
-      },
-      "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
-        "status": "no_matches",
-        "source": "pamyatNaroda",
-        "sourceLabel": "Память народа",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Никитин\",\"name\":\"Пантелеймон\",\"middleName\":\"Георгиевич\",\"birthDate\":\"1910-05-25\",\"birthPlace\":\"с. Нерчинский Завод Нерчинского уезда Забайкальской области\"}"
       },
       "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
+        "searchedAt": "2026-06-02T19:01:33.538Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -2649,20 +2465,8 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
-      },
-      "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
-        "status": "no_matches",
-        "source": "gwar",
-        "sourceLabel": "Герои великой войны",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"openList\",\"lastName\":\"Никитин\",\"name\":\"Пантелеймон\",\"middleName\":\"Георгиевич\",\"birthDate\":\"1910-05-25\",\"birthPlace\":\"с. Нерчинский Завод Нерчинского уезда Забайкальской области\"}"
       }
     }
   },
@@ -2776,7 +2580,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -2858,23 +2662,11 @@
             }
           }
         ],
-        "errors": []
-      },
-      "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
-        "status": "no_matches",
-        "source": "pamyatNaroda",
-        "sourceLabel": "Память народа",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Середа\",\"name\":\"Елизавета\",\"middleName\":\"Петровна\",\"birthDate\":\"1918-04-24\",\"birthPlace\":\"Россия, г Омск\"}"
       },
       "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
+        "searchedAt": "2026-06-02T19:01:33.538Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -2884,20 +2676,8 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
-      },
-      "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
-        "status": "no_matches",
-        "source": "gwar",
-        "sourceLabel": "Герои великой войны",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"openList\",\"lastName\":\"Середа\",\"name\":\"Елизавета\",\"middleName\":\"Петровна\",\"birthDate\":\"1918-04-24\",\"birthPlace\":\"Россия, г Омск\"}"
       }
     }
   },
@@ -2994,7 +2774,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -3126,23 +2906,11 @@
             }
           }
         ],
-        "errors": []
-      },
-      "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
-        "status": "no_matches",
-        "source": "pamyatNaroda",
-        "sourceLabel": "Память народа",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Середа\",\"name\":\"Емельян\",\"middleName\":\"Мефодьевич\",\"birthDate\":\"1915-07-18\",\"birthPlace\":\"с. Николаевка Казаткульской волости Каинского уезда Томской губернии\"}"
       },
       "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
+        "searchedAt": "2026-06-02T19:01:33.538Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -3152,20 +2920,8 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
-      },
-      "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
-        "status": "no_matches",
-        "source": "gwar",
-        "sourceLabel": "Герои великой войны",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"openList\",\"lastName\":\"Середа\",\"name\":\"Емельян\",\"middleName\":\"Мефодьевич\",\"birthDate\":\"1915-07-18\",\"birthPlace\":\"с. Николаевка Казаткульской волости Каинского уезда Томской губернии\"}"
       }
     }
   },
@@ -3253,7 +3009,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -3343,23 +3099,11 @@
             }
           }
         ],
-        "errors": []
-      },
-      "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
-        "status": "no_matches",
-        "source": "pamyatNaroda",
-        "sourceLabel": "Память народа",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Ворожейкина\",\"name\":\"Фекла\",\"middleName\":\"Яковлевна\",\"birthDate\":\"1895\",\"birthPlace\":\"с. Ново-Покровское Томская губерния\"}"
       },
       "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
+        "searchedAt": "2026-06-02T19:01:33.538Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -3369,10 +3113,11 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"openList\",\"lastName\":\"Ворожейкина\",\"name\":\"Фекла\",\"middleName\":\"Яковлевна\",\"birthDate\":\"1895\",\"birthPlace\":\"с. Ново-Покровское Томская губерния\"}"
       },
       "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
+        "searchedAt": "2026-06-02T19:01:45.018Z",
         "status": "no_matches",
         "source": "gwar",
         "sourceLabel": "Герои великой войны",
@@ -3382,7 +3127,8 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"gwar\",\"lastName\":\"Ворожейкина\",\"name\":\"Фекла\",\"middleName\":\"Яковлевна\",\"birthDate\":\"1895\",\"birthPlace\":\"с. Ново-Покровское Томская губерния\"}"
       }
     }
   },
@@ -3467,7 +3213,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -3555,23 +3301,11 @@
             }
           }
         ],
-        "errors": []
-      },
-      "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
-        "status": "no_matches",
-        "source": "pamyatNaroda",
-        "sourceLabel": "Память народа",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Ворожейкин\",\"name\":\"Петр\",\"middleName\":\"Васильевич\",\"birthDate\":\"1895-02-01\",\"birthPlace\":\"г. Семипалатинск\"}"
       },
       "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
+        "searchedAt": "2026-06-02T19:01:33.538Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -3581,10 +3315,11 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"openList\",\"lastName\":\"Ворожейкин\",\"name\":\"Петр\",\"middleName\":\"Васильевич\",\"birthDate\":\"1895-02-01\",\"birthPlace\":\"г. Семипалатинск\"}"
       },
       "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
+        "searchedAt": "2026-06-02T19:01:45.018Z",
         "status": "no_matches",
         "source": "gwar",
         "sourceLabel": "Герои великой войны",
@@ -3594,7 +3329,8 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"gwar\",\"lastName\":\"Ворожейкин\",\"name\":\"Петр\",\"middleName\":\"Васильевич\",\"birthDate\":\"1895-02-01\",\"birthPlace\":\"г. Семипалатинск\"}"
       }
     }
   },
@@ -3748,7 +3484,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -3789,11 +3525,12 @@
             }
           }
         ],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Никитин\",\"name\":\"Георгий\",\"middleName\":\"Сергеевич\",\"birthDate\":\"1860-04-23\",\"birthPlace\":\"Акмолинская область\"}"
       },
       "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
-        "status": "no_matches",
+        "searchedAt": "2026-06-02T19:01:15.921Z",
+        "status": "matches_found",
         "source": "pamyatNaroda",
         "sourceLabel": "Память народа",
         "searchCriteria": {
@@ -3801,11 +3538,95 @@
           "birthDate": true,
           "birthPlace": true
         },
-        "matches": [],
-        "errors": []
+        "matches": [
+          {
+            "data_id": "69e51500f2f4ad946ba05d77",
+            "source": "pamyatNaroda",
+            "sourceLabel": "Память народа",
+            "score": 74.89,
+            "person": {
+              "lastName": "Никитин",
+              "name": "Георгий",
+              "middleName": "Сергеевич",
+              "birthDate": "1913",
+              "birthPlace": "Московская обл., г. Москва",
+              "information": "Сержант, 1913, Московская обл., г. Москва, Место службы: 417 сп. Сводная картотека"
+            },
+            "records": [
+              {
+                "source": "pamyatNaroda",
+                "sourceLabel": "Память народа",
+                "title": "Никитин Георгий Сергеевич",
+                "lastName": "Никитин",
+                "name": "Георгий",
+                "middleName": "Сергеевич",
+                "birthDate": "1913",
+                "birthPlace": "Московская обл., г. Москва",
+                "information": "Сержант, 1913, Московская обл., г. Москва, Место службы: 417 сп. Сводная картотека",
+                "score": 74.89,
+                "url": "https://pamyat-naroda.ru/heroes/person-hero80170086/"
+              },
+              {
+                "source": "pamyatNaroda",
+                "sourceLabel": "Память народа",
+                "title": "Никитин Георгий Сергеевич",
+                "lastName": "Никитин",
+                "name": "Георгий",
+                "middleName": "Сергеевич",
+                "birthDate": "11.01.1912",
+                "birthPlace": "Ленинградская обл., г. Ленинград",
+                "information": "Техник-лейтенант, 11.01.1912, Ленинградская обл., г. Ленинград. УПК",
+                "score": 74.71,
+                "url": "https://pamyat-naroda.ru/heroes/person-hero8201734/"
+              },
+              {
+                "source": "pamyatNaroda",
+                "sourceLabel": "Память народа",
+                "title": "Никитин Георгий Сергеевич",
+                "lastName": "Никитин",
+                "name": "Георгий",
+                "middleName": "Сергеевич",
+                "birthDate": "23.04.1899",
+                "birthPlace": "Брянская обл., г. Брянск",
+                "information": "Майор, 23.04.1899, Брянская обл., г. Брянск. УПК",
+                "score": 74.65,
+                "url": "https://pamyat-naroda.ru/heroes/person-hero8201731/"
+              },
+              {
+                "source": "pamyatNaroda",
+                "sourceLabel": "Память народа",
+                "title": "Никитин Георгий Сергеевич",
+                "lastName": "Никитин",
+                "name": "Георгий",
+                "middleName": "Сергеевич",
+                "birthDate": "1920",
+                "birthPlace": "Краснодарский край, Успенский р-н, ст. Николаевская",
+                "information": "1920, Краснодарский край, Успенский р-н, ст. Николаевская. Юбилейная картотека",
+                "score": 72.29,
+                "url": "https://pamyat-naroda.ru/heroes/person-hero1512913112/"
+              },
+              {
+                "source": "pamyatNaroda",
+                "sourceLabel": "Память народа",
+                "title": "Никитин Георгий Сергеевич",
+                "lastName": "Никитин",
+                "name": "Георгий",
+                "middleName": "Сергеевич",
+                "birthDate": "1898",
+                "birthPlace": "['Удмуртская АССР, Тыловайский р-н, с. Шут-золут', 'с. Шут-золут']",
+                "information": "Красноармеец, 1898, Удмуртская АССР, Тыловайский р-н, с. Шут-золут, Место службы: 417 сд, Тыловайский РВК, Удмуртская АССР, Тыловайский р-н",
+                "score": 72.12,
+                "url": "https://pamyat-naroda.ru/heroes/person-hero99765805/"
+              }
+            ],
+            "searchedAt": "2026-06-02T19:00:44+00:00"
+          }
+        ],
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"pamyatNaroda\",\"lastName\":\"Никитин\",\"name\":\"Георгий\",\"middleName\":\"Сергеевич\",\"birthDate\":\"1860-04-23\",\"birthPlace\":\"Акмолинская область\"}"
       },
       "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
+        "searchedAt": "2026-06-02T19:01:33.538Z",
         "status": "matches_found",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -3840,14 +3661,15 @@
                 "score": 71.96078431372551
               }
             ],
-            "searchedAt": "2026-05-21T18:58:33+00:00",
+            "searchedAt": "2026-06-02T19:01:19+00:00",
             "tlsFallbackUsed": true
           }
         ],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"openList\",\"lastName\":\"Никитин\",\"name\":\"Георгий\",\"middleName\":\"Сергеевич\",\"birthDate\":\"1860-04-23\",\"birthPlace\":\"Акмолинская область\"}"
       },
       "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
+        "searchedAt": "2026-06-02T19:01:45.018Z",
         "status": "no_matches",
         "source": "gwar",
         "sourceLabel": "Герои великой войны",
@@ -3857,39 +3679,10 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"gwar\",\"lastName\":\"Никитин\",\"name\":\"Георгий\",\"middleName\":\"Сергеевич\",\"birthDate\":\"1860-04-23\",\"birthPlace\":\"Акмолинская область\"}"
       }
-    },
-    "documents": [
-      {
-        "id": "69e51500f2f4ad946ba05d77",
-        "sourceKey": "userTrees",
-        "sourceLabel": "Деревья других пользователей",
-        "title": "Никитин Георгий Сергеевич",
-        "url": "",
-        "birthDate": "1860-04-23",
-        "birthPlace": "Акмолинская область",
-        "information": "",
-        "score": 100,
-        "tree_id": "68f36f8fda84114f6acf1ce4",
-        "tree_owner": "Слабкий Павел Андреевич",
-        "database_id": "69e51500f2f4ad946ba05d77"
-      },
-      {
-        "id": "",
-        "sourceKey": "openList",
-        "sourceLabel": "Открытый список",
-        "title": "Никитин Георгий Сергеевич (1917)",
-        "url": "https://ru.openlist.wiki/%D0%9D%D0%B8%D0%BA%D0%B8%D1%82%D0%B8%D0%BD_%D0%93%D0%B5%D0%BE%D1%80%D0%B3%D0%B8%D0%B9_%D0%A1%D0%B5%D1%80%D0%B3%D0%B5%D0%B5%D0%B2%D0%B8%D1%87_(1917)",
-        "birthDate": "",
-        "birthPlace": "",
-        "information": "",
-        "score": 71.96078431372551,
-        "tree_id": "",
-        "tree_owner": "",
-        "database_id": ""
-      }
-    ]
+    }
   },
   {
     "_id": {
@@ -3955,7 +3748,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -4167,23 +3960,11 @@
             }
           }
         ],
-        "errors": []
-      },
-      "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
-        "status": "no_matches",
-        "source": "pamyatNaroda",
-        "sourceLabel": "Память народа",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Середа\",\"name\":\"Владимир\",\"middleName\":\"Емельянович\",\"birthDate\":\"1946-05-15\",\"birthPlace\":\"Россия, г Омск\"}"
       },
       "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
+        "searchedAt": "2026-06-02T19:01:33.538Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -4193,20 +3974,8 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
-      },
-      "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
-        "status": "no_matches",
-        "source": "gwar",
-        "sourceLabel": "Герои великой войны",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"openList\",\"lastName\":\"Середа\",\"name\":\"Владимир\",\"middleName\":\"Емельянович\",\"birthDate\":\"1946-05-15\",\"birthPlace\":\"Россия, г Омск\"}"
       }
     }
   },
@@ -4274,7 +4043,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -4486,23 +4255,11 @@
             }
           }
         ],
-        "errors": []
-      },
-      "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
-        "status": "no_matches",
-        "source": "pamyatNaroda",
-        "sourceLabel": "Память народа",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Середа\",\"name\":\"Анатолий\",\"middleName\":\"Емельянович\",\"birthDate\":\"1938-03-28\",\"birthPlace\":\"Россия, г Омск\"}"
       },
       "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
+        "searchedAt": "2026-06-02T19:01:33.538Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -4512,20 +4269,8 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
-      },
-      "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
-        "status": "no_matches",
-        "source": "gwar",
-        "sourceLabel": "Герои великой войны",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"openList\",\"lastName\":\"Середа\",\"name\":\"Анатолий\",\"middleName\":\"Емельянович\",\"birthDate\":\"1938-03-28\",\"birthPlace\":\"Россия, г Омск\"}"
       }
     }
   },
@@ -4676,7 +4421,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -4766,10 +4511,11 @@
             }
           }
         ],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Середа\",\"name\":\"Мефодий\",\"middleName\":\"Гаврилович\",\"birthDate\":\"1880\",\"birthPlace\":\"м. Одинковка Новосёловской волости Новомосковского уезда Екатеринославской губернии\"}"
       },
       "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
+        "searchedAt": "2026-06-02T19:01:15.922Z",
         "status": "no_matches",
         "source": "pamyatNaroda",
         "sourceLabel": "Память народа",
@@ -4779,10 +4525,11 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"pamyatNaroda\",\"lastName\":\"Середа\",\"name\":\"Мефодий\",\"middleName\":\"Гаврилович\",\"birthDate\":\"1880\",\"birthPlace\":\"м. Одинковка Новосёловской волости Новомосковского уезда Екатеринославской губернии\"}"
       },
       "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
+        "searchedAt": "2026-06-02T19:01:33.538Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -4792,10 +4539,11 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"openList\",\"lastName\":\"Середа\",\"name\":\"Мефодий\",\"middleName\":\"Гаврилович\",\"birthDate\":\"1880\",\"birthPlace\":\"м. Одинковка Новосёловской волости Новомосковского уезда Екатеринославской губернии\"}"
       },
       "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
+        "searchedAt": "2026-06-02T19:01:45.018Z",
         "status": "no_matches",
         "source": "gwar",
         "sourceLabel": "Герои великой войны",
@@ -4805,7 +4553,8 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"gwar\",\"lastName\":\"Середа\",\"name\":\"Мефодий\",\"middleName\":\"Гаврилович\",\"birthDate\":\"1880\",\"birthPlace\":\"м. Одинковка Новосёловской волости Новомосковского уезда Екатеринославской губернии\"}"
       }
     }
   },
@@ -4984,7 +4733,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -5064,23 +4813,11 @@
             }
           }
         ],
-        "errors": []
-      },
-      "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
-        "status": "no_matches",
-        "source": "pamyatNaroda",
-        "sourceLabel": "Память народа",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Никитин\",\"name\":\"Марк\",\"middleName\":\"Георгьевич\",\"birthDate\":\"1912-04-25\",\"birthPlace\":\"с. Нерчинский Завод Нерчинского уезда Забайкальской области\"}"
       },
       "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
+        "searchedAt": "2026-06-02T19:01:33.538Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -5090,20 +4827,8 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
-      },
-      "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
-        "status": "no_matches",
-        "source": "gwar",
-        "sourceLabel": "Герои великой войны",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"openList\",\"lastName\":\"Никитин\",\"name\":\"Марк\",\"middleName\":\"Георгьевич\",\"birthDate\":\"1912-04-25\",\"birthPlace\":\"с. Нерчинский Завод Нерчинского уезда Забайкальской области\"}"
       }
     }
   },
@@ -5200,7 +4925,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -5244,11 +4969,12 @@
             }
           }
         ],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Ворожейкин\",\"name\":\"Василий\",\"middleName\":\"Николаевич\",\"birthDate\":\"1868\",\"birthPlace\":\"с. Ново-Покровское Ново-Покровской волости Змеиногорского уезда Томской губернии\"}"
       },
       "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
-        "status": "no_matches",
+        "searchedAt": "2026-06-02T19:01:15.922Z",
+        "status": "matches_found",
         "source": "pamyatNaroda",
         "sourceLabel": "Память народа",
         "searchCriteria": {
@@ -5256,11 +4982,95 @@
           "birthDate": true,
           "birthPlace": true
         },
-        "matches": [],
-        "errors": []
+        "matches": [
+          {
+            "data_id": "69ec77dcaf23af790aa7c003",
+            "source": "pamyatNaroda",
+            "sourceLabel": "Память народа",
+            "score": 72.95,
+            "person": {
+              "lastName": "Ворожейкин",
+              "name": "Василий",
+              "middleName": "Николаевич",
+              "birthDate": "1924",
+              "birthPlace": "Саратовская обл., Красавский р-н, с/з № 31",
+              "information": "Красноармеец, 1924, Саратовская обл., Красавский р-н, с/з № 31, Место службы: Красавский РВК, Саратовская обл., Красавский р-н, 1891 сап. Именные списки частей"
+            },
+            "records": [
+              {
+                "source": "pamyatNaroda",
+                "sourceLabel": "Память народа",
+                "title": "Ворожейкин Василий Николаевич",
+                "lastName": "Ворожейкин",
+                "name": "Василий",
+                "middleName": "Николаевич",
+                "birthDate": "1924",
+                "birthPlace": "Саратовская обл., Красавский р-н, с/з № 31",
+                "information": "Красноармеец, 1924, Саратовская обл., Красавский р-н, с/з № 31, Место службы: Красавский РВК, Саратовская обл., Красавский р-н, 1891 сап. Именные списки частей",
+                "score": 72.95,
+                "url": "https://pamyat-naroda.ru/heroes/person-hero18456413/"
+              },
+              {
+                "source": "pamyatNaroda",
+                "sourceLabel": "Память народа",
+                "title": "Ворожейкин Василий Николаевич",
+                "lastName": "Ворожейкин",
+                "name": "Василий",
+                "middleName": "Николаевич",
+                "birthDate": "1924",
+                "birthPlace": "Саратовская обл., Красавский р-н, с/з № 31",
+                "information": "Рядовой, 1924, Саратовская обл., Красавский р-н, с/з № 31, Место службы: Красавский РВК, Саратовская обл., Красавский р-н, 10 гв. отпп. Именные списки частей",
+                "score": 72.95,
+                "url": "https://pamyat-naroda.ru/heroes/person-hero18120192/"
+              },
+              {
+                "source": "pamyatNaroda",
+                "sourceLabel": "Память народа",
+                "title": "Ворожейкин Василий Николаевич",
+                "lastName": "Ворожейкин",
+                "name": "Василий",
+                "middleName": "Николаевич",
+                "birthDate": "1919",
+                "birthPlace": "Кемеровская обл., г. Белово, пер. Почтовый, 9",
+                "information": "Ст. сержант, 1919, Кемеровская обл., г. Белово, пер. Почтовый, 9, Место службы: 06.09.1939 Кагановичский РВК. ВПП и ЗП",
+                "score": 72.72,
+                "url": "https://pamyat-naroda.ru/heroes/person-hero82243435/"
+              },
+              {
+                "source": "pamyatNaroda",
+                "sourceLabel": "Память народа",
+                "title": "Ворожейкин Василий Николаевич",
+                "lastName": "Ворожейкин",
+                "name": "Василий",
+                "middleName": "Николаевич",
+                "birthDate": "18.04.1911",
+                "birthPlace": "['Саратовская обл., с. Большая Дмитриевка', 'Саратовская область село Большая Дмитриевка']",
+                "information": "Ст. лейтенант, 18.04.1911, Саратовская обл., с. Большая Дмитриевка, Место службы: Ошский РВК, Киргизская ССР, Ошская обл., Ошский р-н, 189 минп 12 оминбр ВорФ",
+                "score": 72.71,
+                "url": "https://pamyat-naroda.ru/heroes/person-hero92550611/"
+              },
+              {
+                "source": "pamyatNaroda",
+                "sourceLabel": "Память народа",
+                "title": "Ворожейкин Василий Николаевич",
+                "lastName": "Ворожейкин",
+                "name": "Василий",
+                "middleName": "Николаевич",
+                "birthDate": "1919",
+                "birthPlace": "['Марийская АССР, Саранская обл., Ковыльский р-н, с. Вичкинино', 'Мордовская АССР, Ковылкинский р-н, с. Вичкинино']",
+                "information": "Ст. сержант, 1919, Марийская АССР, Саранская обл., Ковыльский р-н, с. Вичкинино, Место службы: Беловский ГВК, Кемеровская обл., г. Белово",
+                "score": 72.46,
+                "url": "https://pamyat-naroda.ru/heroes/person-hero95204434/"
+              }
+            ],
+            "searchedAt": "2026-06-02T19:00:53+00:00"
+          }
+        ],
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"pamyatNaroda\",\"lastName\":\"Ворожейкин\",\"name\":\"Василий\",\"middleName\":\"Николаевич\",\"birthDate\":\"1868\",\"birthPlace\":\"с. Ново-Покровское Ново-Покровской волости Змеиногорского уезда Томской губернии\"}"
       },
       "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
+        "searchedAt": "2026-06-02T19:01:33.538Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -5270,10 +5080,11 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"openList\",\"lastName\":\"Ворожейкин\",\"name\":\"Василий\",\"middleName\":\"Николаевич\",\"birthDate\":\"1868\",\"birthPlace\":\"с. Ново-Покровское Ново-Покровской волости Змеиногорского уезда Томской губернии\"}"
       },
       "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
+        "searchedAt": "2026-06-02T19:01:45.018Z",
         "status": "no_matches",
         "source": "gwar",
         "sourceLabel": "Герои великой войны",
@@ -5283,7 +5094,8 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"gwar\",\"lastName\":\"Ворожейкин\",\"name\":\"Василий\",\"middleName\":\"Николаевич\",\"birthDate\":\"1868\",\"birthPlace\":\"с. Ново-Покровское Ново-Покровской волости Змеиногорского уезда Томской губернии\"}"
       }
     }
   },
@@ -5374,95 +5186,8 @@
     ],
     "liveOrDead": 0,
     "birthplace": [],
-    "hasMatch": true,
-    "sourceSearchCache": {
-      "userTrees": {
-        "searchedAt": "2026-05-27T20:19:57.225Z",
-        "status": "matches_found",
-        "source": "userTrees",
-        "sourceLabel": "Деревья других пользователей",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [
-          {
-            "data_id": "69ec77e6af23af790aa7c004",
-            "tree_id": "68f36f8fda84114f6acf1ce4",
-            "tree_owner": "Слабкий Павел Андреевич",
-            "database_id": "69ec77e6af23af790aa7c004",
-            "score": 95,
-            "people": {
-              "69ec77e6af23af790aa7c004": {
-                "id": "69ec77e6af23af790aa7c004",
-                "name": "Агафья",
-                "lastName": "Ворожейкина",
-                "middleName": "Моисеевна",
-                "gender": "female",
-                "fatherId": null,
-                "motherId": null,
-                "partnerId": "69ec77dcaf23af790aa7c003",
-                "children": [
-                  "69e51483fa2dc09590a3866a",
-                  "69ec7860bebb794243c75469",
-                  "69ec78b3f781c88171e82e6e",
-                  "69ec790af781c88171e82e6f",
-                  "69ec7a322d2ada0deeede8f6"
-                ],
-                "isAlive": false,
-                "birthDate": "1868",
-                "birthPlace": "",
-                "hasMatch": false,
-                "sourceSearchCache": {},
-                "information": "",
-                "documents": []
-              }
-            }
-          }
-        ],
-        "errors": []
-      },
-      "pamyatNaroda": {
-        "searchedAt": "2026-05-27T20:20:07.797Z",
-        "status": "no_matches",
-        "source": "pamyatNaroda",
-        "sourceLabel": "Память народа",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
-      },
-      "openList": {
-        "searchedAt": "2026-05-27T20:20:08.337Z",
-        "status": "no_matches",
-        "source": "openList",
-        "sourceLabel": "Открытый список",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
-      },
-      "gwar": {
-        "searchedAt": "2026-05-27T20:20:08.706Z",
-        "status": "no_matches",
-        "source": "gwar",
-        "sourceLabel": "Герои великой войны",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
-      }
-    }
+    "hasMatch": false,
+    "sourceSearchCache": {}
   },
   {
     "_id": {
@@ -5528,7 +5253,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -6042,46 +5767,8 @@
             }
           }
         ],
-        "errors": []
-      },
-      "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
-        "status": "no_matches",
-        "source": "pamyatNaroda",
-        "sourceLabel": "Память народа",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
-      },
-      "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
-        "status": "no_matches",
-        "source": "openList",
-        "sourceLabel": "Открытый список",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
-      },
-      "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
-        "status": "no_matches",
-        "source": "gwar",
-        "sourceLabel": "Герои великой войны",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Слабкий\",\"name\":\"Александр\",\"middleName\":\"Андреевич\",\"birthDate\":\"2014-04-28\",\"birthPlace\":\"Россия, г Москва\"}"
       }
     }
   },
@@ -6132,7 +5819,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -6218,23 +5905,11 @@
             }
           }
         ],
-        "errors": []
-      },
-      "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
-        "status": "no_matches",
-        "source": "pamyatNaroda",
-        "sourceLabel": "Память народа",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Ворожейкин\",\"name\":\"Борис\",\"middleName\":\"Васильевич\",\"birthDate\":\"1900\",\"birthPlace\":\"г. Семипалатинск\"}"
       },
       "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
+        "searchedAt": "2026-06-02T19:01:33.538Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -6244,10 +5919,11 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"openList\",\"lastName\":\"Ворожейкин\",\"name\":\"Борис\",\"middleName\":\"Васильевич\",\"birthDate\":\"1900\",\"birthPlace\":\"г. Семипалатинск\"}"
       },
       "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
+        "searchedAt": "2026-06-02T19:01:45.018Z",
         "status": "no_matches",
         "source": "gwar",
         "sourceLabel": "Герои великой войны",
@@ -6257,7 +5933,8 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"gwar\",\"lastName\":\"Ворожейкин\",\"name\":\"Борис\",\"middleName\":\"Васильевич\",\"birthDate\":\"1900\",\"birthPlace\":\"г. Семипалатинск\"}"
       }
     }
   },
@@ -6308,7 +5985,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -6394,23 +6071,11 @@
             }
           }
         ],
-        "errors": []
-      },
-      "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
-        "status": "no_matches",
-        "source": "pamyatNaroda",
-        "sourceLabel": "Память народа",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Ворожейкина\",\"name\":\"Дария\",\"middleName\":\"Васильевна\",\"birthDate\":\"1902\",\"birthPlace\":\"г. Семипалатинск\"}"
       },
       "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
+        "searchedAt": "2026-06-02T19:01:33.538Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -6420,20 +6085,8 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
-      },
-      "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
-        "status": "no_matches",
-        "source": "gwar",
-        "sourceLabel": "Герои великой войны",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"openList\",\"lastName\":\"Ворожейкина\",\"name\":\"Дария\",\"middleName\":\"Васильевна\",\"birthDate\":\"1902\",\"birthPlace\":\"г. Семипалатинск\"}"
       }
     }
   },
@@ -6484,7 +6137,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -6570,23 +6223,11 @@
             }
           }
         ],
-        "errors": []
-      },
-      "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
-        "status": "no_matches",
-        "source": "pamyatNaroda",
-        "sourceLabel": "Память народа",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Ворожейкин\",\"name\":\"Аркадий\",\"middleName\":\"Васильевич\",\"birthDate\":\"1905\",\"birthPlace\":\"г. Семипалатинск\"}"
       },
       "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
+        "searchedAt": "2026-06-02T19:01:33.538Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -6596,20 +6237,8 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
-      },
-      "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
-        "status": "no_matches",
-        "source": "gwar",
-        "sourceLabel": "Герои великой войны",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"openList\",\"lastName\":\"Ворожейкин\",\"name\":\"Аркадий\",\"middleName\":\"Васильевич\",\"birthDate\":\"1905\",\"birthPlace\":\"г. Семипалатинск\"}"
       }
     }
   },
@@ -6700,7 +6329,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -6789,23 +6418,11 @@
             }
           }
         ],
-        "errors": []
-      },
-      "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.865Z",
-        "status": "no_matches",
-        "source": "pamyatNaroda",
-        "sourceLabel": "Память народа",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Ворожейкин\",\"name\":\"Александр\",\"middleName\":\"Васильевич\",\"birthDate\":\"1891-11-23\",\"birthPlace\":\"г. Семипалатинск\"}"
       },
       "openList": {
-        "searchedAt": "2026-05-21T18:58:42.581Z",
+        "searchedAt": "2026-06-02T19:01:33.538Z",
         "status": "matches_found",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -6850,14 +6467,15 @@
                 "score": 71.85185185185186
               }
             ],
-            "searchedAt": "2026-05-21T18:58:27+00:00",
+            "searchedAt": "2026-06-02T19:01:21+00:00",
             "tlsFallbackUsed": true
           }
         ],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"openList\",\"lastName\":\"Ворожейкин\",\"name\":\"Александр\",\"middleName\":\"Васильевич\",\"birthDate\":\"1891-11-23\",\"birthPlace\":\"г. Семипалатинск\"}"
       },
       "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
+        "searchedAt": "2026-06-02T19:01:45.018Z",
         "status": "no_matches",
         "source": "gwar",
         "sourceLabel": "Герои великой войны",
@@ -6867,7 +6485,8 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"gwar\",\"lastName\":\"Ворожейкин\",\"name\":\"Александр\",\"middleName\":\"Васильевич\",\"birthDate\":\"1891-11-23\",\"birthPlace\":\"г. Семипалатинск\"}"
       }
     }
   },
@@ -6986,7 +6605,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -7114,23 +6733,11 @@
             }
           }
         ],
-        "errors": []
-      },
-      "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
-        "status": "no_matches",
-        "source": "pamyatNaroda",
-        "sourceLabel": "Память народа",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Ворожейкин\",\"name\":\"Павел\",\"middleName\":\"Александрович\",\"birthDate\":\"1923\",\"birthPlace\":\"г. Семипалатинск\"}"
       },
       "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
+        "searchedAt": "2026-06-02T19:01:33.538Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -7140,20 +6747,8 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
-      },
-      "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
-        "status": "no_matches",
-        "source": "gwar",
-        "sourceLabel": "Герои великой войны",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"openList\",\"lastName\":\"Ворожейкин\",\"name\":\"Павел\",\"middleName\":\"Александрович\",\"birthDate\":\"1923\",\"birthPlace\":\"г. Семипалатинск\"}"
       }
     }
   },
@@ -7204,7 +6799,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -7332,23 +6927,11 @@
             }
           }
         ],
-        "errors": []
-      },
-      "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
-        "status": "no_matches",
-        "source": "pamyatNaroda",
-        "sourceLabel": "Память народа",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Ворожейкин\",\"name\":\"Геннадий\",\"middleName\":\"Александрович\",\"birthDate\":\"1925\",\"birthPlace\":\"г. Семипалатинск\"}"
       },
       "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
+        "searchedAt": "2026-06-02T19:01:33.538Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -7358,20 +6941,8 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
-      },
-      "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
-        "status": "no_matches",
-        "source": "gwar",
-        "sourceLabel": "Герои великой войны",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"openList\",\"lastName\":\"Ворожейкин\",\"name\":\"Геннадий\",\"middleName\":\"Александрович\",\"birthDate\":\"1925\",\"birthPlace\":\"г. Семипалатинск\"}"
       }
     }
   },
@@ -7627,7 +7198,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -7715,23 +7286,11 @@
             }
           }
         ],
-        "errors": []
-      },
-      "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
-        "status": "no_matches",
-        "source": "pamyatNaroda",
-        "sourceLabel": "Память народа",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Губарева\",\"name\":\"Мария\",\"middleName\":\"Яковлевна\",\"birthDate\":\"1883\",\"birthPlace\":\"Россия, г Томск\"}"
       },
       "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
+        "searchedAt": "2026-06-02T19:01:33.538Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -7741,10 +7300,11 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"openList\",\"lastName\":\"Губарева\",\"name\":\"Мария\",\"middleName\":\"Яковлевна\",\"birthDate\":\"1883\",\"birthPlace\":\"Россия, г Томск\"}"
       },
       "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
+        "searchedAt": "2026-06-02T19:01:45.018Z",
         "status": "no_matches",
         "source": "gwar",
         "sourceLabel": "Герои великой войны",
@@ -7754,7 +7314,8 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"gwar\",\"lastName\":\"Губарева\",\"name\":\"Мария\",\"middleName\":\"Яковлевна\",\"birthDate\":\"1883\",\"birthPlace\":\"Россия, г Томск\"}"
       }
     }
   },
@@ -7822,7 +7383,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -7910,23 +7471,11 @@
             }
           }
         ],
-        "errors": []
-      },
-      "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
-        "status": "no_matches",
-        "source": "pamyatNaroda",
-        "sourceLabel": "Память народа",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Губарева\",\"name\":\"Татьяна\",\"middleName\":\"Яковлевна\",\"birthDate\":\"1885\",\"birthPlace\":\"Россия, г Томск\"}"
       },
       "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
+        "searchedAt": "2026-06-02T19:01:33.538Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -7936,10 +7485,11 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"openList\",\"lastName\":\"Губарева\",\"name\":\"Татьяна\",\"middleName\":\"Яковлевна\",\"birthDate\":\"1885\",\"birthPlace\":\"Россия, г Томск\"}"
       },
       "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
+        "searchedAt": "2026-06-02T19:01:45.018Z",
         "status": "no_matches",
         "source": "gwar",
         "sourceLabel": "Герои великой войны",
@@ -7949,7 +7499,8 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"gwar\",\"lastName\":\"Губарева\",\"name\":\"Татьяна\",\"middleName\":\"Яковлевна\",\"birthDate\":\"1885\",\"birthPlace\":\"Россия, г Томск\"}"
       }
     }
   },
@@ -8017,7 +7568,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -8105,23 +7656,11 @@
             }
           }
         ],
-        "errors": []
-      },
-      "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
-        "status": "no_matches",
-        "source": "pamyatNaroda",
-        "sourceLabel": "Память народа",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Губарева\",\"name\":\"Дарья\",\"middleName\":\"Яковлевна\",\"birthDate\":\"1888\",\"birthPlace\":\"Россия, г Томск\"}"
       },
       "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
+        "searchedAt": "2026-06-02T19:01:33.538Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -8131,10 +7670,11 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"openList\",\"lastName\":\"Губарева\",\"name\":\"Дарья\",\"middleName\":\"Яковлевна\",\"birthDate\":\"1888\",\"birthPlace\":\"Россия, г Томск\"}"
       },
       "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
+        "searchedAt": "2026-06-02T19:01:45.018Z",
         "status": "no_matches",
         "source": "gwar",
         "sourceLabel": "Герои великой войны",
@@ -8144,7 +7684,8 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"gwar\",\"lastName\":\"Губарева\",\"name\":\"Дарья\",\"middleName\":\"Яковлевна\",\"birthDate\":\"1888\",\"birthPlace\":\"Россия, г Томск\"}"
       }
     }
   },
@@ -8212,7 +7753,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -8300,23 +7841,11 @@
             }
           }
         ],
-        "errors": []
-      },
-      "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
-        "status": "no_matches",
-        "source": "pamyatNaroda",
-        "sourceLabel": "Память народа",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Губарева\",\"name\":\"Анна\",\"middleName\":\"Яковлевна\",\"birthDate\":\"1905\",\"birthPlace\":\"с. Ново-Покровское, г. Томск\"}"
       },
       "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
+        "searchedAt": "2026-06-02T19:01:33.538Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -8326,20 +7855,8 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
-      },
-      "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
-        "status": "no_matches",
-        "source": "gwar",
-        "sourceLabel": "Герои великой войны",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"openList\",\"lastName\":\"Губарева\",\"name\":\"Анна\",\"middleName\":\"Яковлевна\",\"birthDate\":\"1905\",\"birthPlace\":\"с. Ново-Покровское, г. Томск\"}"
       }
     }
   },
@@ -8453,7 +7970,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -8545,23 +8062,11 @@
             }
           }
         ],
-        "errors": []
-      },
-      "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
-        "status": "no_matches",
-        "source": "pamyatNaroda",
-        "sourceLabel": "Память народа",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Губарев\",\"name\":\"Михаил\",\"middleName\":\"Яковлевич\",\"birthDate\":\"1890\",\"birthPlace\":\"Россия, г Томск\"}"
       },
       "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
+        "searchedAt": "2026-06-02T19:01:33.538Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -8571,10 +8076,11 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"openList\",\"lastName\":\"Губарев\",\"name\":\"Михаил\",\"middleName\":\"Яковлевич\",\"birthDate\":\"1890\",\"birthPlace\":\"Россия, г Томск\"}"
       },
       "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
+        "searchedAt": "2026-06-02T19:01:45.018Z",
         "status": "no_matches",
         "source": "gwar",
         "sourceLabel": "Герои великой войны",
@@ -8584,7 +8090,8 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"gwar\",\"lastName\":\"Губарев\",\"name\":\"Михаил\",\"middleName\":\"Яковлевич\",\"birthDate\":\"1890\",\"birthPlace\":\"Россия, г Томск\"}"
       }
     }
   },
@@ -8711,7 +8218,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -8843,23 +8350,11 @@
             }
           }
         ],
-        "errors": []
-      },
-      "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
-        "status": "no_matches",
-        "source": "pamyatNaroda",
-        "sourceLabel": "Память народа",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Губарев\",\"name\":\"Петр\",\"middleName\":\"Михайлович\",\"birthDate\":\"1913-12-27\",\"birthPlace\":\"с. Ново-Покровское, г. Томск\"}"
       },
       "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
+        "searchedAt": "2026-06-02T19:01:33.538Z",
         "status": "matches_found",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -8914,24 +8409,12 @@
                 "score": 71.3793103448276
               }
             ],
-            "searchedAt": "2026-05-21T18:58:31+00:00",
+            "searchedAt": "2026-06-02T19:01:24+00:00",
             "tlsFallbackUsed": true
           }
         ],
-        "errors": []
-      },
-      "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
-        "status": "no_matches",
-        "source": "gwar",
-        "sourceLabel": "Герои великой войны",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"openList\",\"lastName\":\"Губарев\",\"name\":\"Петр\",\"middleName\":\"Михайлович\",\"birthDate\":\"1913-12-27\",\"birthPlace\":\"с. Ново-Покровское, г. Томск\"}"
       }
     }
   },
@@ -8982,7 +8465,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -9114,23 +8597,11 @@
             }
           }
         ],
-        "errors": []
-      },
-      "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
-        "status": "no_matches",
-        "source": "pamyatNaroda",
-        "sourceLabel": "Память народа",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Губарев\",\"name\":\"Василий\",\"middleName\":\"Михайлович\",\"birthDate\":\"1920\",\"birthPlace\":\"Казахстан, г. Семипалатинск\"}"
       },
       "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
+        "searchedAt": "2026-06-02T19:01:33.538Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -9140,20 +8611,8 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
-      },
-      "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
-        "status": "no_matches",
-        "source": "gwar",
-        "sourceLabel": "Герои великой войны",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"openList\",\"lastName\":\"Губарев\",\"name\":\"Василий\",\"middleName\":\"Михайлович\",\"birthDate\":\"1920\",\"birthPlace\":\"Казахстан, г. Семипалатинск\"}"
       }
     }
   },
@@ -9204,7 +8663,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -9336,23 +8795,11 @@
             }
           }
         ],
-        "errors": []
-      },
-      "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
-        "status": "no_matches",
-        "source": "pamyatNaroda",
-        "sourceLabel": "Память народа",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Губарев\",\"name\":\"Александр\",\"middleName\":\"Михайлович\",\"birthDate\":\"1924\",\"birthPlace\":\"Казахстан, г. Семипалатинск\"}"
       },
       "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
+        "searchedAt": "2026-06-02T19:01:33.538Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -9362,20 +8809,8 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
-      },
-      "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
-        "status": "no_matches",
-        "source": "gwar",
-        "sourceLabel": "Герои великой войны",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"openList\",\"lastName\":\"Губарев\",\"name\":\"Александр\",\"middleName\":\"Михайлович\",\"birthDate\":\"1924\",\"birthPlace\":\"Казахстан, г. Семипалатинск\"}"
       }
     }
   },
@@ -9652,7 +9087,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -9744,10 +9179,11 @@
             }
           }
         ],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Середа\",\"name\":\"Архип\",\"middleName\":\"Гавриилович\",\"birthDate\":\"1867\",\"birthPlace\":\"Новосёловская волость Новомосковский уезд Екатеринославская губерния\"}"
       },
       "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
+        "searchedAt": "2026-06-02T19:01:15.922Z",
         "status": "no_matches",
         "source": "pamyatNaroda",
         "sourceLabel": "Память народа",
@@ -9757,10 +9193,11 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"pamyatNaroda\",\"lastName\":\"Середа\",\"name\":\"Архип\",\"middleName\":\"Гавриилович\",\"birthDate\":\"1867\",\"birthPlace\":\"Новосёловская волость Новомосковский уезд Екатеринославская губерния\"}"
       },
       "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
+        "searchedAt": "2026-06-02T19:01:33.538Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -9770,10 +9207,11 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"openList\",\"lastName\":\"Середа\",\"name\":\"Архип\",\"middleName\":\"Гавриилович\",\"birthDate\":\"1867\",\"birthPlace\":\"Новосёловская волость Новомосковский уезд Екатеринославская губерния\"}"
       },
       "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
+        "searchedAt": "2026-06-02T19:01:45.018Z",
         "status": "no_matches",
         "source": "gwar",
         "sourceLabel": "Герои великой войны",
@@ -9783,7 +9221,8 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"gwar\",\"lastName\":\"Середа\",\"name\":\"Архип\",\"middleName\":\"Гавриилович\",\"birthDate\":\"1867\",\"birthPlace\":\"Новосёловская волость Новомосковский уезд Екатеринославская губерния\"}"
       }
     }
   },
@@ -9942,7 +9381,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -10032,10 +9471,11 @@
             }
           }
         ],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Середа\",\"name\":\"Меркурий\",\"middleName\":\"Гаврилович\",\"birthDate\":\"1870\",\"birthPlace\":\"Новосёловская волость Новомосковский уезд Екатеринославская губерния\"}"
       },
       "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
+        "searchedAt": "2026-06-02T19:01:15.922Z",
         "status": "no_matches",
         "source": "pamyatNaroda",
         "sourceLabel": "Память народа",
@@ -10045,10 +9485,11 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"pamyatNaroda\",\"lastName\":\"Середа\",\"name\":\"Меркурий\",\"middleName\":\"Гаврилович\",\"birthDate\":\"1870\",\"birthPlace\":\"Новосёловская волость Новомосковский уезд Екатеринославская губерния\"}"
       },
       "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
+        "searchedAt": "2026-06-02T19:01:33.538Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -10058,10 +9499,11 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"openList\",\"lastName\":\"Середа\",\"name\":\"Меркурий\",\"middleName\":\"Гаврилович\",\"birthDate\":\"1870\",\"birthPlace\":\"Новосёловская волость Новомосковский уезд Екатеринославская губерния\"}"
       },
       "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
+        "searchedAt": "2026-06-02T19:01:45.018Z",
         "status": "no_matches",
         "source": "gwar",
         "sourceLabel": "Герои великой войны",
@@ -10071,7 +9513,8 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"gwar\",\"lastName\":\"Середа\",\"name\":\"Меркурий\",\"middleName\":\"Гаврилович\",\"birthDate\":\"1870\",\"birthPlace\":\"Новосёловская волость Новомосковский уезд Екатеринославская губерния\"}"
       }
     }
   },
@@ -10184,7 +9627,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -10272,10 +9715,11 @@
             }
           }
         ],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Середа\",\"name\":\"Филипп\",\"middleName\":\"Гавриилович\",\"birthDate\":\"1872\",\"birthPlace\":\"Новосёловская волость Новомосковский уезд Екатеринославская губерния\"}"
       },
       "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
+        "searchedAt": "2026-06-02T19:01:15.922Z",
         "status": "no_matches",
         "source": "pamyatNaroda",
         "sourceLabel": "Память народа",
@@ -10285,10 +9729,11 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"pamyatNaroda\",\"lastName\":\"Середа\",\"name\":\"Филипп\",\"middleName\":\"Гавриилович\",\"birthDate\":\"1872\",\"birthPlace\":\"Новосёловская волость Новомосковский уезд Екатеринославская губерния\"}"
       },
       "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
+        "searchedAt": "2026-06-02T19:01:33.538Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -10298,10 +9743,11 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"openList\",\"lastName\":\"Середа\",\"name\":\"Филипп\",\"middleName\":\"Гавриилович\",\"birthDate\":\"1872\",\"birthPlace\":\"Новосёловская волость Новомосковский уезд Екатеринославская губерния\"}"
       },
       "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
+        "searchedAt": "2026-06-02T19:01:45.018Z",
         "status": "no_matches",
         "source": "gwar",
         "sourceLabel": "Герои великой войны",
@@ -10311,7 +9757,8 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"gwar\",\"lastName\":\"Середа\",\"name\":\"Филипп\",\"middleName\":\"Гавриилович\",\"birthDate\":\"1872\",\"birthPlace\":\"Новосёловская волость Новомосковский уезд Екатеринославская губерния\"}"
       }
     }
   },
@@ -10408,7 +9855,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -10500,11 +9947,12 @@
             }
           }
         ],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Середа\",\"name\":\"Афанасий\",\"middleName\":\"Гаврилович\",\"birthDate\":\"1874\",\"birthPlace\":\"Новосёловская волость Новомосковский уезд Екатеринославская губерния\"}"
       },
       "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
-        "status": "no_matches",
+        "searchedAt": "2026-06-02T19:01:15.922Z",
+        "status": "matches_found",
         "source": "pamyatNaroda",
         "sourceLabel": "Память народа",
         "searchCriteria": {
@@ -10512,11 +9960,56 @@
           "birthDate": true,
           "birthPlace": true
         },
-        "matches": [],
-        "errors": []
+        "matches": [
+          {
+            "data_id": "69ec828e53f521f572bd64fb",
+            "source": "pamyatNaroda",
+            "sourceLabel": "Память народа",
+            "score": 74.04,
+            "person": {
+              "lastName": "Середа",
+              "name": "Афанасий",
+              "middleName": "Гаврилович",
+              "birthDate": "1904",
+              "birthPlace": "Курская обл., Глушковский р-н, с. Теткино",
+              "information": "Рядовой, 1904, Курская обл., Глушковский р-н, с. Теткино"
+            },
+            "records": [
+              {
+                "source": "pamyatNaroda",
+                "sourceLabel": "Память народа",
+                "title": "Середа Афанасий Гаврилович",
+                "lastName": "Середа",
+                "name": "Афанасий",
+                "middleName": "Гаврилович",
+                "birthDate": "1904",
+                "birthPlace": "Курская обл., Глушковский р-н, с. Теткино",
+                "information": "Рядовой, 1904, Курская обл., Глушковский р-н, с. Теткино",
+                "score": 74.04,
+                "url": "https://pamyat-naroda.ru/heroes/person-hero31378285/"
+              },
+              {
+                "source": "pamyatNaroda",
+                "sourceLabel": "Память народа",
+                "title": "Середа Афанасий Гаврилович",
+                "lastName": "Середа",
+                "name": "Афанасий",
+                "middleName": "Гаврилович",
+                "birthDate": "1904",
+                "birthPlace": "Курская обл., Кущевский р-н, с. Теткино",
+                "information": "Красноармеец, 1904, Курская обл., Кущевский р-н, с. Теткино, Место службы: Глушковский РВК, Курская обл., Глушковский р-н, 25 овждб",
+                "score": 73.93,
+                "url": "https://pamyat-naroda.ru/heroes/person-hero120148194/"
+              }
+            ],
+            "searchedAt": "2026-06-02T19:01:11+00:00"
+          }
+        ],
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"pamyatNaroda\",\"lastName\":\"Середа\",\"name\":\"Афанасий\",\"middleName\":\"Гаврилович\",\"birthDate\":\"1874\",\"birthPlace\":\"Новосёловская волость Новомосковский уезд Екатеринославская губерния\"}"
       },
       "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
+        "searchedAt": "2026-06-02T19:01:33.538Z",
         "status": "matches_found",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -10551,14 +10044,15 @@
                 "score": 91.1881188118812
               }
             ],
-            "searchedAt": "2026-05-21T18:58:35+00:00",
+            "searchedAt": "2026-06-02T19:01:26+00:00",
             "tlsFallbackUsed": true
           }
         ],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"openList\",\"lastName\":\"Середа\",\"name\":\"Афанасий\",\"middleName\":\"Гаврилович\",\"birthDate\":\"1874\",\"birthPlace\":\"Новосёловская волость Новомосковский уезд Екатеринославская губерния\"}"
       },
       "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
+        "searchedAt": "2026-06-02T19:01:45.018Z",
         "status": "no_matches",
         "source": "gwar",
         "sourceLabel": "Герои великой войны",
@@ -10568,7 +10062,8 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"gwar\",\"lastName\":\"Середа\",\"name\":\"Афанасий\",\"middleName\":\"Гаврилович\",\"birthDate\":\"1874\",\"birthPlace\":\"Новосёловская волость Новомосковский уезд Екатеринославская губерния\"}"
       }
     }
   },
@@ -10665,7 +10160,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -10757,10 +10252,11 @@
             }
           }
         ],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Середа\",\"name\":\"Прокопий\",\"middleName\":\"Гаврилович\",\"birthDate\":\"1878\",\"birthPlace\":\"Новосёловская волость Новомосковский уезд Екатеринославская губерния\"}"
       },
       "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
+        "searchedAt": "2026-06-02T19:01:15.922Z",
         "status": "no_matches",
         "source": "pamyatNaroda",
         "sourceLabel": "Память народа",
@@ -10770,10 +10266,11 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"pamyatNaroda\",\"lastName\":\"Середа\",\"name\":\"Прокопий\",\"middleName\":\"Гаврилович\",\"birthDate\":\"1878\",\"birthPlace\":\"Новосёловская волость Новомосковский уезд Екатеринославская губерния\"}"
       },
       "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
+        "searchedAt": "2026-06-02T19:01:33.538Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -10783,10 +10280,11 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"openList\",\"lastName\":\"Середа\",\"name\":\"Прокопий\",\"middleName\":\"Гаврилович\",\"birthDate\":\"1878\",\"birthPlace\":\"Новосёловская волость Новомосковский уезд Екатеринославская губерния\"}"
       },
       "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
+        "searchedAt": "2026-06-02T19:01:45.018Z",
         "status": "no_matches",
         "source": "gwar",
         "sourceLabel": "Герои великой войны",
@@ -10796,7 +10294,8 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"gwar\",\"lastName\":\"Середа\",\"name\":\"Прокопий\",\"middleName\":\"Гаврилович\",\"birthDate\":\"1878\",\"birthPlace\":\"Новосёловская волость Новомосковский уезд Екатеринославская губерния\"}"
       }
     }
   },
@@ -11020,7 +10519,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -11152,23 +10651,11 @@
             }
           }
         ],
-        "errors": []
-      },
-      "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
-        "status": "no_matches",
-        "source": "pamyatNaroda",
-        "sourceLabel": "Память народа",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Середа\",\"name\":\"Григорий\",\"middleName\":\"Прокопьевич\",\"birthDate\":\"1914-11-23\",\"birthPlace\":\"Томская губерния, Каинский уезд, село Николаевка\"}"
       },
       "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
+        "searchedAt": "2026-06-02T19:01:33.538Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -11178,20 +10665,8 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
-      },
-      "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
-        "status": "no_matches",
-        "source": "gwar",
-        "sourceLabel": "Герои великой войны",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"openList\",\"lastName\":\"Середа\",\"name\":\"Григорий\",\"middleName\":\"Прокопьевич\",\"birthDate\":\"1914-11-23\",\"birthPlace\":\"Томская губерния, Каинский уезд, село Николаевка\"}"
       }
     }
   },
@@ -11242,7 +10717,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -11374,23 +10849,11 @@
             }
           }
         ],
-        "errors": []
-      },
-      "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
-        "status": "no_matches",
-        "source": "pamyatNaroda",
-        "sourceLabel": "Память народа",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Середа\",\"name\":\"Сергей\",\"middleName\":\"Прокопьевич\",\"birthDate\":\"1916-09-22\",\"birthPlace\":\"Томская губерния, Каинский уезд, село Николаевка\"}"
       },
       "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
+        "searchedAt": "2026-06-02T19:01:33.538Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -11400,20 +10863,8 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
-      },
-      "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
-        "status": "no_matches",
-        "source": "gwar",
-        "sourceLabel": "Герои великой войны",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"openList\",\"lastName\":\"Середа\",\"name\":\"Сергей\",\"middleName\":\"Прокопьевич\",\"birthDate\":\"1916-09-22\",\"birthPlace\":\"Томская губерния, Каинский уезд, село Николаевка\"}"
       }
     }
   },
@@ -11464,7 +10915,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -11596,23 +11047,11 @@
             }
           }
         ],
-        "errors": []
-      },
-      "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
-        "status": "no_matches",
-        "source": "pamyatNaroda",
-        "sourceLabel": "Память народа",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Середа\",\"name\":\"Матрона\",\"middleName\":\"Прокопьевна\",\"birthDate\":\"1918\",\"birthPlace\":\"Томская губерния, Каинский уезд, село Николаевка\"}"
       },
       "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
+        "searchedAt": "2026-06-02T19:01:33.538Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -11622,20 +11061,8 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
-      },
-      "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
-        "status": "no_matches",
-        "source": "gwar",
-        "sourceLabel": "Герои великой войны",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"openList\",\"lastName\":\"Середа\",\"name\":\"Матрона\",\"middleName\":\"Прокопьевна\",\"birthDate\":\"1918\",\"birthPlace\":\"Томская губерния, Каинский уезд, село Николаевка\"}"
       }
     }
   },
@@ -11686,7 +11113,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -11818,23 +11245,11 @@
             }
           }
         ],
-        "errors": []
-      },
-      "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
-        "status": "no_matches",
-        "source": "pamyatNaroda",
-        "sourceLabel": "Память народа",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Середа\",\"name\":\"Александра\",\"middleName\":\"Афанасьевна\",\"birthDate\":\"1914-04-06\",\"birthPlace\":\"Томская губерния, Каинский уезд, село Николаевка\"}"
       },
       "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
+        "searchedAt": "2026-06-02T19:01:33.538Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -11844,20 +11259,8 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
-      },
-      "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
-        "status": "no_matches",
-        "source": "gwar",
-        "sourceLabel": "Герои великой войны",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"openList\",\"lastName\":\"Середа\",\"name\":\"Александра\",\"middleName\":\"Афанасьевна\",\"birthDate\":\"1914-04-06\",\"birthPlace\":\"Томская губерния, Каинский уезд, село Николаевка\"}"
       }
     }
   },
@@ -11908,7 +11311,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -12040,23 +11443,11 @@
             }
           }
         ],
-        "errors": []
-      },
-      "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
-        "status": "no_matches",
-        "source": "pamyatNaroda",
-        "sourceLabel": "Память народа",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Середа\",\"name\":\"Иоанн\",\"middleName\":\"Афанасьевич\",\"birthDate\":\"1916-01-03\",\"birthPlace\":\"Томская губерния, Каинский уезд, село Николаевка\"}"
       },
       "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
+        "searchedAt": "2026-06-02T19:01:33.538Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -12066,20 +11457,8 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
-      },
-      "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
-        "status": "no_matches",
-        "source": "gwar",
-        "sourceLabel": "Герои великой войны",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"openList\",\"lastName\":\"Середа\",\"name\":\"Иоанн\",\"middleName\":\"Афанасьевич\",\"birthDate\":\"1916-01-03\",\"birthPlace\":\"Томская губерния, Каинский уезд, село Николаевка\"}"
       }
     }
   },
@@ -12130,7 +11509,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -12262,23 +11641,11 @@
             }
           }
         ],
-        "errors": []
-      },
-      "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
-        "status": "no_matches",
-        "source": "pamyatNaroda",
-        "sourceLabel": "Память народа",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Середа\",\"name\":\"Александра\",\"middleName\":\"Афанасьевна\",\"birthDate\":\"1918-03-23\",\"birthPlace\":\"Томская губерния, Каинский уезд, село Николаевка\"}"
       },
       "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
+        "searchedAt": "2026-06-02T19:01:33.538Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -12288,20 +11655,8 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
-      },
-      "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
-        "status": "no_matches",
-        "source": "gwar",
-        "sourceLabel": "Герои великой войны",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"openList\",\"lastName\":\"Середа\",\"name\":\"Александра\",\"middleName\":\"Афанасьевна\",\"birthDate\":\"1918-03-23\",\"birthPlace\":\"Томская губерния, Каинский уезд, село Николаевка\"}"
       }
     }
   },
@@ -12352,7 +11707,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -12484,23 +11839,11 @@
             }
           }
         ],
-        "errors": []
-      },
-      "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
-        "status": "no_matches",
-        "source": "pamyatNaroda",
-        "sourceLabel": "Память народа",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Середа\",\"name\":\"Федор\",\"middleName\":\"Архипович\",\"birthDate\":\"1890\",\"birthPlace\":\"Екатеринославская губерния, Новомосковский уезд, Новосёловская волость\"}"
       },
       "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
+        "searchedAt": "2026-06-02T19:01:33.538Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -12510,10 +11853,11 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"openList\",\"lastName\":\"Середа\",\"name\":\"Федор\",\"middleName\":\"Архипович\",\"birthDate\":\"1890\",\"birthPlace\":\"Екатеринославская губерния, Новомосковский уезд, Новосёловская волость\"}"
       },
       "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
+        "searchedAt": "2026-06-02T19:01:45.018Z",
         "status": "no_matches",
         "source": "gwar",
         "sourceLabel": "Герои великой войны",
@@ -12523,7 +11867,8 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"gwar\",\"lastName\":\"Середа\",\"name\":\"Федор\",\"middleName\":\"Архипович\",\"birthDate\":\"1890\",\"birthPlace\":\"Екатеринославская губерния, Новомосковский уезд, Новосёловская волость\"}"
       }
     }
   },
@@ -12608,7 +11953,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -12742,23 +12087,11 @@
             }
           }
         ],
-        "errors": []
-      },
-      "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
-        "status": "no_matches",
-        "source": "pamyatNaroda",
-        "sourceLabel": "Память народа",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Середа\",\"name\":\"Филипп\",\"middleName\":\"Архипович\",\"birthDate\":\"1893\",\"birthPlace\":\"Екатеринославская губерния, Новомосковский уезд, Новосёловская волость\"}"
       },
       "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
+        "searchedAt": "2026-06-02T19:01:33.538Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -12768,10 +12101,11 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"openList\",\"lastName\":\"Середа\",\"name\":\"Филипп\",\"middleName\":\"Архипович\",\"birthDate\":\"1893\",\"birthPlace\":\"Екатеринославская губерния, Новомосковский уезд, Новосёловская волость\"}"
       },
       "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
+        "searchedAt": "2026-06-02T19:01:45.018Z",
         "status": "no_matches",
         "source": "gwar",
         "sourceLabel": "Герои великой войны",
@@ -12781,7 +12115,8 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"gwar\",\"lastName\":\"Середа\",\"name\":\"Филипп\",\"middleName\":\"Архипович\",\"birthDate\":\"1893\",\"birthPlace\":\"Екатеринославская губерния, Новомосковский уезд, Новосёловская волость\"}"
       }
     }
   },
@@ -12839,7 +12174,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -12971,23 +12306,11 @@
             }
           }
         ],
-        "errors": []
-      },
-      "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
-        "status": "no_matches",
-        "source": "pamyatNaroda",
-        "sourceLabel": "Память народа",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Середа\",\"name\":\"Павел\",\"middleName\":\"Архипович\",\"birthDate\":\"1904\",\"birthPlace\":\"Томская губерния, Каинский уезд, село Николаевка\"}"
       },
       "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
+        "searchedAt": "2026-06-02T19:01:33.538Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -12997,20 +12320,8 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
-      },
-      "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
-        "status": "no_matches",
-        "source": "gwar",
-        "sourceLabel": "Герои великой войны",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"openList\",\"lastName\":\"Середа\",\"name\":\"Павел\",\"middleName\":\"Архипович\",\"birthDate\":\"1904\",\"birthPlace\":\"Томская губерния, Каинский уезд, село Николаевка\"}"
       }
     }
   },
@@ -13123,7 +12434,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -13295,23 +12606,11 @@
             }
           }
         ],
-        "errors": []
-      },
-      "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
-        "status": "no_matches",
-        "source": "pamyatNaroda",
-        "sourceLabel": "Память народа",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Середа\",\"name\":\"Виктор\",\"middleName\":\"Филиппович\",\"birthDate\":\"1917-05-14\",\"birthPlace\":\"Томская губерния, Каинский уезд, село Николаевка\"}"
       },
       "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
+        "searchedAt": "2026-06-02T19:01:33.538Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -13321,20 +12620,8 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
-      },
-      "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
-        "status": "no_matches",
-        "source": "gwar",
-        "sourceLabel": "Герои великой войны",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"openList\",\"lastName\":\"Середа\",\"name\":\"Виктор\",\"middleName\":\"Филиппович\",\"birthDate\":\"1917-05-14\",\"birthPlace\":\"Томская губерния, Каинский уезд, село Николаевка\"}"
       }
     }
   },
@@ -13419,7 +12706,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -13549,23 +12836,11 @@
             }
           }
         ],
-        "errors": []
-      },
-      "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
-        "status": "no_matches",
-        "source": "pamyatNaroda",
-        "sourceLabel": "Память народа",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Середа\",\"name\":\"Трофим\",\"middleName\":\"Меркурьевич\",\"birthDate\":\"1895\",\"birthPlace\":\"Новосёловская волость Новомосковский уезд Екатеринославская губерния\"}"
       },
       "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
+        "searchedAt": "2026-06-02T19:01:33.538Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -13575,10 +12850,11 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"openList\",\"lastName\":\"Середа\",\"name\":\"Трофим\",\"middleName\":\"Меркурьевич\",\"birthDate\":\"1895\",\"birthPlace\":\"Новосёловская волость Новомосковский уезд Екатеринославская губерния\"}"
       },
       "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
+        "searchedAt": "2026-06-02T19:01:45.018Z",
         "status": "no_matches",
         "source": "gwar",
         "sourceLabel": "Герои великой войны",
@@ -13588,7 +12864,8 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"gwar\",\"lastName\":\"Середа\",\"name\":\"Трофим\",\"middleName\":\"Меркурьевич\",\"birthDate\":\"1895\",\"birthPlace\":\"Новосёловская волость Новомосковский уезд Екатеринославская губерния\"}"
       }
     }
   },
@@ -13708,7 +12985,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "userTrees": {
-        "searchedAt": "2026-05-21T18:56:26.845Z",
+        "searchedAt": "2026-06-02T19:00:33.099Z",
         "status": "matches_found",
         "source": "userTrees",
         "sourceLabel": "Деревья других пользователей",
@@ -13876,23 +13153,11 @@
             }
           }
         ],
-        "errors": []
-      },
-      "pamyatNaroda": {
-        "searchedAt": "2026-05-21T18:58:26.867Z",
-        "status": "no_matches",
-        "source": "pamyatNaroda",
-        "sourceLabel": "Память народа",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"userTrees\",\"lastName\":\"Середа\",\"name\":\"Михаил\",\"middleName\":\"Трофимович\",\"birthDate\":\"1924\",\"birthPlace\":\"Томская губерния, Каинский уезд, село Николаевка\"}"
       },
       "openList": {
-        "searchedAt": "2026-05-21T18:58:42.583Z",
+        "searchedAt": "2026-06-02T19:01:33.538Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -13902,20 +13167,8 @@
           "birthPlace": true
         },
         "matches": [],
-        "errors": []
-      },
-      "gwar": {
-        "searchedAt": "2026-05-21T18:59:05.625Z",
-        "status": "no_matches",
-        "source": "gwar",
-        "sourceLabel": "Герои великой войны",
-        "searchCriteria": {
-          "fullName": true,
-          "birthDate": true,
-          "birthPlace": true
-        },
-        "matches": [],
-        "errors": []
+        "errors": [],
+        "autoSearchSignature": "{\"sourceKey\":\"openList\",\"lastName\":\"Середа\",\"name\":\"Михаил\",\"middleName\":\"Трофимович\",\"birthDate\":\"1924\",\"birthPlace\":\"Томская губерния, Каинский уезд, село Николаевка\"}"
       }
     }
   }

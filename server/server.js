@@ -89,6 +89,79 @@ const DEFAULT_SMART_SEARCH_CRITERIA = {
   birthDate: true,
   birthPlace: true
 };
+const AUTO_SMART_SEARCH_CRITERIA = {
+  fullName: true,
+  birthDate: true,
+  birthPlace: true
+};
+
+const hasValue = (value) => Boolean(String(value || '').trim());
+const extractBirthYear = (birthDate = '') => {
+  const match = String(birthDate).match(/^\s*(\d{4})/);
+  return match ? Number(match[1]) : null;
+};
+const isYearInRange = (year, leftBound, rightBound) => {
+  if (!Number.isFinite(year)) return false;
+  const min = Math.min(leftBound, rightBound);
+  const max = Math.max(leftBound, rightBound);
+  return year >= min && year <= max;
+};
+
+const AUTO_SOURCE_REQUIREMENTS = {
+  [USER_TREES_SOURCE_KEY]: {
+    key: USER_TREES_SOURCE_KEY,
+    hasRequiredFields: (person) => (
+      hasValue(person?.lastName)
+      && hasValue(person?.name)
+      && hasValue(person?.middleName)
+      && hasValue(person?.birthDate)
+      && hasValue(person?.birthPlace)
+    )
+  },
+  [PAMYAT_SOURCE_KEY]: {
+    key: PAMYAT_SOURCE_KEY,
+    hasRequiredFields: (person) => (
+      hasValue(person?.lastName)
+      && hasValue(person?.name)
+      && hasValue(person?.middleName)
+      && hasValue(person?.birthDate)
+      && hasValue(person?.birthPlace)
+      && isYearInRange(extractBirthYear(person?.birthDate), 1880, 1820)
+    )
+  },
+  [OPENLIST_SOURCE_KEY]: {
+    key: OPENLIST_SOURCE_KEY,
+    hasRequiredFields: (person) => (
+      hasValue(person?.lastName)
+      && hasValue(person?.name)
+      && hasValue(person?.birthDate)
+      && hasValue(person?.birthPlace)
+      && isYearInRange(extractBirthYear(person?.birthDate), 1850, 1975)
+    )
+  },
+  [GWAR_SOURCE_KEY]: {
+    key: GWAR_SOURCE_KEY,
+    hasRequiredFields: (person) => (
+      hasValue(person?.lastName)
+      && hasValue(person?.name)
+      && hasValue(person?.birthDate)
+      && hasValue(person?.birthPlace)
+      && isYearInRange(extractBirthYear(person?.birthDate), 1850, 1900)
+    )
+  }
+};
+
+const buildAutoSearchSignature = (person = {}, sourceKey) => {
+  const signaturePayload = {
+    sourceKey,
+    lastName: person.lastName || '',
+    name: person.name || '',
+    middleName: person.middleName || '',
+    birthDate: person.birthDate || '',
+    birthPlace: person.birthPlace || ''
+  };
+  return JSON.stringify(signaturePayload);
+};
 
 const normalizeSearchCriteria = (rawCriteria = {}) => ({
   fullName: rawCriteria?.fullName !== false,
@@ -666,7 +739,7 @@ app.get('/api/people/:id', (req, res) => {
 });
 
 // Create new person
-app.post('/api/people', (req, res) => {
+app.post('/api/people', async (req, res) => {
   const state = readDatabaseState();
   const people = { ...state.people };
   const newPerson = {
@@ -689,6 +762,12 @@ app.post('/api/people', (req, res) => {
 
   people[newPerson.id] = newPerson;
 
+  await runSmartMatchingForPeople({
+    people,
+    personIds: [newPerson.id],
+    searchCriteria: AUTO_SMART_SEARCH_CRITERIA
+  });
+
   if (writeCurrentPeople(people)) {
     res.status(201).json(newPerson);
   } else {
@@ -697,7 +776,7 @@ app.post('/api/people', (req, res) => {
 });
 
 // Update person
-app.put('/api/people/:id', (req, res) => {
+app.put('/api/people/:id', async (req, res) => {
   const state = readDatabaseState();
   const people = { ...state.people };
   const person = people[req.params.id];
@@ -714,6 +793,12 @@ app.put('/api/people/:id', (req, res) => {
   };
   
   people[req.params.id] = updatedPerson;
+
+  await runSmartMatchingForPeople({
+    people,
+    personIds: [updatedPerson.id],
+    searchCriteria: AUTO_SMART_SEARCH_CRITERIA
+  });
 
   if (writeCurrentPeople(people)) {
     res.json(updatedPerson);
@@ -765,7 +850,7 @@ app.delete('/api/people/:id', (req, res) => {
 });
 
 // Add relative to a person
-app.post('/api/people/:id/relative', (req, res) => {
+app.post('/api/people/:id/relative', async (req, res) => {
   const state = readDatabaseState();
   const people = { ...state.people };
   const personId = req.params.id;
@@ -880,6 +965,12 @@ app.post('/api/people/:id/relative', (req, res) => {
   people[newRelativeId] = newRelative;
   people[personId] = person;
 
+  await runSmartMatchingForPeople({
+    people,
+    personIds: [personId, newRelativeId],
+    searchCriteria: AUTO_SMART_SEARCH_CRITERIA
+  });
+
   if (writeCurrentPeople(people)) {
     res.status(201).json({ person, newRelative });
   } else {
@@ -982,6 +1073,158 @@ const USER_TREES_SOURCE = {
   enabledByDefault: true
 };
 
+const shouldRunSourceForPerson = (person, sourceKey) => {
+  const requirement = AUTO_SOURCE_REQUIREMENTS[sourceKey];
+  if (!requirement) return false;
+  return requirement.hasRequiredFields(person);
+};
+
+const runSmartMatchingForPeople = async ({ people, personIds, searchCriteria = AUTO_SMART_SEARCH_CRITERIA }) => {
+  const normalizedPersonIds = normalizePersonIds(personIds, people);
+  if (!normalizedPersonIds.length) {
+    return { people, processedPersonIds: [] };
+  }
+
+  let treeParserResult = {
+    matches: [],
+    errors: [],
+    matchedDataIds: [],
+    processedPersonIds: normalizedPersonIds
+  };
+
+  const treePersonIds = normalizedPersonIds.filter((personId) => (
+    shouldRunSourceForPerson(people[personId], USER_TREES_SOURCE_KEY)
+  ));
+  if (treePersonIds.length > 0) {
+    treeParserResult = await runTreeMatchingParser({
+      people,
+      personIds: treePersonIds,
+      searchCriteria
+    });
+  }
+
+  const treeMatchesByPersonId = {};
+  (treeParserResult.matches || []).forEach((match) => {
+    const personId = String(match.data_id);
+    if (!treeMatchesByPersonId[personId]) treeMatchesByPersonId[personId] = [];
+    treeMatchesByPersonId[personId].push(match);
+  });
+
+  normalizedPersonIds.forEach((personId) => {
+    const person = people[personId];
+    if (!person) return;
+    person.sourceSearchCache = person.sourceSearchCache || {};
+    if (!treePersonIds.includes(personId)) {
+      delete person.sourceSearchCache[USER_TREES_SOURCE_KEY];
+      person.hasMatch = calculatePersonHasMatch(person);
+      return;
+    }
+
+    person.sourceSearchCache[USER_TREES_SOURCE_KEY] = sourceCacheEntry({
+      sourceKey: USER_TREES_SOURCE_KEY,
+      sourceLabel: USER_TREES_SOURCE.label,
+      matches: treeMatchesByPersonId[personId] || [],
+      errors: (treeParserResult.errors || []).filter((entry) => String(entry?.person_id) === personId),
+      searchCriteria
+    });
+    person.sourceSearchCache[USER_TREES_SOURCE_KEY].autoSearchSignature = buildAutoSearchSignature(person, USER_TREES_SOURCE_KEY);
+    person.hasMatch = calculatePersonHasMatch(person);
+  });
+
+  for (const source of SUPPORTED_SMART_SOURCES) {
+    const peopleToSearch = [];
+    normalizedPersonIds.forEach((personId) => {
+      const person = people[personId];
+      if (!person) return;
+      person.sourceSearchCache = person.sourceSearchCache || {};
+      if (!shouldRunSourceForPerson(person, source.key)) {
+        delete person.sourceSearchCache[source.key];
+        person.hasMatch = calculatePersonHasMatch(person);
+        return;
+      }
+
+      const sourceCache = person.sourceSearchCache[source.key];
+      const expectedSignature = buildAutoSearchSignature(person, source.key);
+      const hasMatchingCriteria = sourceCache
+        && typeof sourceCache === 'object'
+        && areSearchCriteriaEqual(sourceCache.searchCriteria, searchCriteria);
+      const hasCurrentSignature = sourceCache?.autoSearchSignature === expectedSignature;
+      const hasCache = hasMatchingCriteria && hasCurrentSignature && Array.isArray(sourceCache.matches);
+      if (!hasCache) {
+        peopleToSearch.push(personId);
+      } else {
+        person.hasMatch = calculatePersonHasMatch(person);
+      }
+    });
+
+    let parserResult = buildEmptySourceResult({
+      sourceKey: source.key,
+      sourceLabel: source.label,
+      personIds: peopleToSearch
+    });
+    if (peopleToSearch.length > 0) {
+      parserResult = await source.parser({
+        people,
+        personIds: peopleToSearch,
+        searchCriteria
+      });
+    }
+
+    const matchesByPersonId = {};
+    (parserResult.matches || []).forEach((match) => {
+      const personId = String(match.data_id);
+      if (!matchesByPersonId[personId]) matchesByPersonId[personId] = [];
+      matchesByPersonId[personId].push(match);
+    });
+
+    const errorsByPersonId = {};
+    (parserResult.errors || []).forEach((entry) => {
+      const personId = entry?.person_id ? String(entry.person_id) : null;
+      if (!personId) return;
+      if (!errorsByPersonId[personId]) errorsByPersonId[personId] = [];
+      errorsByPersonId[personId].push(entry);
+    });
+
+    peopleToSearch.forEach((personId) => {
+      const person = people[personId];
+      if (!person) return;
+      const personMatches = matchesByPersonId[personId] || [];
+      const personErrors = errorsByPersonId[personId] || [];
+      person.sourceSearchCache = person.sourceSearchCache || {};
+      person.sourceSearchCache[source.key] = sourceCacheEntry({
+        sourceKey: source.key,
+        sourceLabel: source.label,
+        matches: personMatches,
+        errors: personErrors,
+        searchCriteria
+      });
+      person.sourceSearchCache[source.key].autoSearchSignature = buildAutoSearchSignature(person, source.key);
+      person.hasMatch = calculatePersonHasMatch(person);
+    });
+  }
+
+  return {
+    people,
+    processedPersonIds: normalizedPersonIds
+  };
+};
+
+const isReadyForSmartSearch = (person, searchCriteria = DEFAULT_SMART_SEARCH_CRITERIA) => {
+  const requiresFullName = searchCriteria.fullName !== false;
+  const requiresBirthDate = searchCriteria.birthDate !== false;
+  const requiresBirthPlace = searchCriteria.birthPlace !== false;
+
+  if (!requiresFullName && !requiresBirthDate && !requiresBirthPlace) {
+    return false;
+  }
+
+  return Boolean(
+    (!requiresFullName || (hasValue(person?.lastName) && hasValue(person?.name) && hasValue(person?.middleName))) &&
+    (!requiresBirthDate || hasValue(person?.birthDate)) &&
+    (!requiresBirthPlace || hasValue(person?.birthPlace))
+  );
+};
+
 // Source search endpoint
 app.post('/api/smart-matching', async (req, res) => {
   try {
@@ -991,119 +1234,52 @@ app.post('/api/smart-matching', async (req, res) => {
     const sources = req.body?.sources || {};
     const searchCriteria = normalizeSearchCriteria(req.body?.searchCriteria || DEFAULT_SMART_SEARCH_CRITERIA);
 
-    const isUserTreesEnabled = sources[USER_TREES_SOURCE_KEY] !== false;
-    const enabledSources = SUPPORTED_SMART_SOURCES.filter(
-      source => sources[source.key] !== false
-    );
+    const enabledSourceKeys = new Set([
+      ...(sources[USER_TREES_SOURCE_KEY] !== false ? [USER_TREES_SOURCE_KEY] : []),
+      ...SUPPORTED_SMART_SOURCES
+        .filter(source => sources[source.key] !== false)
+        .map(source => source.key)
+    ]);
 
-    let treeParserResult = {
-      matches: [],
-      errors: [],
-      matchedDataIds: [],
-      processedPersonIds: personIds
+    const applyManualEligibility = (person, sourceKey) => {
+      const requirement = AUTO_SOURCE_REQUIREMENTS[sourceKey];
+      const baseEligible = requirement ? requirement.hasRequiredFields(person) : true;
+      const criteriaEligible = isReadyForSmartSearch(person, searchCriteria);
+      return baseEligible && criteriaEligible;
     };
-    if (isUserTreesEnabled) {
-      treeParserResult = await runTreeMatchingParser({
-        people: data.people,
-        personIds,
-        searchCriteria
+
+    const sourceSpecificPersonIds = {};
+    enabledSourceKeys.forEach((sourceKey) => {
+      sourceSpecificPersonIds[sourceKey] = personIds.filter((personId) => {
+        const person = data.people[personId];
+        return person && applyManualEligibility(person, sourceKey);
       });
-    }
-    const treeMatchesByPersonId = {};
-    (treeParserResult.matches || []).forEach((match) => {
-      const personId = String(match.data_id);
-      if (!treeMatchesByPersonId[personId]) treeMatchesByPersonId[personId] = [];
-      treeMatchesByPersonId[personId].push(match);
+    });
+
+    const idsToProcess = new Set();
+    Object.values(sourceSpecificPersonIds).forEach((ids) => ids.forEach((id) => idsToProcess.add(id)));
+
+    await runSmartMatchingForPeople({
+      people: data.people,
+      personIds: Array.from(idsToProcess),
+      searchCriteria
     });
 
     personIds.forEach((personId) => {
       const person = data.people[personId];
-      if (!person) return;
-      person.sourceSearchCache = person.sourceSearchCache || {};
-      person.sourceSearchCache[USER_TREES_SOURCE_KEY] = sourceCacheEntry({
-        sourceKey: USER_TREES_SOURCE_KEY,
-        sourceLabel: USER_TREES_SOURCE.label,
-        matches: treeMatchesByPersonId[personId] || [],
-        errors: (treeParserResult.errors || []).filter((entry) => String(entry?.person_id) === personId),
-        searchCriteria
+      if (!person || !person.sourceSearchCache) return;
+      Object.keys(person.sourceSearchCache).forEach((sourceKey) => {
+        if (!enabledSourceKeys.has(sourceKey)) {
+          delete person.sourceSearchCache[sourceKey];
+        }
       });
       person.hasMatch = calculatePersonHasMatch(person);
     });
 
-    for (const source of enabledSources) {
-      const peopleToSearch = [];
-      const cachedMatches = [];
-      personIds.forEach((personId) => {
-        const person = data.people[personId];
-        if (!person) return;
-        const sourceCache = person.sourceSearchCache?.[source.key];
-        const hasMatchingCriteria = sourceCache
-          && typeof sourceCache === 'object'
-          && areSearchCriteriaEqual(sourceCache.searchCriteria, searchCriteria);
-        if (hasMatchingCriteria && Array.isArray(sourceCache.matches)) {
-          cachedMatches.push(...sourceCache.matches);
-        } else {
-          peopleToSearch.push(personId);
-        }
-      });
-
-      let parserResult = buildEmptySourceResult({
-        sourceKey: source.key,
-        sourceLabel: source.label,
-        personIds: peopleToSearch
-      });
-      if (peopleToSearch.length > 0) {
-        parserResult = await source.parser({
-          people: data.people,
-          personIds: peopleToSearch,
-          searchCriteria
-        });
-      }
-
-      const matchesByPersonId = {};
-      [...cachedMatches, ...(parserResult.matches || [])].forEach((match) => {
-        const personId = String(match.data_id);
-        if (!matchesByPersonId[personId]) matchesByPersonId[personId] = [];
-        matchesByPersonId[personId].push(match);
-      });
-
-      const errorsByPersonId = {};
-      (parserResult.errors || []).forEach((entry) => {
-        const personId = entry?.person_id ? String(entry.person_id) : null;
-        if (!personId) return;
-        if (!errorsByPersonId[personId]) errorsByPersonId[personId] = [];
-        errorsByPersonId[personId].push(entry);
-      });
-
-      personIds.forEach((personId) => {
-        const person = data.people[personId];
-        if (!person) return;
-        const existingCache = person.sourceSearchCache?.[source.key];
-        const hasMatchingCriteria = existingCache
-          && typeof existingCache === 'object'
-          && areSearchCriteriaEqual(existingCache.searchCriteria, searchCriteria);
-        if (hasMatchingCriteria && Array.isArray(existingCache.matches)) {
-          person.hasMatch = calculatePersonHasMatch(person);
-          return;
-        }
-        const personMatches = matchesByPersonId[personId] || [];
-        const personErrors = errorsByPersonId[personId] || [];
-        person.sourceSearchCache = person.sourceSearchCache || {};
-        person.sourceSearchCache[source.key] = sourceCacheEntry({
-          sourceKey: source.key,
-          sourceLabel: source.label,
-          matches: personMatches,
-          errors: personErrors,
-          searchCriteria
-        });
-        person.hasMatch = calculatePersonHasMatch(person);
-      });
-    }
-
     writeCurrentPeople(data.people);
 
-    const allTreeMatches = isUserTreesEnabled
-      ? personIds.flatMap((personId) => {
+    const allTreeMatches = sourceSpecificPersonIds[USER_TREES_SOURCE_KEY]
+      ? sourceSpecificPersonIds[USER_TREES_SOURCE_KEY].flatMap((personId) => {
         const person = data.people[personId];
         if (!person) return [];
         const cacheEntry = person.sourceSearchCache?.[USER_TREES_SOURCE_KEY];
@@ -1113,10 +1289,12 @@ app.post('/api/smart-matching', async (req, res) => {
     const allSourceMatches = personIds.flatMap((personId) => {
       const person = data.people[personId];
       if (!person) return [];
-      return enabledSources.flatMap((source) => {
-        const cacheEntry = person.sourceSearchCache?.[source.key];
-        return cacheEntry?.matches || [];
-      });
+      return SUPPORTED_SMART_SOURCES
+        .filter((source) => enabledSourceKeys.has(source.key))
+        .flatMap((source) => {
+          const cacheEntry = person.sourceSearchCache?.[source.key];
+          return cacheEntry?.matches || [];
+        });
     });
     const matchedDataIds = [...new Set(
       [...allTreeMatches, ...allSourceMatches].map(match => String(match.data_id))
@@ -1128,8 +1306,10 @@ app.post('/api/smart-matching', async (req, res) => {
       matchedDataIds,
       processedPersonIds: personIds,
       sources: [
-        ...(isUserTreesEnabled ? [{ key: USER_TREES_SOURCE.key, label: USER_TREES_SOURCE.label }] : []),
-        ...enabledSources.map(source => ({ key: source.key, label: source.label }))
+        ...(enabledSourceKeys.has(USER_TREES_SOURCE.key) ? [{ key: USER_TREES_SOURCE.key, label: USER_TREES_SOURCE.label }] : []),
+        ...SUPPORTED_SMART_SOURCES
+          .filter((source) => enabledSourceKeys.has(source.key))
+          .map(source => ({ key: source.key, label: source.label }))
       ],
       searchCriteria
     });
@@ -1289,7 +1469,7 @@ app.post('/api/people/:id/confirm-archive-match', (req, res) => {
   }
 });
 
-app.post('/api/database/upload', (req, res) => {
+app.post('/api/database/upload', async (req, res) => {
   const payload = req.body;
   let entries = [];
 
@@ -1306,9 +1486,22 @@ app.post('/api/database/upload', (req, res) => {
   }
 
   const state = readDatabaseState();
+  const people = { ...state.people };
+  const personIds = Object.keys(people);
+  if (personIds.length > 0) {
+    await runSmartMatchingForPeople({
+      people,
+      personIds,
+      searchCriteria: AUTO_SMART_SEARCH_CRITERIA
+    });
+    if (!writeCurrentPeople(people)) {
+      return res.status(500).json({ error: 'Failed to save auto-search results' });
+    }
+  }
+  const refreshedState = readDatabaseState();
   res.json({
     success: true,
-    people: state.people,
+    people: refreshedState.people,
     records: entries.length
   });
 });
