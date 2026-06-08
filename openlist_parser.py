@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import socket
 import ssl
 import sys
 import urllib.error
@@ -10,6 +11,7 @@ import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
 from difflib import SequenceMatcher
+from html.parser import HTMLParser
 from typing import Any
 
 from parser_runtime import RESULT_BLOCKED, ParserRuntime, RuntimeOptions
@@ -17,6 +19,7 @@ from parser_runtime import RESULT_BLOCKED, ParserRuntime, RuntimeOptions
 
 API_URL = "https://ru.openlist.wiki/api.php"
 ORIGIN = "https://ru.openlist.wiki"
+OL_SEARCH_URL = f"{ORIGIN}/{urllib.parse.quote('Служебная:OlSearch')}"
 REFERER = f"{ORIGIN}/{urllib.parse.quote('Открытый_список:Заглавная_страница')}"
 SOURCE_KEY = "openList"
 SOURCE_LABEL = "Открытый список"
@@ -25,6 +28,7 @@ DEFAULT_USER_AGENT = (
     "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"
 )
 DEFAULT_ACCEPT_LANGUAGE = "ru,en-US;q=0.9,en;q=0.8"
+NETWORK_EXCEPTIONS = (urllib.error.URLError, TimeoutError, socket.timeout)
 
 
 def utc_now() -> str:
@@ -260,6 +264,192 @@ def normalize_opensearch_response(response: Any) -> Any:
     }
 
 
+class OpenListTableHTMLParser(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__()
+        self._inside_table = False
+        self._table_div_depth = 0
+        self._inside_row = False
+        self._inside_cell = False
+        self._current_cell_index = -1
+        self._current_row: dict[str, str] | None = None
+        self._rows: list[dict[str, str]] = []
+        self._capture_link_text = False
+        self._capture_link_href = ""
+
+    @property
+    def rows(self) -> list[dict[str, str]]:
+        return self._rows
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        attrs_dict = dict(attrs)
+        if tag == "div" and attrs_dict.get("id") == "OlSearch-results-table":
+            self._inside_table = True
+            self._table_div_depth = 1
+            return
+        if self._inside_table and tag == "div":
+            self._table_div_depth += 1
+        if not self._inside_table:
+            return
+        if tag == "tr":
+            self._inside_row = True
+            self._current_row = {
+                "title": "",
+                "url": "",
+                "birthDate": "",
+                "birthPlace": "",
+            }
+            self._current_cell_index = -1
+            return
+        if not self._inside_row:
+            return
+        if tag == "td":
+            self._inside_cell = True
+            self._current_cell_index += 1
+            return
+        if tag == "a" and self._inside_cell and self._current_cell_index == 0:
+            self._capture_link_text = True
+            self._capture_link_href = attrs_dict.get("href") or ""
+            if self._current_row is not None and self._capture_link_href:
+                self._current_row["url"] = urllib.parse.urljoin(ORIGIN, self._capture_link_href)
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag == "div" and self._inside_table:
+            self._table_div_depth -= 1
+            if self._table_div_depth <= 0:
+                self._inside_table = False
+                self._table_div_depth = 0
+            return
+        if not self._inside_table:
+            return
+        if tag == "a":
+            self._capture_link_text = False
+            return
+        if tag == "td":
+            self._inside_cell = False
+            return
+        if tag == "tr" and self._inside_row:
+            self._inside_row = False
+            if self._current_row is None:
+                return
+            row = {
+                "title": compact_text(self._current_row.get("title")),
+                "url": compact_text(self._current_row.get("url")),
+                "birthDate": compact_text(self._current_row.get("birthDate")),
+                "birthPlace": compact_text(self._current_row.get("birthPlace")),
+            }
+            if row["title"] or row["url"]:
+                self._rows.append(row)
+            self._current_row = None
+            self._current_cell_index = -1
+
+    def handle_data(self, data: str) -> None:
+        if not self._inside_table or not self._inside_row or self._current_row is None:
+            return
+        text = compact_text(data)
+        if not text:
+            return
+        if self._capture_link_text and self._current_cell_index == 0:
+            self._current_row["title"] = f"{self._current_row.get('title', '')} {text}".strip()
+            return
+        if self._current_cell_index == 1:
+            self._current_row["birthDate"] = f"{self._current_row.get('birthDate', '')} {text}".strip()
+            return
+        if self._current_cell_index == 2:
+            self._current_row["birthPlace"] = f"{self._current_row.get('birthPlace', '')} {text}".strip()
+
+
+def parse_openlist_table_rows(html: str) -> list[dict[str, str]]:
+    parser = OpenListTableHTMLParser()
+    parser.feed(html)
+    parser.close()
+    return parser.rows
+
+
+def openlist_table_payload(query: dict[str, Any]) -> dict[str, str]:
+    fio = openlist_search_text(query)
+    return {
+        "olsearch-name": fio,
+        "olsearch-run": "1",
+        "olsearch-advform": "1",
+        "printable": "yes",
+    }
+
+
+def fetch_openlist_table_rows(
+    query: dict[str, Any],
+    *,
+    timeout: float,
+    user_agent: str,
+    accept_language: str,
+    verify_tls: bool,
+) -> list[dict[str, str]]:
+    return fetch_openlist_table_rows_with_tls_fallback(
+        query=query,
+        timeout=timeout,
+        user_agent=user_agent,
+        accept_language=accept_language,
+        verify_tls=verify_tls,
+    )
+
+
+def fetch_openlist_table_rows_with_tls_fallback(
+    query: dict[str, Any],
+    *,
+    timeout: float,
+    user_agent: str,
+    accept_language: str,
+    verify_tls: bool,
+) -> list[dict[str, str]]:
+    try:
+        return fetch_openlist_table_rows_raw(
+            query=query,
+            timeout=timeout,
+            user_agent=user_agent,
+            accept_language=accept_language,
+            verify_tls=verify_tls,
+        )
+    except NETWORK_EXCEPTIONS as exc:
+        if verify_tls and is_tls_verification_error(exc):
+            try:
+                return fetch_openlist_table_rows_raw(
+                    query=query,
+                    timeout=timeout,
+                    user_agent=user_agent,
+                    accept_language=accept_language,
+                    verify_tls=False,
+                )
+            except NETWORK_EXCEPTIONS:
+                return []
+        return []
+
+
+def fetch_openlist_table_rows_raw(
+    query: dict[str, Any],
+    *,
+    timeout: float,
+    user_agent: str,
+    accept_language: str,
+    verify_tls: bool,
+) -> list[dict[str, str]]:
+    params = urllib.parse.urlencode(openlist_table_payload(query))
+    url = f"{OL_SEARCH_URL}?{params}"
+    request = urllib.request.Request(
+        url,
+        headers={
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language": accept_language,
+            "DNT": "1",
+            "Referer": REFERER,
+            "User-Agent": user_agent,
+        },
+        method="GET",
+    )
+    with urllib.request.urlopen(request, timeout=timeout, context=tls_context(verify_tls)) as response:
+        body = response.read().decode("utf-8", errors="replace")
+    return parse_openlist_table_rows(body)
+
+
 def value_at(values: list[Any], index: int) -> str:
     if index >= len(values):
         return ""
@@ -404,7 +594,70 @@ def app_similarity_score(query: dict[str, Any], title: str) -> float:
     return sum(score * weight for score, weight in weighted_scores) / total_weight
 
 
-def app_records_from_response(query: dict[str, Any], response: Any, max_records: int) -> list[dict[str, Any]]:
+def split_fio(value: str) -> tuple[str, str, str]:
+    parts = compact_text(value).split(" ")
+    last_name = parts[0] if len(parts) > 0 else ""
+    first_name = parts[1] if len(parts) > 1 else ""
+    middle_name = " ".join(parts[2:]).strip() if len(parts) > 2 else ""
+    return last_name, first_name, middle_name
+
+
+def app_records_from_response(
+    query: dict[str, Any],
+    response: Any,
+    max_records: int,
+    table_rows: list[dict[str, str]] | None = None,
+) -> list[dict[str, Any]]:
+    table_rows = table_rows or []
+    if not isinstance(response, dict):
+        response_items: list[dict[str, Any]] = []
+    else:
+        response_items = response.get("data") if isinstance(response.get("data"), list) else []
+
+    description_by_url: dict[str, str] = {}
+    description_by_title: dict[str, str] = {}
+    for item in response_items:
+        if not isinstance(item, dict):
+            continue
+        title = compact_text(item.get("title"))
+        description = compact_text(item.get("description"))
+        url = compact_text(item.get("url"))
+        if url and description and url not in description_by_url:
+            description_by_url[url] = description
+        if title and description and title not in description_by_title:
+            description_by_title[title] = description
+
+    if table_rows:
+        records: list[dict[str, Any]] = []
+        for row in table_rows:
+            if not isinstance(row, dict):
+                continue
+            title = compact_text(row.get("title"))
+            url = compact_text(row.get("url"))
+            birth_date = compact_text(row.get("birthDate"))
+            birth_place = compact_text(row.get("birthPlace"))
+            if not title and not url:
+                continue
+            information = (
+                description_by_url.get(url)
+                or description_by_title.get(title)
+                or ""
+            )
+            records.append(
+                {
+                    "source": SOURCE_KEY,
+                    "sourceLabel": SOURCE_LABEL,
+                    "title": title or query.get("display_name") or "Запись",
+                    "information": information,
+                    "url": url,
+                    "birthDate": birth_date,
+                    "birthPlace": birth_place,
+                    "score": app_similarity_score(query, title),
+                }
+            )
+        records.sort(key=lambda record: record.get("score", 0), reverse=True)
+        return records[: max(1, max_records)]
+
     if not isinstance(response, dict):
         return []
     items = response.get("data")
@@ -522,22 +775,41 @@ def maybe_run_app_search(payload: dict[str, Any]) -> dict[str, Any] | None:
                 break
             continue
 
-        records = app_records_from_response(query, raw_result.get("response"), max_records=max_records)
+        table_rows: list[dict[str, str]] = []
+        try:
+            table_rows = fetch_openlist_table_rows(
+                query,
+                timeout=timeout,
+                user_agent=user_agent,
+                accept_language=accept_language,
+                verify_tls=verify_tls,
+            )
+        except NETWORK_EXCEPTIONS:
+            table_rows = []
+
+        records = app_records_from_response(
+            query,
+            raw_result.get("response"),
+            max_records=max_records,
+            table_rows=table_rows,
+        )
         if not records:
             continue
+        top_record = records[0]
+        top_last_name, top_first_name, top_middle_name = split_fio(top_record.get("title", ""))
 
         match_payload = {
             "data_id": person_id,
             "source": SOURCE_KEY,
             "sourceLabel": SOURCE_LABEL,
-            "score": records[0].get("score"),
+            "score": top_record.get("score"),
             "person": {
-                "lastName": compact_text(query.get("last_name")),
-                "name": compact_text(query.get("first_name")),
-                "middleName": compact_text(query.get("middle_name")),
-                "birthDate": "",
-                "birthPlace": compact_text(query.get("birth_place")),
-                "information": records[0].get("information", ""),
+                "lastName": top_last_name or compact_text(query.get("last_name")),
+                "name": top_first_name or compact_text(query.get("first_name")),
+                "middleName": top_middle_name or compact_text(query.get("middle_name")),
+                "birthDate": compact_text(top_record.get("birthDate")),
+                "birthPlace": compact_text(top_record.get("birthPlace")),
+                "information": top_record.get("information", ""),
             },
             "records": records,
             "searchedAt": utc_now(),

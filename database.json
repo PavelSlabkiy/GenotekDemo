@@ -156,7 +156,7 @@
     "hasMatch": false,
     "sourceSearchCache": {
       "openList": {
-        "searchedAt": "2026-06-08T07:33:42.407Z",
+        "searchedAt": "2026-06-08T12:44:33.113Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -356,7 +356,7 @@
     "hasMatch": false,
     "sourceSearchCache": {
       "openList": {
-        "searchedAt": "2026-06-08T07:33:42.407Z",
+        "searchedAt": "2026-06-08T12:44:33.113Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -469,7 +469,7 @@
     "hasMatch": false,
     "sourceSearchCache": {
       "openList": {
-        "searchedAt": "2026-06-08T07:33:42.407Z",
+        "searchedAt": "2026-06-08T12:44:33.113Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -565,7 +565,7 @@
     "hasMatch": false,
     "sourceSearchCache": {
       "openList": {
-        "searchedAt": "2026-06-08T07:33:42.407Z",
+        "searchedAt": "2026-06-08T12:44:33.113Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -661,7 +661,7 @@
     "hasMatch": false,
     "sourceSearchCache": {
       "openList": {
-        "searchedAt": "2026-06-08T07:33:42.407Z",
+        "searchedAt": "2026-06-08T12:44:33.113Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -786,7 +786,7 @@
     "hasMatch": false,
     "sourceSearchCache": {
       "openList": {
-        "searchedAt": "2026-06-08T07:33:42.407Z",
+        "searchedAt": "2026-06-08T12:44:33.113Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -894,7 +894,7 @@
     "hasMatch": false,
     "sourceSearchCache": {
       "openList": {
-        "searchedAt": "2026-06-08T07:33:42.407Z",
+        "searchedAt": "2026-06-08T12:44:33.113Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -993,7 +993,7 @@
     "hasMatch": false,
     "sourceSearchCache": {
       "openList": {
-        "searchedAt": "2026-06-08T07:33:42.407Z",
+        "searchedAt": "2026-06-08T12:44:33.113Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -1089,7 +1089,7 @@
     "hasMatch": false,
     "sourceSearchCache": {
       "openList": {
-        "searchedAt": "2026-06-08T07:33:42.407Z",
+        "searchedAt": "2026-06-08T12:44:33.113Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -1254,7 +1254,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "openList": {
-        "searchedAt": "2026-06-08T07:33:42.407Z",
+        "searchedAt": "2026-06-08T12:44:33.113Z",
         "status": "matches_found",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -1268,28 +1268,28 @@
             "data_id": "69e51500f2f4ad946ba05d77",
             "source": "openList",
             "sourceLabel": "Открытый список",
-            "score": 71.96078431372551,
+            "score": 71.81818181818183,
             "person": {
               "lastName": "Никитин",
               "name": "Георгий",
               "middleName": "Сергеевич",
-              "birthDate": "",
-              "birthPlace": "Акмолинская область",
+              "birthDate": "1917",
+              "birthPlace": "Куйбышевская обл., Телегинский",
               "information": ""
             },
             "records": [
               {
                 "source": "openList",
                 "sourceLabel": "Открытый список",
-                "title": "Никитин Георгий Сергеевич (1917)",
+                "title": "Никитин Георгий Сергеевич",
                 "information": "",
                 "url": "https://ru.openlist.wiki/%D0%9D%D0%B8%D0%BA%D0%B8%D1%82%D0%B8%D0%BD_%D0%93%D0%B5%D0%BE%D1%80%D0%B3%D0%B8%D0%B9_%D0%A1%D0%B5%D1%80%D0%B3%D0%B5%D0%B5%D0%B2%D0%B8%D1%87_(1917)",
-                "birthDate": "",
-                "birthPlace": "",
-                "score": 71.96078431372551
+                "birthDate": "1917",
+                "birthPlace": "Куйбышевская обл., Телегинский",
+                "score": 71.81818181818183
               }
             ],
-            "searchedAt": "2026-06-08T07:32:20+00:00",
+            "searchedAt": "2026-06-08T12:43:06+00:00",
             "tlsFallbackUsed": true
           }
         ],
@@ -1362,7 +1362,7 @@
     "hasMatch": false,
     "sourceSearchCache": {
       "openList": {
-        "searchedAt": "2026-06-08T07:33:42.407Z",
+        "searchedAt": "2026-06-08T12:44:33.113Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -1441,7 +1441,7 @@
     "hasMatch": false,
     "sourceSearchCache": {
       "openList": {
-        "searchedAt": "2026-06-08T07:33:42.407Z",
+        "searchedAt": "2026-06-08T12:44:33.113Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -1603,7 +1603,7 @@
     "hasMatch": false,
     "sourceSearchCache": {
       "openList": {
-        "searchedAt": "2026-06-08T07:33:42.407Z",
+        "searchedAt": "2026-06-08T12:44:33.113Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -1793,7 +1793,7 @@
     "hasMatch": false,
     "sourceSearchCache": {
       "openList": {
-        "searchedAt": "2026-06-08T07:33:42.407Z",
+        "searchedAt": "2026-06-08T12:44:33.113Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -1901,7 +1901,7 @@
     "hasMatch": false,
     "sourceSearchCache": {
       "openList": {
-        "searchedAt": "2026-06-08T07:33:42.407Z",
+        "searchedAt": "2026-06-08T12:44:33.113Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -2117,7 +2117,7 @@
     "hasMatch": false,
     "sourceSearchCache": {
       "openList": {
-        "searchedAt": "2026-06-08T07:33:42.407Z",
+        "searchedAt": "2026-06-08T12:44:33.113Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -2179,7 +2179,7 @@
     "hasMatch": false,
     "sourceSearchCache": {
       "openList": {
-        "searchedAt": "2026-06-08T07:33:42.407Z",
+        "searchedAt": "2026-06-08T12:44:33.113Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -2241,7 +2241,7 @@
     "hasMatch": false,
     "sourceSearchCache": {
       "openList": {
-        "searchedAt": "2026-06-08T07:33:42.407Z",
+        "searchedAt": "2026-06-08T12:44:33.113Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -2343,7 +2343,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "openList": {
-        "searchedAt": "2026-06-08T07:33:42.407Z",
+        "searchedAt": "2026-06-08T12:44:33.113Z",
         "status": "matches_found",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -2357,38 +2357,38 @@
             "data_id": "69ec7a322d2ada0deeede8f6",
             "source": "openList",
             "sourceLabel": "Открытый список",
-            "score": 71.85185185185186,
+            "score": 72.1276595744681,
             "person": {
               "lastName": "Ворожейкин",
               "name": "Александр",
               "middleName": "Васильевич",
-              "birthDate": "",
-              "birthPlace": "г. Семипалатинск",
+              "birthDate": "1892",
+              "birthPlace": "Восточно-Казахстанская обл., Бельагачский р-н, Новопокровка с.",
               "information": ""
             },
             "records": [
               {
                 "source": "openList",
                 "sourceLabel": "Открытый список",
-                "title": "Ворожейкин Александр Васильевич (1892)",
+                "title": "Ворожейкин Александр Васильевич",
                 "information": "",
                 "url": "https://ru.openlist.wiki/%D0%92%D0%BE%D1%80%D0%BE%D0%B6%D0%B5%D0%B9%D0%BA%D0%B8%D0%BD_%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B0%D0%BD%D0%B4%D1%80_%D0%92%D0%B0%D1%81%D0%B8%D0%BB%D1%8C%D0%B5%D0%B2%D0%B8%D1%87_(1892)",
-                "birthDate": "",
-                "birthPlace": "",
-                "score": 71.85185185185186
+                "birthDate": "1892",
+                "birthPlace": "Восточно-Казахстанская обл., Бельагачский р-н, Новопокровка с.",
+                "score": 72.1276595744681
               },
               {
                 "source": "openList",
                 "sourceLabel": "Открытый список",
-                "title": "Ворожейкин Александр Васильевич (1923)",
+                "title": "Ворожейкин Александр Васильевич",
                 "information": "",
                 "url": "https://ru.openlist.wiki/%D0%92%D0%BE%D1%80%D0%BE%D0%B6%D0%B5%D0%B9%D0%BA%D0%B8%D0%BD_%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B0%D0%BD%D0%B4%D1%80_%D0%92%D0%B0%D1%81%D0%B8%D0%BB%D1%8C%D0%B5%D0%B2%D0%B8%D1%87_(1923)",
-                "birthDate": "",
-                "birthPlace": "",
-                "score": 71.85185185185186
+                "birthDate": "1923",
+                "birthPlace": "Рязанская обл., Спасский, Гавриловское",
+                "score": 72.1276595744681
               }
             ],
-            "searchedAt": "2026-06-08T07:32:32+00:00",
+            "searchedAt": "2026-06-08T12:43:27+00:00",
             "tlsFallbackUsed": true
           }
         ],
@@ -2512,7 +2512,7 @@
     "hasMatch": false,
     "sourceSearchCache": {
       "openList": {
-        "searchedAt": "2026-06-08T07:33:42.407Z",
+        "searchedAt": "2026-06-08T12:44:33.113Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -2574,7 +2574,7 @@
     "hasMatch": false,
     "sourceSearchCache": {
       "openList": {
-        "searchedAt": "2026-06-08T07:33:42.407Z",
+        "searchedAt": "2026-06-08T12:44:33.113Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -2841,7 +2841,7 @@
     "hasMatch": false,
     "sourceSearchCache": {
       "openList": {
-        "searchedAt": "2026-06-08T07:33:42.407Z",
+        "searchedAt": "2026-06-08T12:44:33.113Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -2920,7 +2920,7 @@
     "hasMatch": false,
     "sourceSearchCache": {
       "openList": {
-        "searchedAt": "2026-06-08T07:33:42.407Z",
+        "searchedAt": "2026-06-08T12:44:33.113Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -2999,7 +2999,7 @@
     "hasMatch": false,
     "sourceSearchCache": {
       "openList": {
-        "searchedAt": "2026-06-08T07:33:42.407Z",
+        "searchedAt": "2026-06-08T12:44:33.113Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -3078,7 +3078,7 @@
     "hasMatch": false,
     "sourceSearchCache": {
       "openList": {
-        "searchedAt": "2026-06-08T07:33:42.407Z",
+        "searchedAt": "2026-06-08T12:44:33.113Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -3203,7 +3203,7 @@
     "hasMatch": false,
     "sourceSearchCache": {
       "openList": {
-        "searchedAt": "2026-06-08T07:33:42.407Z",
+        "searchedAt": "2026-06-08T12:44:33.113Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -3341,7 +3341,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "openList": {
-        "searchedAt": "2026-06-08T07:33:42.407Z",
+        "searchedAt": "2026-06-08T12:44:33.113Z",
         "status": "matches_found",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -3355,48 +3355,48 @@
             "data_id": "69ec7e97f361179d8a0747aa",
             "source": "openList",
             "sourceLabel": "Открытый список",
-            "score": 71.3793103448276,
+            "score": 71.1764705882353,
             "person": {
               "lastName": "Губарев",
               "name": "Петр",
               "middleName": "Михайлович",
-              "birthDate": "",
-              "birthPlace": "с. Ново-Покровское, г. Томск",
+              "birthDate": "1876",
+              "birthPlace": "Центрально-Черноземная обл., Бобровский р-н, с. Семено-Александровка",
               "information": ""
             },
             "records": [
               {
                 "source": "openList",
                 "sourceLabel": "Открытый список",
-                "title": "Губарев Петр Михайлович (1876)",
+                "title": "Губарев Петр Михайлович",
                 "information": "",
                 "url": "https://ru.openlist.wiki/%D0%93%D1%83%D0%B1%D0%B0%D1%80%D0%B5%D0%B2_%D0%9F%D0%B5%D1%82%D1%80_%D0%9C%D0%B8%D1%85%D0%B0%D0%B9%D0%BB%D0%BE%D0%B2%D0%B8%D1%87_(1876)",
-                "birthDate": "",
-                "birthPlace": "",
-                "score": 71.3793103448276
+                "birthDate": "1876",
+                "birthPlace": "Центрально-Черноземная обл., Бобровский р-н, с. Семено-Александровка",
+                "score": 71.1764705882353
               },
               {
                 "source": "openList",
                 "sourceLabel": "Открытый список",
-                "title": "Губарев Петр Михайлович (1877)",
+                "title": "Губарев Петр Михайлович",
                 "information": "",
                 "url": "https://ru.openlist.wiki/%D0%93%D1%83%D0%B1%D0%B0%D1%80%D0%B5%D0%B2_%D0%9F%D0%B5%D1%82%D1%80_%D0%9C%D0%B8%D1%85%D0%B0%D0%B9%D0%BB%D0%BE%D0%B2%D0%B8%D1%87_(1877)",
-                "birthDate": "",
-                "birthPlace": "",
-                "score": 71.3793103448276
+                "birthDate": "1877",
+                "birthPlace": "с. Семено-Александровка Хреновский р-н, Воронежская обл.",
+                "score": 71.1764705882353
               },
               {
                 "source": "openList",
                 "sourceLabel": "Открытый список",
-                "title": "Губарев Петр Михайлович (1887)",
+                "title": "Губарев Петр Михайлович",
                 "information": "",
                 "url": "https://ru.openlist.wiki/%D0%93%D1%83%D0%B1%D0%B0%D1%80%D0%B5%D0%B2_%D0%9F%D0%B5%D1%82%D1%80_%D0%9C%D0%B8%D1%85%D0%B0%D0%B9%D0%BB%D0%BE%D0%B2%D0%B8%D1%87_(1887)",
-                "birthDate": "",
-                "birthPlace": "",
-                "score": 71.3793103448276
+                "birthDate": "1887",
+                "birthPlace": "Центрально-Черноземная обл., Бобровский р-н, с. Семено-Александровское",
+                "score": 71.1764705882353
               }
             ],
-            "searchedAt": "2026-06-08T07:32:43+00:00",
+            "searchedAt": "2026-06-08T12:43:47+00:00",
             "tlsFallbackUsed": true
           }
         ],
@@ -3452,7 +3452,7 @@
     "hasMatch": false,
     "sourceSearchCache": {
       "openList": {
-        "searchedAt": "2026-06-08T07:33:42.407Z",
+        "searchedAt": "2026-06-08T12:44:33.113Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -3514,7 +3514,7 @@
     "hasMatch": false,
     "sourceSearchCache": {
       "openList": {
-        "searchedAt": "2026-06-08T07:33:42.407Z",
+        "searchedAt": "2026-06-08T12:44:33.113Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -3802,7 +3802,7 @@
     "hasMatch": false,
     "sourceSearchCache": {
       "openList": {
-        "searchedAt": "2026-06-08T07:33:42.407Z",
+        "searchedAt": "2026-06-08T12:44:33.113Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -3972,7 +3972,7 @@
     "hasMatch": false,
     "sourceSearchCache": {
       "openList": {
-        "searchedAt": "2026-06-08T07:33:42.407Z",
+        "searchedAt": "2026-06-08T12:44:33.113Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -4096,7 +4096,7 @@
     "hasMatch": false,
     "sourceSearchCache": {
       "openList": {
-        "searchedAt": "2026-06-08T07:33:42.407Z",
+        "searchedAt": "2026-06-08T12:44:33.113Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -4204,7 +4204,7 @@
     "hasMatch": true,
     "sourceSearchCache": {
       "openList": {
-        "searchedAt": "2026-06-08T07:33:42.407Z",
+        "searchedAt": "2026-06-08T12:44:33.113Z",
         "status": "matches_found",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -4218,28 +4218,28 @@
             "data_id": "69ec828e53f521f572bd64fb",
             "source": "openList",
             "sourceLabel": "Открытый список",
-            "score": 91.1881188118812,
+            "score": 71.27659574468086,
             "person": {
               "lastName": "Середа",
               "name": "Афанасий",
               "middleName": "Гаврилович",
-              "birthDate": "",
-              "birthPlace": "Новосёловская волость Новомосковский уезд Екатеринославская губерния",
+              "birthDate": "1874",
+              "birthPlace": "Екатеринославская губ., Н-Московский уезд, м. Одиноковка",
               "information": ""
             },
             "records": [
               {
                 "source": "openList",
                 "sourceLabel": "Открытый список",
-                "title": "Середа Афанасий Гаврилович (1874)",
+                "title": "Середа Афанасий Гаврилович",
                 "information": "",
                 "url": "https://ru.openlist.wiki/%D0%A1%D0%B5%D1%80%D0%B5%D0%B4%D0%B0_%D0%90%D1%84%D0%B0%D0%BD%D0%B0%D1%81%D0%B8%D0%B9_%D0%93%D0%B0%D0%B2%D1%80%D0%B8%D0%BB%D0%BE%D0%B2%D0%B8%D1%87_(1874)",
-                "birthDate": "",
-                "birthPlace": "",
-                "score": 91.1881188118812
+                "birthDate": "1874",
+                "birthPlace": "Екатеринославская губ., Н-Московский уезд, м. Одиноковка",
+                "score": 71.27659574468086
               }
             ],
-            "searchedAt": "2026-06-08T07:33:07+00:00",
+            "searchedAt": "2026-06-08T12:44:01+00:00",
             "tlsFallbackUsed": true
           }
         ],
@@ -4341,7 +4341,7 @@
     "hasMatch": false,
     "sourceSearchCache": {
       "openList": {
-        "searchedAt": "2026-06-08T07:33:42.407Z",
+        "searchedAt": "2026-06-08T12:44:33.113Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -4576,7 +4576,7 @@
     "hasMatch": false,
     "sourceSearchCache": {
       "openList": {
-        "searchedAt": "2026-06-08T07:33:42.407Z",
+        "searchedAt": "2026-06-08T12:44:33.113Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -4638,7 +4638,7 @@
     "hasMatch": false,
     "sourceSearchCache": {
       "openList": {
-        "searchedAt": "2026-06-08T07:33:42.407Z",
+        "searchedAt": "2026-06-08T12:44:33.113Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -4700,7 +4700,7 @@
     "hasMatch": false,
     "sourceSearchCache": {
       "openList": {
-        "searchedAt": "2026-06-08T07:33:42.407Z",
+        "searchedAt": "2026-06-08T12:44:33.113Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -4762,7 +4762,7 @@
     "hasMatch": false,
     "sourceSearchCache": {
       "openList": {
-        "searchedAt": "2026-06-08T07:33:42.407Z",
+        "searchedAt": "2026-06-08T12:44:33.113Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -4824,7 +4824,7 @@
     "hasMatch": false,
     "sourceSearchCache": {
       "openList": {
-        "searchedAt": "2026-06-08T07:33:42.407Z",
+        "searchedAt": "2026-06-08T12:44:33.113Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -4886,7 +4886,7 @@
     "hasMatch": false,
     "sourceSearchCache": {
       "openList": {
-        "searchedAt": "2026-06-08T07:33:42.407Z",
+        "searchedAt": "2026-06-08T12:44:33.113Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -4948,7 +4948,7 @@
     "hasMatch": false,
     "sourceSearchCache": {
       "openList": {
-        "searchedAt": "2026-06-08T07:33:42.407Z",
+        "searchedAt": "2026-06-08T12:44:33.113Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -5044,7 +5044,7 @@
     "hasMatch": false,
     "sourceSearchCache": {
       "openList": {
-        "searchedAt": "2026-06-08T07:33:42.407Z",
+        "searchedAt": "2026-06-08T12:44:33.113Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -5113,7 +5113,7 @@
     "hasMatch": false,
     "sourceSearchCache": {
       "openList": {
-        "searchedAt": "2026-06-08T07:33:42.407Z",
+        "searchedAt": "2026-06-08T12:44:33.113Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -5237,7 +5237,7 @@
     "hasMatch": false,
     "sourceSearchCache": {
       "openList": {
-        "searchedAt": "2026-06-08T07:33:42.407Z",
+        "searchedAt": "2026-06-08T12:44:33.113Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -5333,7 +5333,7 @@
     "hasMatch": false,
     "sourceSearchCache": {
       "openList": {
-        "searchedAt": "2026-06-08T07:33:42.407Z",
+        "searchedAt": "2026-06-08T12:44:33.113Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
@@ -5464,7 +5464,7 @@
     "hasMatch": false,
     "sourceSearchCache": {
       "openList": {
-        "searchedAt": "2026-06-08T07:33:42.407Z",
+        "searchedAt": "2026-06-08T12:44:33.113Z",
         "status": "no_matches",
         "source": "openList",
         "sourceLabel": "Открытый список",
