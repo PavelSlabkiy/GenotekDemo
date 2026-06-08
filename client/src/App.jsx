@@ -53,6 +53,12 @@ const DEFAULT_SMART_SEARCH_CRITERIA = {
   birthDate: true,
   birthPlace: true
 };
+const DEFAULT_ADMIN_SOURCE_PREFERENCES = {
+  userTrees: true,
+  pamyatNaroda: true,
+  openList: true,
+  gwar: true
+};
 
 // Layout constants
 const CARD_WIDTH = 140;
@@ -2552,6 +2558,12 @@ function App() {
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showBalancePanel, setShowBalancePanel] = useState(false);
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const [isAdminAuthorized, setIsAdminAuthorized] = useState(false);
+  const [adminLogin, setAdminLogin] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
+  const [adminSourcePreferences, setAdminSourcePreferences] = useState(DEFAULT_ADMIN_SOURCE_PREFERENCES);
+  const [isAdminSaving, setIsAdminSaving] = useState(false);
   // Use refs for matches to ensure synchronous access
   const allTreeMatchesRef = useRef([]);
   const allArchiveMatchesRef = useRef([]);
@@ -3340,6 +3352,71 @@ function App() {
     openSmartSearchForPerson(person);
   };
 
+  const handleProfileClick = () => {
+    setShowAdminPanel((prev) => !prev);
+    setShowNotifications(false);
+    setShowBalancePanel(false);
+  };
+
+  const handleAdminLogin = async () => {
+    try {
+      const response = await fetch(`${API_URL}/admin/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          login: adminLogin,
+          password: adminPassword
+        })
+      });
+      if (!response.ok) {
+        showToast('Неверный логин или пароль', 'error');
+        return;
+      }
+      const data = await response.json();
+      setIsAdminAuthorized(true);
+      setAdminSourcePreferences(data.sourcePreferences || DEFAULT_ADMIN_SOURCE_PREFERENCES);
+      showToast('Режим администратора открыт');
+    } catch (error) {
+      console.error('Admin login error:', error);
+      showToast('Ошибка входа', 'error');
+    }
+  };
+
+  const handleAdminSourceToggle = (sourceKey) => {
+    setAdminSourcePreferences((prev) => ({
+      ...prev,
+      [sourceKey]: !prev[sourceKey]
+    }));
+  };
+
+  const handleAdminSave = async () => {
+    setIsAdminSaving(true);
+    try {
+      const response = await fetch(`${API_URL}/admin/source-preferences`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          login: adminLogin,
+          password: adminPassword,
+          sourcePreferences: adminSourcePreferences
+        })
+      });
+      if (!response.ok) {
+        showToast('Не удалось сохранить настройки', 'error');
+        return;
+      }
+      const data = await response.json();
+      setAdminSourcePreferences(data.sourcePreferences || DEFAULT_ADMIN_SOURCE_PREFERENCES);
+      await fetchPeople();
+      showToast('Настройки источников сохранены');
+    } catch (error) {
+      console.error('Admin save settings error:', error);
+      showToast('Ошибка сохранения настроек', 'error');
+    } finally {
+      setIsAdminSaving(false);
+    }
+  };
+
   // Handle tree match confirmation
   const handleConfirmTreeMatch = async (match) => {
     try {
@@ -3400,14 +3477,18 @@ function App() {
       if (showBalancePanel && !e.target.closest('.balance-wrapper') && !e.target.closest('.payment-modal')) {
         setShowBalancePanel(false);
       }
+      if (showAdminPanel && !e.target.closest('.admin-wrapper')) {
+        setShowAdminPanel(false);
+      }
     };
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
-  }, [showNotifications, showBalancePanel]);
+  }, [showNotifications, showBalancePanel, showAdminPanel]);
 
   useEffect(() => {
     setShowNotifications(false);
     setShowBalancePanel(false);
+    setShowAdminPanel(false);
   }, [activeSection]);
 
   const smartSearchRequiredMatches = smartSearchActionContext?.requiredMatches || 1;
@@ -3542,9 +3623,89 @@ function App() {
                       </div>
                     )}
                   </div>
-                  <button type="button" className="toolbar-btn" title="Профиль (заглушка)">
-                    <CircleUser size={18} />
-                  </button>
+                  <div className="admin-wrapper smart-panel-action-wrapper">
+                    <button
+                      type="button"
+                      className="toolbar-btn"
+                      title="Профиль"
+                      onClick={handleProfileClick}
+                    >
+                      <CircleUser size={18} />
+                    </button>
+                    {showAdminPanel && (
+                      <div className="admin-panel">
+                        {!isAdminAuthorized ? (
+                          <div className="admin-login-form">
+                            <h4>Вход в админку</h4>
+                            <input
+                              className="form-input"
+                              placeholder="Логин"
+                              value={adminLogin}
+                              onChange={(event) => setAdminLogin(event.target.value)}
+                            />
+                            <input
+                              className="form-input"
+                              type="password"
+                              placeholder="Пароль"
+                              value={adminPassword}
+                              onChange={(event) => setAdminPassword(event.target.value)}
+                            />
+                            <button
+                              type="button"
+                              className="btn btn-primary btn-full"
+                              onClick={handleAdminLogin}
+                            >
+                              Войти
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="admin-sources-form">
+                            <h4>Источники поиска</h4>
+                            <label className="smart-source-item">
+                              <input
+                                type="checkbox"
+                                checked={adminSourcePreferences.pamyatNaroda}
+                                onChange={() => handleAdminSourceToggle('pamyatNaroda')}
+                              />
+                              <span>Память народа</span>
+                            </label>
+                            <label className="smart-source-item">
+                              <input
+                                type="checkbox"
+                                checked={adminSourcePreferences.openList}
+                                onChange={() => handleAdminSourceToggle('openList')}
+                              />
+                              <span>Открытый список</span>
+                            </label>
+                            <label className="smart-source-item">
+                              <input
+                                type="checkbox"
+                                checked={adminSourcePreferences.gwar}
+                                onChange={() => handleAdminSourceToggle('gwar')}
+                              />
+                              <span>Герои войны</span>
+                            </label>
+                            <label className="smart-source-item">
+                              <input
+                                type="checkbox"
+                                checked={adminSourcePreferences.userTrees}
+                                onChange={() => handleAdminSourceToggle('userTrees')}
+                              />
+                              <span>Деревья пользователей</span>
+                            </label>
+                            <button
+                              type="button"
+                              className="btn btn-primary btn-full"
+                              onClick={handleAdminSave}
+                              disabled={isAdminSaving}
+                            >
+                              {isAdminSaving ? 'Сохранение...' : 'Сохранить'}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -3807,9 +3968,84 @@ function App() {
 
             {/* Right Toolbar */}
             <div className="right-toolbar">
-              <button className="toolbar-btn" title="Профиль">
-                <User size={18} />
-              </button>
+              <div className="admin-wrapper">
+                <button className="toolbar-btn" title="Профиль" onClick={handleProfileClick}>
+                  <User size={18} />
+                </button>
+                {showAdminPanel && (
+                  <div className="admin-panel">
+                    {!isAdminAuthorized ? (
+                      <div className="admin-login-form">
+                        <h4>Вход в админку</h4>
+                        <input
+                          className="form-input"
+                          placeholder="Логин"
+                          value={adminLogin}
+                          onChange={(event) => setAdminLogin(event.target.value)}
+                        />
+                        <input
+                          className="form-input"
+                          type="password"
+                          placeholder="Пароль"
+                          value={adminPassword}
+                          onChange={(event) => setAdminPassword(event.target.value)}
+                        />
+                        <button
+                          type="button"
+                          className="btn btn-primary btn-full"
+                          onClick={handleAdminLogin}
+                        >
+                          Войти
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="admin-sources-form">
+                        <h4>Источники поиска</h4>
+                        <label className="smart-source-item">
+                          <input
+                            type="checkbox"
+                            checked={adminSourcePreferences.pamyatNaroda}
+                            onChange={() => handleAdminSourceToggle('pamyatNaroda')}
+                          />
+                          <span>Память народа</span>
+                        </label>
+                        <label className="smart-source-item">
+                          <input
+                            type="checkbox"
+                            checked={adminSourcePreferences.openList}
+                            onChange={() => handleAdminSourceToggle('openList')}
+                          />
+                          <span>Открытый список</span>
+                        </label>
+                        <label className="smart-source-item">
+                          <input
+                            type="checkbox"
+                            checked={adminSourcePreferences.gwar}
+                            onChange={() => handleAdminSourceToggle('gwar')}
+                          />
+                          <span>Герои войны</span>
+                        </label>
+                        <label className="smart-source-item">
+                          <input
+                            type="checkbox"
+                            checked={adminSourcePreferences.userTrees}
+                            onChange={() => handleAdminSourceToggle('userTrees')}
+                          />
+                          <span>Деревья пользователей</span>
+                        </label>
+                        <button
+                          type="button"
+                          className="btn btn-primary btn-full"
+                          onClick={handleAdminSave}
+                          disabled={isAdminSaving}
+                        >
+                          {isAdminSaving ? 'Сохранение...' : 'Сохранить'}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
 
               {/* Balance Panel */}
               <div className="balance-wrapper">

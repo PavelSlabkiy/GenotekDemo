@@ -1082,6 +1082,37 @@ body {
   left: auto;
 }
 
+.admin-wrapper {
+  position: relative;
+}
+
+.admin-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 280px;
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  padding: 14px;
+  z-index: 260;
+}
+
+.admin-login-form,
+.admin-sources-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.admin-login-form h4,
+.admin-sources-form h4 {
+  margin: 0 0 2px;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+
 .smart-panel-section {
   display: flex;
   flex-direction: column;

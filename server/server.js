@@ -11,6 +11,7 @@ app.use(cors());
 app.use(express.json({ limit: '20mb' }));
 
 const DATABASE_FILE = path.join(__dirname, '..', 'database.json');
+const ADMIN_SETTINGS_FILE = path.join(__dirname, '..', 'admin-settings.json');
 const TREES_DIR = path.join(__dirname, '..', 'trees');
 const PAMYAT_PARSER_SCRIPT = path.join(__dirname, '..', 'pamyat_parser.py');
 const OPENLIST_PARSER_SCRIPT = path.join(__dirname, '..', 'openlist_parser.py');
@@ -95,6 +96,12 @@ const PAMYAT_SOURCE_KEY = 'pamyatNaroda';
 const OPENLIST_SOURCE_KEY = 'openList';
 const GWAR_SOURCE_KEY = 'gwar';
 const USER_TREES_SOURCE_KEY = 'userTrees';
+const DEFAULT_ADMIN_SOURCE_PREFERENCES = {
+  [USER_TREES_SOURCE_KEY]: true,
+  [PAMYAT_SOURCE_KEY]: true,
+  [OPENLIST_SOURCE_KEY]: true,
+  [GWAR_SOURCE_KEY]: true
+};
 const DEFAULT_SMART_SEARCH_CRITERIA = {
   fullName: true,
   birthDate: true,
@@ -179,6 +186,42 @@ const normalizeSearchCriteria = (rawCriteria = {}) => ({
   birthDate: rawCriteria?.birthDate !== false,
   birthPlace: rawCriteria?.birthPlace !== false
 });
+
+const normalizeSourcePreferences = (raw = {}) => ({
+  [USER_TREES_SOURCE_KEY]: raw?.[USER_TREES_SOURCE_KEY] !== false,
+  [PAMYAT_SOURCE_KEY]: raw?.[PAMYAT_SOURCE_KEY] !== false,
+  [OPENLIST_SOURCE_KEY]: raw?.[OPENLIST_SOURCE_KEY] !== false,
+  [GWAR_SOURCE_KEY]: raw?.[GWAR_SOURCE_KEY] !== false
+});
+
+const readAdminSourcePreferences = () => {
+  try {
+    if (!fs.existsSync(ADMIN_SETTINGS_FILE)) {
+      return { ...DEFAULT_ADMIN_SOURCE_PREFERENCES };
+    }
+    const raw = fs.readFileSync(ADMIN_SETTINGS_FILE, 'utf8');
+    const parsed = JSON.parse(raw);
+    return normalizeSourcePreferences(parsed?.sourcePreferences);
+  } catch (error) {
+    console.error('Failed to read admin settings:', error);
+    return { ...DEFAULT_ADMIN_SOURCE_PREFERENCES };
+  }
+};
+
+const writeAdminSourcePreferences = (sourcePreferences) => {
+  try {
+    const normalized = normalizeSourcePreferences(sourcePreferences);
+    fs.writeFileSync(
+      ADMIN_SETTINGS_FILE,
+      JSON.stringify({ sourcePreferences: normalized }, null, 2),
+      'utf8'
+    );
+    return normalized;
+  } catch (error) {
+    console.error('Failed to write admin settings:', error);
+    return null;
+  }
+};
 
 const numberOption = (value) => {
   if (value === undefined || value === null || value === '') return undefined;
@@ -1187,7 +1230,26 @@ const runParserPerPerson = async ({
   return aggregated;
 };
 
-const runSmartMatchingForPeople = async ({ people, personIds, searchCriteria = AUTO_SMART_SEARCH_CRITERIA, runtimeOptions = {} }) => {
+const getEnabledSourceKeys = (sourcePreferences) => {
+  const normalized = normalizeSourcePreferences(sourcePreferences);
+  return new Set(
+    Object.entries(normalized)
+      .filter(([, enabled]) => enabled)
+      .map(([key]) => key)
+  );
+};
+
+const runSmartMatchingForPeople = async ({
+  people,
+  personIds,
+  searchCriteria = AUTO_SMART_SEARCH_CRITERIA,
+  runtimeOptions = {},
+  enabledSourceKeys = null
+}) => {
+  const adminSourcePreferences = readAdminSourcePreferences();
+  const activeEnabledSourceKeys = enabledSourceKeys
+    ? new Set(Array.from(enabledSourceKeys).map(String))
+    : getEnabledSourceKeys(adminSourcePreferences);
   const trackProgress = runtimeOptions.trackProgress !== false;
   const progressSources = [USER_TREES_SOURCE_KEY, ...SUPPORTED_SMART_SOURCES.map((source) => source.key)];
   const runId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -1237,6 +1299,7 @@ const runSmartMatchingForPeople = async ({ people, personIds, searchCriteria = A
       });
     };
 
+    const userTreesEnabled = activeEnabledSourceKeys.has(USER_TREES_SOURCE_KEY);
     let treeParserResult = {
       matches: [],
       errors: [],
@@ -1273,7 +1336,7 @@ const runSmartMatchingForPeople = async ({ people, personIds, searchCriteria = A
     treePersonIds.push(personId);
     });
 
-    if (treePersonIds.length > 0) {
+    if (userTreesEnabled && treePersonIds.length > 0) {
       treeParserResult = await runParserPerPerson({
       parser: runTreeMatchingParser,
       sourceKey: USER_TREES_SOURCE_KEY,
@@ -1297,6 +1360,11 @@ const runSmartMatchingForPeople = async ({ people, personIds, searchCriteria = A
     const person = people[personId];
     if (!person) return;
     person.sourceSearchCache = person.sourceSearchCache || {};
+    if (!userTreesEnabled) {
+      delete person.sourceSearchCache[USER_TREES_SOURCE_KEY];
+      person.hasMatch = calculatePersonHasMatch(person);
+      return;
+    }
     if (!treePersonIds.includes(personId) && !person.sourceSearchCache[USER_TREES_SOURCE_KEY]) {
       delete person.sourceSearchCache[USER_TREES_SOURCE_KEY];
       person.hasMatch = calculatePersonHasMatch(person);
@@ -1319,6 +1387,21 @@ const runSmartMatchingForPeople = async ({ people, personIds, searchCriteria = A
     });
 
     for (const source of SUPPORTED_SMART_SOURCES) {
+    const sourceEnabled = activeEnabledSourceKeys.has(source.key);
+    if (!sourceEnabled) {
+      normalizedPersonIds.forEach((personId) => {
+        const person = people[personId];
+        if (!person) {
+          markPersonSourceProcessed(source.key, personId);
+          return;
+        }
+        person.sourceSearchCache = person.sourceSearchCache || {};
+        delete person.sourceSearchCache[source.key];
+        person.hasMatch = calculatePersonHasMatch(person);
+        markPersonSourceProcessed(source.key, personId);
+      });
+      continue;
+    }
     const peopleToSearch = [];
     normalizedPersonIds.forEach((personId) => {
       const person = people[personId];
@@ -1452,14 +1535,20 @@ app.post('/api/smart-matching', async (req, res) => {
     const state = readDatabaseState();
     const data = { people: state.people };
     const personIds = normalizePersonIds(req.body?.personIds, data.people);
-    const sources = req.body?.sources || {};
+    const sources = req.body?.sources || null;
+    const adminSourcePreferences = readAdminSourcePreferences();
     const searchCriteria = normalizeSearchCriteria(req.body?.searchCriteria || DEFAULT_SMART_SEARCH_CRITERIA);
     const runtimeOptions = normalizeParserRuntimeOptions(req.body || {});
 
+    const isSourceEnabledForRequest = (sourceKey) => {
+      const enabledByAdmin = adminSourcePreferences[sourceKey] !== false;
+      if (!sources || typeof sources !== 'object') return enabledByAdmin;
+      return enabledByAdmin && sources[sourceKey] !== false;
+    };
     const enabledSourceKeys = new Set([
-      ...(sources[USER_TREES_SOURCE_KEY] !== false ? [USER_TREES_SOURCE_KEY] : []),
+      ...(isSourceEnabledForRequest(USER_TREES_SOURCE_KEY) ? [USER_TREES_SOURCE_KEY] : []),
       ...SUPPORTED_SMART_SOURCES
-        .filter(source => sources[source.key] !== false)
+        .filter(source => isSourceEnabledForRequest(source.key))
         .map(source => source.key)
     ]);
 
@@ -1488,7 +1577,8 @@ app.post('/api/smart-matching', async (req, res) => {
       runtimeOptions: {
         ...runtimeOptions,
         trigger: runtimeOptions.trigger || 'manual'
-      }
+      },
+      enabledSourceKeys
     });
 
     personIds.forEach((personId) => {
@@ -1543,6 +1633,49 @@ app.post('/api/smart-matching', async (req, res) => {
     console.error('Source search error:', error);
     res.status(500).json({ error: 'Source search failed', details: error.message });
   }
+});
+
+app.post('/api/admin/login', (req, res) => {
+  const login = String(req.body?.login || '').trim();
+  const password = String(req.body?.password || '').trim();
+  if (login !== 'admin' || password !== 'admin') {
+    return res.status(401).json({ success: false, error: 'Invalid credentials' });
+  }
+  res.json({
+    success: true,
+    sourcePreferences: readAdminSourcePreferences()
+  });
+});
+
+app.put('/api/admin/source-preferences', (req, res) => {
+  const login = String(req.body?.login || '').trim();
+  const password = String(req.body?.password || '').trim();
+  if (login !== 'admin' || password !== 'admin') {
+    return res.status(401).json({ success: false, error: 'Invalid credentials' });
+  }
+
+  const sourcePreferences = normalizeSourcePreferences(req.body?.sourcePreferences);
+  const saved = writeAdminSourcePreferences(sourcePreferences);
+  if (!saved) {
+    return res.status(500).json({ success: false, error: 'Failed to save settings' });
+  }
+
+  const state = readDatabaseState();
+  Object.values(state.people).forEach((person) => {
+    person.sourceSearchCache = person.sourceSearchCache || {};
+    Object.entries(saved).forEach(([sourceKey, enabled]) => {
+      if (!enabled) {
+        delete person.sourceSearchCache[sourceKey];
+      }
+    });
+    person.hasMatch = calculatePersonHasMatch(person);
+  });
+  writeCurrentPeople(state.people);
+
+  res.json({
+    success: true,
+    sourcePreferences: saved
+  });
 });
 
 // Get cached source matches for a specific person
