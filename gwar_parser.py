@@ -10,10 +10,10 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
-from difflib import SequenceMatcher
 from typing import Any
 
 from parser_runtime import RESULT_BLOCKED, ParserRuntime, RuntimeOptions
+from smart_matching import SmartMatching
 
 
 API_URL = "https://gwar.mil.ru/gt_data/?builder=Heroes"
@@ -26,6 +26,7 @@ DEFAULT_USER_AGENT = (
     "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"
 )
 DEFAULT_ACCEPT_LANGUAGE = "ru,en-US;q=0.9,en;q=0.8"
+SMART_MATCHING_SCORER = SmartMatching({}, {})
 
 ENTITIES = [
     "chelovek_donesenie",
@@ -482,10 +483,6 @@ def app_queries_from_people(
     return queries
 
 
-def normalize_lookup(value: Any) -> str:
-    return compact_text(value).lower().replace("ё", "е")
-
-
 def source_field(source: dict[str, Any], *keys: str) -> str:
     for key in keys:
         value = source.get(key)
@@ -506,56 +503,22 @@ def source_name(source: dict[str, Any]) -> tuple[str, str, str]:
 
 
 def app_similarity_score(query: dict[str, Any], source: dict[str, Any]) -> float:
-    search_criteria = normalize_search_criteria(query.get("search_criteria"))
-    query_last = normalize_lookup(query.get("last_name"))
-    query_first = normalize_lookup(query.get("first_name"))
-    query_middle = normalize_lookup(query.get("middle_name"))
     source_last, source_first, source_middle = source_name(source)
-    source_last = normalize_lookup(source_last)
-    source_first = normalize_lookup(source_first)
-    source_middle = normalize_lookup(source_middle)
-
-    weighted_scores: list[tuple[float, float]] = []
-
-    if search_criteria.get("fullName"):
-        name_scores: list[float] = []
-        for query_part, source_part in (
-            (query_last, source_last),
-            (query_first, source_first),
-            (query_middle, source_middle),
-        ):
-            if not query_part:
-                continue
-            if not source_part:
-                name_scores.append(0.0)
-                continue
-            name_scores.append(SequenceMatcher(None, query_part, source_part).ratio())
-        name_score = (sum(name_scores) / len(name_scores) * 100.0) if name_scores else 0.0
-        weighted_scores.append((name_score, 0.7))
-
-    if search_criteria.get("birthDate"):
-        query_year = birth_year_from_date(query.get("birth_date_from"))
-        source_year = birth_year_from_date(source_field(source, "date_birth", "birth_date"))
-        if query_year and source_year:
-            diff = abs(int(query_year) - int(source_year))
-            birth_score = 100.0 if diff == 0 else max(0.0, 100.0 - min(diff, 25) * 4.0)
-        else:
-            birth_score = 0.0
-        weighted_scores.append((birth_score, 0.2))
-
-    if search_criteria.get("birthPlace"):
-        query_place = normalize_lookup(query.get("birth_place"))
-        source_place = normalize_lookup(source_field(source, "birth_place", "birth_location", "location"))
-        if query_place and source_place:
-            place_score = SequenceMatcher(None, query_place, source_place).ratio() * 100.0
-        else:
-            place_score = 0.0
-        weighted_scores.append((place_score, 0.1))
-
-    if not weighted_scores:
-        return 0.0
-    total_weight = sum(weight for _, weight in weighted_scores)
-    return sum(score * weight for score, weight in weighted_scores) / total_weight
+    query_person = {
+        "lastName": compact_text(query.get("last_name")),
+        "name": compact_text(query.get("first_name")),
+        "middleName": compact_text(query.get("middle_name")),
+        "birthDate": birth_year_from_date(query.get("birth_date_from")),
+        "birthPlace": compact_text(query.get("birth_place")),
+    }
+    source_person = {
+        "lastName": source_last,
+        "name": source_first,
+        "middleName": source_middle,
+        "birthDate": birth_year_from_date(source_field(source, "date_birth", "birth_date")),
+        "birthPlace": source_field(source, "birth_place", "birth_location", "location"),
+    }
+    return SMART_MATCHING_SCORER.compare_idx2idx(query_person, source_person)
 
 
 def app_record_title(source: dict[str, Any], fallback: str) -> str:

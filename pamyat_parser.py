@@ -19,7 +19,6 @@ import urllib.request
 from http.cookiejar import CookieJar
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -31,6 +30,7 @@ from parser_runtime import (
     bool_from_payload,
     classify_result,
 )
+from smart_matching import SmartMatching
 
 try:
     from gedcom_parser import build_tree, default_gedcom_path, parse_gedcom  # type: ignore[import-not-found]
@@ -51,6 +51,7 @@ DEFAULT_USER_AGENT = (
 DEFAULT_ACCEPT_LANGUAGE = "ru,en-US;q=0.9,en;q=0.8"
 APP_SOURCE_KEY = "pamyatNaroda"
 APP_SOURCE_LABEL = "Память народа"
+SMART_MATCHING_SCORER = SmartMatching({}, {})
 
 EMPTY_ARRAY_FILTERS = {
     "birth_place_ids": [],
@@ -974,7 +975,6 @@ def maybe_run_app_search(payload: dict[str, Any]) -> dict[str, Any] | None:
         person_ids = list(people.keys())
     person_ids = [str(person_id) for person_id in person_ids if str(person_id).strip()]
 
-    score_threshold = float(payload.get("scoreThreshold", 70))
     max_records = int(payload.get("maxRecordsPerPerson", 5))
     timeout = float(payload.get("timeout", 25))
     verify_tls = not bool(payload.get("insecureTls", False))
@@ -1069,7 +1069,7 @@ def maybe_run_app_search(payload: dict[str, Any]) -> dict[str, Any] | None:
                     break
                 continue
 
-            documents = app_documents_from_response(query, raw_result.get("response"), score_threshold=score_threshold)
+            documents = app_documents_from_response(query, raw_result.get("response"))
             if not documents:
                 continue
 
@@ -1181,8 +1181,6 @@ def build_app_query_key(
 def app_documents_from_response(
     query: dict[str, Any],
     response: Any,
-    *,
-    score_threshold: float,
 ) -> list[dict[str, Any]]:
     documents: list[dict[str, Any]] = []
     for row in response_data_rows(response):
@@ -1191,8 +1189,6 @@ def app_documents_from_response(
             continue
 
         score = app_similarity_score(query, source)
-        if score < score_threshold:
-            continue
 
         information = compact_text(source.get("short_desc"))
         birth_date = compact_text(source.get("date_birth"))
@@ -1228,49 +1224,21 @@ def response_data_rows(response: Any) -> list[dict[str, Any]]:
 
 
 def app_similarity_score(query: dict[str, Any], source: dict[str, Any]) -> float:
-    search_criteria = normalize_search_criteria(query.get("search_criteria"))
-    weighted_scores: list[tuple[float, float]] = []
-
-    if search_criteria.get("fullName"):
-        name_scores = []
-        for query_key, source_key in (
-            ("last_name", "last_name"),
-            ("first_name", "first_name"),
-            ("middle_name", "middle_name"),
-        ):
-            query_part = normalize_lookup(compact_text(query.get(query_key)))
-            source_part = normalize_lookup(compact_text(source.get(source_key)))
-            if not query_part:
-                continue
-            if not source_part:
-                name_scores.append(0.0)
-                continue
-            name_scores.append(SequenceMatcher(None, query_part, source_part).ratio())
-        name_score = (sum(name_scores) / len(name_scores) * 100.0) if name_scores else 0.0
-        weighted_scores.append((name_score, 0.7))
-
-    if search_criteria.get("birthDate"):
-        query_year = birth_year_from_date(query.get("birth_date_from"))
-        source_year = birth_year_from_date(source.get("date_birth"))
-        if query_year and source_year:
-            birth_score = 100.0 if query_year == source_year else max(0.0, 100.0 - min(abs(query_year - source_year), 25) * 4.0)
-        else:
-            birth_score = 0.0
-        weighted_scores.append((birth_score, 0.2))
-
-    if search_criteria.get("birthPlace"):
-        query_place = normalize_lookup(compact_text(query.get("birth_place")))
-        source_place = normalize_lookup(compact_text(source.get("place_birth")))
-        if query_place and source_place:
-            place_score = SequenceMatcher(None, query_place, source_place).ratio() * 100.0
-        else:
-            place_score = 0.0
-        weighted_scores.append((place_score, 0.1))
-
-    if not weighted_scores:
-        return 0.0
-    total_weight = sum(weight for _, weight in weighted_scores)
-    return sum(score * weight for score, weight in weighted_scores) / total_weight
+    query_person = {
+        "lastName": compact_text(query.get("last_name")),
+        "name": compact_text(query.get("first_name")),
+        "middleName": compact_text(query.get("middle_name")),
+        "birthDate": str(birth_year_from_date(query.get("birth_date_from")) or ""),
+        "birthPlace": compact_text(query.get("birth_place")),
+    }
+    source_person = {
+        "lastName": compact_text(source.get("last_name")),
+        "name": compact_text(source.get("first_name")),
+        "middleName": compact_text(source.get("middle_name")),
+        "birthDate": str(birth_year_from_date(source.get("date_birth")) or ""),
+        "birthPlace": compact_text(source.get("place_birth")),
+    }
+    return SMART_MATCHING_SCORER.compare_idx2idx(query_person, source_person)
 
 
 def app_result_title(source: dict[str, Any]) -> str:

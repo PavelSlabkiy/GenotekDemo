@@ -10,11 +10,11 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
-from difflib import SequenceMatcher
 from html.parser import HTMLParser
 from typing import Any
 
 from parser_runtime import RESULT_BLOCKED, ParserRuntime, RuntimeOptions
+from smart_matching import SmartMatching
 
 
 API_URL = "https://ru.openlist.wiki/api.php"
@@ -29,6 +29,7 @@ DEFAULT_USER_AGENT = (
 )
 DEFAULT_ACCEPT_LANGUAGE = "ru,en-US;q=0.9,en;q=0.8"
 NETWORK_EXCEPTIONS = (urllib.error.URLError, TimeoutError, socket.timeout)
+SMART_MATCHING_SCORER = SmartMatching({}, {})
 
 
 def utc_now() -> str:
@@ -546,60 +547,36 @@ def app_queries_from_people(
     return queries
 
 
-def tokenize(value: str) -> list[str]:
-    return [token for token in compact_text(value).lower().split(" ") if token]
-
-
-def app_similarity_score(query: dict[str, Any], title: str) -> float:
-    search_criteria = normalize_search_criteria(query.get("search_criteria"))
-    weighted_scores: list[tuple[float, float]] = []
-
-    query_name = " ".join(
-        part
-        for part in [
-            compact_text(query.get("last_name")),
-            compact_text(query.get("first_name")),
-            compact_text(query.get("middle_name")),
-        ]
-        if part
-    ).strip()
-    title_text = compact_text(title).lower()
-    title_tokens = set(tokenize(title))
-
-    if search_criteria.get("fullName") and query_name:
-        ratio = SequenceMatcher(None, query_name.lower(), title_text).ratio() * 100
-        query_tokens = set(tokenize(query_name))
-        token_bonus = 0.0
-        if query_tokens:
-            token_bonus = (len(query_tokens & title_tokens) / len(query_tokens)) * 20.0
-        weighted_scores.append((min(100.0, ratio + token_bonus), 0.7))
-
-    if search_criteria.get("birthDate"):
-        query_year = birth_year_from_date(query.get("birth_year"))
-        birth_score = 0.0
-        if query_year:
-            birth_score = 100.0 if query_year in title_text else 0.0
-        weighted_scores.append((birth_score, 0.2))
-
-    if search_criteria.get("birthPlace"):
-        query_place = compact_text(query.get("birth_place")).lower()
-        place_score = 0.0
-        if query_place:
-            place_score = SequenceMatcher(None, query_place, title_text).ratio() * 100.0
-        weighted_scores.append((place_score, 0.1))
-
-    if not weighted_scores:
-        return 0.0
-    total_weight = sum(weight for _, weight in weighted_scores)
-    return sum(score * weight for score, weight in weighted_scores) / total_weight
-
-
 def split_fio(value: str) -> tuple[str, str, str]:
     parts = compact_text(value).split(" ")
     last_name = parts[0] if len(parts) > 0 else ""
     first_name = parts[1] if len(parts) > 1 else ""
     middle_name = " ".join(parts[2:]).strip() if len(parts) > 2 else ""
     return last_name, first_name, middle_name
+
+
+def app_similarity_score(
+    query: dict[str, Any],
+    title: str,
+    birth_date: str = "",
+    birth_place: str = "",
+) -> float:
+    last_name, first_name, middle_name = split_fio(title)
+    query_person = {
+        "lastName": compact_text(query.get("last_name")),
+        "name": compact_text(query.get("first_name")),
+        "middleName": compact_text(query.get("middle_name")),
+        "birthDate": birth_year_from_date(query.get("birth_year")),
+        "birthPlace": compact_text(query.get("birth_place")),
+    }
+    result_person = {
+        "lastName": last_name,
+        "name": first_name,
+        "middleName": middle_name,
+        "birthDate": birth_year_from_date(birth_date),
+        "birthPlace": compact_text(birth_place),
+    }
+    return SMART_MATCHING_SCORER.compare_idx2idx(query_person, result_person)
 
 
 def app_records_from_response(
@@ -652,7 +629,7 @@ def app_records_from_response(
                     "url": url,
                     "birthDate": birth_date,
                     "birthPlace": birth_place,
-                    "score": app_similarity_score(query, title),
+                    "score": app_similarity_score(query, title, birth_date, birth_place),
                 }
             )
         records.sort(key=lambda record: record.get("score", 0), reverse=True)

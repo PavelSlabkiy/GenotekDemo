@@ -15,10 +15,10 @@ class SmartMatching:
     2) example/database: [{...}, {...}] c _id/treeId/relatives/birthdate
     """
 
-    def __init__(self, data, database, trashhold: int = 90, k: int = 5, person_ids=None):
+    def __init__(self, data, database, trashhold=None, k: int = 5, person_ids=None):
+        # Kept for backwards-compatible callers; results are intentionally unfiltered.
         self.data = data
         self.database = database
-        self.trashhold = trashhold
         self.k = k
         self.person_ids = [str(pid) for pid in (person_ids or [])]
 
@@ -452,14 +452,13 @@ class SmartMatching:
                 for db_id, db_person in people.items():
 
                     score = self.compare_idx2idx(data_json["people"][data_idx], db_person)
-                    if score >= self.trashhold:
-                        scores_list.append({
-                            "data_id": data_idx,
-                            "tree_id": tree_id,
-                            "tree_owner": tree_data.get("tree_owner"),
-                            "database_id": db_id,
-                            "score": score
-                        })
+                    scores_list.append({
+                        "data_id": data_idx,
+                        "tree_id": tree_id,
+                        "tree_owner": tree_data.get("tree_owner"),
+                        "database_id": db_id,
+                        "score": score
+                    })
 
             if self.k and self.k > 0:
                 scores_list = heapq.nlargest(self.k, scores_list, key=lambda x: x["score"])
@@ -528,10 +527,9 @@ if __name__ == "__main__":
     data = obj.get("data")
     db = obj.get("db")
     person_ids = obj.get("personIds") or []
-    threshold = obj.get("scoreThreshold", 90)
     per_person_top_k = obj.get("topKPerPerson", 5)
 
-    SM = SmartMatching(data, db, trashhold=threshold, k=per_person_top_k, person_ids=person_ids)
+    SM = SmartMatching(data, db, k=per_person_top_k, person_ids=person_ids)
     out = SM.get_older_generation_idx()
 
     print(json.dumps(out))

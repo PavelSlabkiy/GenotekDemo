@@ -654,6 +654,7 @@ body {
 }
 
 .smart-detail-card {
+  position: relative;
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 14px;
@@ -678,10 +679,38 @@ body {
 
 .smart-detail-source {
   margin: 0 0 10px;
+  padding-right: 64px;
   font-size: 0.78rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: #64748b;
+}
+
+.smart-match-score-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  min-width: 50px;
+  padding: 4px 9px;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.smart-match-score-badge.low {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.smart-match-score-badge.medium {
+  background: #fef3c7;
+  color: #a16207;
+}
+
+.smart-match-score-badge.high {
+  background: #dcfce7;
+  color: #15803d;
 }
 
 .smart-detail-person {

@@ -100,6 +100,11 @@ const getGenderClass = (person = {}) => (
       ? 'female'
       : ''
 );
+const getMatchScoreClass = (score) => {
+  if (score < 50) return 'low';
+  if (score < 80) return 'medium';
+  return 'high';
+};
 
 const FourPointStar = ({ size = 16, className = '' }) => (
   <svg
@@ -3902,6 +3907,11 @@ function App() {
                           const shouldBlurArchiveSource = !isTreeSource && !isUnlocked;
                           return (
                             <article key={`${getDocumentKey(record)}-${index}`} className="smart-detail-card">
+                              {typeof record.score === 'number' && (
+                                <span className={`smart-match-score-badge ${getMatchScoreClass(record.score)}`}>
+                                  {Math.round(record.score)}%
+                                </span>
+                              )}
                               <p className="smart-detail-source">
                                 {isTreeSource ? (
                                   <>

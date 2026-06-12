@@ -112,6 +112,7 @@ const AUTO_SMART_SEARCH_CRITERIA = {
   birthDate: true,
   birthPlace: true
 };
+const SMART_MATCHING_SCORE_VERSION = 2;
 
 const hasValue = (value) => Boolean(String(value || '').trim());
 const extractBirthYear = (birthDate = '') => {
@@ -171,6 +172,7 @@ const AUTO_SOURCE_REQUIREMENTS = {
 
 const buildAutoSearchSignature = (person = {}, sourceKey) => {
   const signaturePayload = {
+    scoreVersion: SMART_MATCHING_SCORE_VERSION,
     sourceKey,
     lastName: person.lastName || '',
     name: person.name || '',
@@ -701,7 +703,6 @@ const runSourceParser = ({ scriptPath, sourceKey, sourceLabel, people, personIds
       personIds,
       searchCriteria: normalizeSearchCriteria(searchCriteria),
       maxRecordsPerPerson: 5,
-      scoreThreshold: 70,
       ...runtimeOptions
     });
     python.stdin.write(input);
@@ -808,7 +809,6 @@ const runTreeMatchingParser = ({ people, personIds, searchCriteria }) => {
       db: treesDatabase,
       personIds,
       searchCriteria: normalizeSearchCriteria(searchCriteria),
-      scoreThreshold: 90,
       topKPerPerson: 5
     });
     python.stdin.write(input);
