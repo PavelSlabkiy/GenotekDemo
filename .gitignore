@@ -71,7 +71,7 @@ Thumbs.db
 # ---------------------
 # Local data and IDE artifacts
 # ---------------------
-database.json
-example.json
-trees/
 .cursor/
+example.json
+database.json
+trees/
