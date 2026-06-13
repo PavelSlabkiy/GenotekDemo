@@ -34,8 +34,7 @@ import {
   Lock,
   Send,
   CreditCard,
-  Bell,
-  CircleUser
+  Bell
 } from 'lucide-react';
 
 const API_URL = '/api';
@@ -1278,10 +1277,16 @@ const FamilyTree = ({
 
 // Toast Component
 const Toast = ({ message, type, onClose }) => {
+  const onCloseRef = useRef(onClose);
+
   useEffect(() => {
-    const timer = setTimeout(onClose, 3000);
-    return () => clearTimeout(timer);
+    onCloseRef.current = onClose;
   }, [onClose]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => onCloseRef.current(), 3000);
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <div className={`toast ${type}`}>
@@ -3655,7 +3660,7 @@ function App() {
               <div className="smart-search-topbar">
                 <h1>Умный поиск</h1>
                 <div className="smart-top-actions">
-                  <div className="balance-wrapper smart-panel-action-wrapper">
+                  <div className="balance-wrapper">
                     <button
                       type="button"
                       className="toolbar-btn"
@@ -3678,7 +3683,7 @@ function App() {
                       />
                     )}
                   </div>
-                  <div className="notifications-wrapper smart-panel-action-wrapper">
+                  <div className="notifications-wrapper">
                     <button
                       type="button"
                       className="toolbar-btn"
@@ -3731,14 +3736,14 @@ function App() {
                       </div>
                     )}
                   </div>
-                  <div className="admin-wrapper smart-panel-action-wrapper">
+                  <div className="admin-wrapper">
                     <button
                       type="button"
                       className="toolbar-btn"
                       title="Профиль"
                       onClick={handleProfileClick}
                     >
-                      <CircleUser size={18} />
+                      <User size={18} />
                     </button>
                     {showAdminPanel && (
                       <div className="admin-panel">
