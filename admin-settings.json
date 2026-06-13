@@ -4,5 +4,9 @@
     "pamyatNaroda": false,
     "openList": true,
     "gwar": false
+  },
+  "scoreThresholds": {
+    "treeMatches": 90,
+    "archiveMatches": 80
   }
 }

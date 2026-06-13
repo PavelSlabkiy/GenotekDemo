@@ -102,6 +102,10 @@ const DEFAULT_ADMIN_SOURCE_PREFERENCES = {
   [OPENLIST_SOURCE_KEY]: true,
   [GWAR_SOURCE_KEY]: true
 };
+const DEFAULT_ADMIN_SCORE_THRESHOLDS = {
+  treeMatches: 90,
+  archiveMatches: 80
+};
 const DEFAULT_SMART_SEARCH_CRITERIA = {
   fullName: true,
   birthDate: true,
@@ -196,26 +200,51 @@ const normalizeSourcePreferences = (raw = {}) => ({
   [GWAR_SOURCE_KEY]: raw?.[GWAR_SOURCE_KEY] !== false
 });
 
-const readAdminSourcePreferences = () => {
+const normalizeScoreThreshold = (value, fallback) => {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.min(100, Math.max(0, parsed));
+};
+
+const normalizeScoreThresholds = (raw = {}) => ({
+  treeMatches: normalizeScoreThreshold(raw?.treeMatches, DEFAULT_ADMIN_SCORE_THRESHOLDS.treeMatches),
+  archiveMatches: normalizeScoreThreshold(raw?.archiveMatches, DEFAULT_ADMIN_SCORE_THRESHOLDS.archiveMatches)
+});
+
+const readAdminSettings = () => {
   try {
     if (!fs.existsSync(ADMIN_SETTINGS_FILE)) {
-      return { ...DEFAULT_ADMIN_SOURCE_PREFERENCES };
+      return {
+        sourcePreferences: { ...DEFAULT_ADMIN_SOURCE_PREFERENCES },
+        scoreThresholds: { ...DEFAULT_ADMIN_SCORE_THRESHOLDS }
+      };
     }
     const raw = fs.readFileSync(ADMIN_SETTINGS_FILE, 'utf8');
     const parsed = JSON.parse(raw);
-    return normalizeSourcePreferences(parsed?.sourcePreferences);
+    return {
+      sourcePreferences: normalizeSourcePreferences(parsed?.sourcePreferences),
+      scoreThresholds: normalizeScoreThresholds(parsed?.scoreThresholds)
+    };
   } catch (error) {
     console.error('Failed to read admin settings:', error);
-    return { ...DEFAULT_ADMIN_SOURCE_PREFERENCES };
+    return {
+      sourcePreferences: { ...DEFAULT_ADMIN_SOURCE_PREFERENCES },
+      scoreThresholds: { ...DEFAULT_ADMIN_SCORE_THRESHOLDS }
+    };
   }
 };
 
-const writeAdminSourcePreferences = (sourcePreferences) => {
+const readAdminSourcePreferences = () => readAdminSettings().sourcePreferences;
+
+const writeAdminSettings = ({ sourcePreferences, scoreThresholds }) => {
   try {
-    const normalized = normalizeSourcePreferences(sourcePreferences);
+    const normalized = {
+      sourcePreferences: normalizeSourcePreferences(sourcePreferences),
+      scoreThresholds: normalizeScoreThresholds(scoreThresholds)
+    };
     fs.writeFileSync(
       ADMIN_SETTINGS_FILE,
-      JSON.stringify({ sourcePreferences: normalized }, null, 2),
+      JSON.stringify(normalized, null, 2),
       'utf8'
     );
     return normalized;
@@ -544,13 +573,22 @@ const readDatabaseState = () => {
   const groupedTrees = groupEntriesByTree(entries);
   const currentTreeId = detectCurrentTreeId(groupedTrees);
   const currentEntries = groupedTrees[currentTreeId] || [];
+  const people = buildPeopleFromEntries(currentEntries);
+  const scoreThresholds = readAdminSettings().scoreThresholds;
+
+  Object.values(people).forEach((person) => {
+    Object.entries(person.sourceSearchCache || {}).forEach(([sourceKey, cacheEntry]) => {
+      applyThresholdToCacheEntry(cacheEntry, sourceKey, scoreThresholds);
+    });
+    person.hasMatch = calculatePersonHasMatch(person);
+  });
 
   return {
     entries,
     groupedTrees,
     currentTreeId,
     currentEntries,
-    people: buildPeopleFromEntries(currentEntries),
+    people,
     smartMatchingDatabase: buildSmartMatchingDatabase(groupedTrees, currentTreeId)
   };
 };
@@ -1132,15 +1170,67 @@ app.get('/api/people/:id/family', (req, res) => {
   res.json(familyInfo);
 });
 
-const sourceCacheEntry = ({ sourceKey, sourceLabel, matches, errors = [], searchCriteria }) => ({
-  searchedAt: new Date().toISOString(),
-  status: matches.length > 0 ? 'matches_found' : 'no_matches',
-  source: sourceKey,
+const matchScore = (match) => {
+  const score = Number(match?.score);
+  return Number.isFinite(score) ? score : 0;
+};
+
+const filterMatchesByThreshold = (matches, sourceKey, scoreThresholds) => {
+  const thresholds = normalizeScoreThresholds(scoreThresholds);
+  const threshold = sourceKey === USER_TREES_SOURCE_KEY
+    ? thresholds.treeMatches
+    : thresholds.archiveMatches;
+
+  return (Array.isArray(matches) ? matches : []).flatMap((match) => {
+    if (!match || typeof match !== 'object') return [];
+    if (sourceKey === USER_TREES_SOURCE_KEY || !Array.isArray(match.records)) {
+      return matchScore(match) >= threshold ? [match] : [];
+    }
+
+    const records = match.records
+      .filter((record) => matchScore(record) >= threshold)
+      .sort((left, right) => matchScore(right) - matchScore(left));
+    if (records.length === 0) return [];
+    return [{
+      ...match,
+      score: matchScore(records[0]),
+      records
+    }];
+  });
+};
+
+const applyThresholdToCacheEntry = (cacheEntry, sourceKey, scoreThresholds) => {
+  if (!cacheEntry || typeof cacheEntry !== 'object') return cacheEntry;
+  const rawMatches = Array.isArray(cacheEntry.rawMatches)
+    ? cacheEntry.rawMatches
+    : (Array.isArray(cacheEntry.matches) ? cacheEntry.matches : []);
+  const matches = filterMatchesByThreshold(rawMatches, sourceKey, scoreThresholds);
+  cacheEntry.rawMatches = rawMatches;
+  cacheEntry.matches = matches;
+  cacheEntry.status = matches.length > 0 ? 'matches_found' : 'no_matches';
+  return cacheEntry;
+};
+
+const sourceCacheEntry = ({
+  sourceKey,
   sourceLabel,
-  searchCriteria: normalizeSearchCriteria(searchCriteria),
   matches,
-  errors
-});
+  errors = [],
+  searchCriteria,
+  scoreThresholds
+}) => {
+  const entry = {
+    searchedAt: new Date().toISOString(),
+    status: 'no_matches',
+    source: sourceKey,
+    sourceLabel,
+    searchCriteria: normalizeSearchCriteria(searchCriteria),
+    rawMatches: Array.isArray(matches) ? matches : [],
+    matches: [],
+    errors
+  };
+  return applyThresholdToCacheEntry(entry, sourceKey, scoreThresholds);
+};
 
 const normalizePersonIds = (personIds, people) => {
   if (!Array.isArray(personIds) || personIds.length === 0) {
@@ -1246,7 +1336,9 @@ const runSmartMatchingForPeople = async ({
   runtimeOptions = {},
   enabledSourceKeys = null
 }) => {
-  const adminSourcePreferences = readAdminSourcePreferences();
+  const adminSettings = readAdminSettings();
+  const adminSourcePreferences = adminSettings.sourcePreferences;
+  const scoreThresholds = adminSettings.scoreThresholds;
   const activeEnabledSourceKeys = enabledSourceKeys
     ? new Set(Array.from(enabledSourceKeys).map(String))
     : getEnabledSourceKeys(adminSourcePreferences);
@@ -1322,6 +1414,7 @@ const runSmartMatchingForPeople = async ({
       return;
     }
     const sourceCache = person.sourceSearchCache[USER_TREES_SOURCE_KEY];
+    applyThresholdToCacheEntry(sourceCache, USER_TREES_SOURCE_KEY, scoreThresholds);
     const expectedSignature = buildAutoSearchSignature(person, USER_TREES_SOURCE_KEY);
     const hasMatchingCriteria = sourceCache
       && typeof sourceCache === 'object'
@@ -1380,7 +1473,8 @@ const runSmartMatchingForPeople = async ({
       sourceLabel: USER_TREES_SOURCE.label,
       matches: treeMatchesByPersonId[personId] || [],
       errors: (treeParserResult.errors || []).filter((entry) => String(entry?.person_id) === personId),
-      searchCriteria
+      searchCriteria,
+      scoreThresholds
     });
     person.sourceSearchCache[USER_TREES_SOURCE_KEY].autoSearchSignature = buildAutoSearchSignature(person, USER_TREES_SOURCE_KEY);
     person.hasMatch = calculatePersonHasMatch(person);
@@ -1418,6 +1512,7 @@ const runSmartMatchingForPeople = async ({
       }
 
       const sourceCache = person.sourceSearchCache[source.key];
+      applyThresholdToCacheEntry(sourceCache, source.key, scoreThresholds);
       const expectedSignature = buildAutoSearchSignature(person, source.key);
       const hasMatchingCriteria = sourceCache
         && typeof sourceCache === 'object'
@@ -1480,7 +1575,8 @@ const runSmartMatchingForPeople = async ({
         sourceLabel: source.label,
         matches: personMatches,
         errors: personErrors,
-        searchCriteria
+        searchCriteria,
+        scoreThresholds
       });
       person.sourceSearchCache[source.key].autoSearchSignature = buildAutoSearchSignature(person, source.key);
       person.hasMatch = calculatePersonHasMatch(person);
@@ -1641,9 +1737,11 @@ app.post('/api/admin/login', (req, res) => {
   if (login !== 'admin' || password !== 'admin') {
     return res.status(401).json({ success: false, error: 'Invalid credentials' });
   }
+  const settings = readAdminSettings();
   res.json({
     success: true,
-    sourcePreferences: readAdminSourcePreferences()
+    sourcePreferences: settings.sourcePreferences,
+    scoreThresholds: settings.scoreThresholds
   });
 });
 
@@ -1654,8 +1752,11 @@ app.put('/api/admin/source-preferences', (req, res) => {
     return res.status(401).json({ success: false, error: 'Invalid credentials' });
   }
 
-  const sourcePreferences = normalizeSourcePreferences(req.body?.sourcePreferences);
-  const saved = writeAdminSourcePreferences(sourcePreferences);
+  const currentSettings = readAdminSettings();
+  const saved = writeAdminSettings({
+    sourcePreferences: req.body?.sourcePreferences || currentSettings.sourcePreferences,
+    scoreThresholds: req.body?.scoreThresholds || currentSettings.scoreThresholds
+  });
   if (!saved) {
     return res.status(500).json({ success: false, error: 'Failed to save settings' });
   }
@@ -1663,10 +1764,16 @@ app.put('/api/admin/source-preferences', (req, res) => {
   const state = readDatabaseState();
   Object.values(state.people).forEach((person) => {
     person.sourceSearchCache = person.sourceSearchCache || {};
-    Object.entries(saved).forEach(([sourceKey, enabled]) => {
+    Object.entries(saved.sourcePreferences).forEach(([sourceKey, enabled]) => {
       if (!enabled) {
         delete person.sourceSearchCache[sourceKey];
+        return;
       }
+      applyThresholdToCacheEntry(
+        person.sourceSearchCache[sourceKey],
+        sourceKey,
+        saved.scoreThresholds
+      );
     });
     person.hasMatch = calculatePersonHasMatch(person);
   });
@@ -1674,7 +1781,8 @@ app.put('/api/admin/source-preferences', (req, res) => {
 
   res.json({
     success: true,
-    sourcePreferences: saved
+    sourcePreferences: saved.sourcePreferences,
+    scoreThresholds: saved.scoreThresholds
   });
 });
 

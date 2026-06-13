@@ -1219,6 +1219,51 @@ body {
   height: 16px;
 }
 
+.admin-thresholds {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 2px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-color);
+}
+
+.admin-thresholds h4 {
+  margin: 0 0 2px;
+}
+
+.admin-threshold-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--text-secondary);
+  font-size: 0.84rem;
+}
+
+.admin-threshold-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-muted);
+}
+
+.admin-threshold-control input {
+  width: 64px;
+  padding: 6px 7px;
+  border: 1px solid var(--border-color);
+  border-radius: 7px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font: inherit;
+  text-align: right;
+}
+
+.admin-threshold-control input:focus {
+  outline: none;
+  border-color: #1b3463;
+}
+
 .smart-start-search-btn:disabled {
   opacity: 0.65;
   cursor: not-allowed;

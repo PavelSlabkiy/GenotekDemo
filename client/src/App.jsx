@@ -59,6 +59,10 @@ const DEFAULT_ADMIN_SOURCE_PREFERENCES = {
   openList: true,
   gwar: true
 };
+const DEFAULT_ADMIN_SCORE_THRESHOLDS = {
+  treeMatches: 90,
+  archiveMatches: 80
+};
 
 // Layout constants
 const CARD_WIDTH = 140;
@@ -129,6 +133,40 @@ const FourPointStar = ({ size = 16, className = '' }) => (
       fill="currentColor"
     />
   </svg>
+);
+
+const AdminScoreThresholdFields = ({ thresholds, onChange }) => (
+  <div className="admin-thresholds">
+    <h4>Пороги совпадений</h4>
+    <label className="admin-threshold-item">
+      <span>Между деревьями</span>
+      <span className="admin-threshold-control">
+        <input
+          type="number"
+          min="0"
+          max="100"
+          step="1"
+          value={thresholds.treeMatches}
+          onChange={(event) => onChange('treeMatches', event.target.value)}
+        />
+        <span>%</span>
+      </span>
+    </label>
+    <label className="admin-threshold-item">
+      <span>Для архивов</span>
+      <span className="admin-threshold-control">
+        <input
+          type="number"
+          min="0"
+          max="100"
+          step="1"
+          value={thresholds.archiveMatches}
+          onChange={(event) => onChange('archiveMatches', event.target.value)}
+        />
+        <span>%</span>
+      </span>
+    </label>
+  </div>
 );
 
 const normalizeSearchValue = (value = '') => value.toLowerCase().replace(/\s+/g, ' ').trim();
@@ -2577,6 +2615,7 @@ function App() {
   const [adminLogin, setAdminLogin] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
   const [adminSourcePreferences, setAdminSourcePreferences] = useState(DEFAULT_ADMIN_SOURCE_PREFERENCES);
+  const [adminScoreThresholds, setAdminScoreThresholds] = useState(DEFAULT_ADMIN_SCORE_THRESHOLDS);
   const [isAdminSaving, setIsAdminSaving] = useState(false);
   // Use refs for matches to ensure synchronous access
   const allTreeMatchesRef = useRef([]);
@@ -3429,6 +3468,7 @@ function App() {
       const data = await response.json();
       setIsAdminAuthorized(true);
       setAdminSourcePreferences(data.sourcePreferences || DEFAULT_ADMIN_SOURCE_PREFERENCES);
+      setAdminScoreThresholds(data.scoreThresholds || DEFAULT_ADMIN_SCORE_THRESHOLDS);
       showToast('Режим администратора открыт');
     } catch (error) {
       console.error('Admin login error:', error);
@@ -3443,6 +3483,13 @@ function App() {
     }));
   };
 
+  const handleAdminThresholdChange = (thresholdKey, value) => {
+    setAdminScoreThresholds((prev) => ({
+      ...prev,
+      [thresholdKey]: value === '' ? '' : Math.min(100, Math.max(0, Number(value)))
+    }));
+  };
+
   const handleAdminSave = async () => {
     setIsAdminSaving(true);
     try {
@@ -3452,7 +3499,8 @@ function App() {
         body: JSON.stringify({
           login: adminLogin,
           password: adminPassword,
-          sourcePreferences: adminSourcePreferences
+          sourcePreferences: adminSourcePreferences,
+          scoreThresholds: adminScoreThresholds
         })
       });
       if (!response.ok) {
@@ -3461,6 +3509,7 @@ function App() {
       }
       const data = await response.json();
       setAdminSourcePreferences(data.sourcePreferences || DEFAULT_ADMIN_SOURCE_PREFERENCES);
+      setAdminScoreThresholds(data.scoreThresholds || DEFAULT_ADMIN_SCORE_THRESHOLDS);
       await fetchPeople();
       showToast('Настройки источников сохранены');
     } catch (error) {
@@ -3752,6 +3801,10 @@ function App() {
                               />
                               <span>Деревья пользователей</span>
                             </label>
+                            <AdminScoreThresholdFields
+                              thresholds={adminScoreThresholds}
+                              onChange={handleAdminThresholdChange}
+                            />
                             <button
                               type="button"
                               className="btn btn-primary btn-full"
@@ -4165,6 +4218,10 @@ function App() {
                           />
                           <span>Деревья пользователей</span>
                         </label>
+                        <AdminScoreThresholdFields
+                          thresholds={adminScoreThresholds}
+                          onChange={handleAdminThresholdChange}
+                        />
                         <button
                           type="button"
                           className="btn btn-primary btn-full"
