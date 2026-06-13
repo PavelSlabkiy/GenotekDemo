@@ -537,6 +537,10 @@ body {
   background: var(--female-color);
 }
 
+.smart-match-initials.tree-owner {
+  background: #64748b;
+}
+
 .smart-match-content {
   flex: 1;
   display: flex;
@@ -644,6 +648,28 @@ body {
   border-radius: 8px;
   padding: 8px 14px;
   cursor: pointer;
+}
+
+.smart-access-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.smart-tree-pairs {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.smart-tree-pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: stretch;
+  gap: 14px;
+}
+
+.smart-tree-pair > .smart-detail-card {
+  height: 100%;
 }
 
 .smart-explore-compare {
@@ -3079,6 +3105,10 @@ body {
 
   .smart-explore-compare {
     flex-direction: column;
+  }
+
+  .smart-tree-pair {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .smart-explore-sources {

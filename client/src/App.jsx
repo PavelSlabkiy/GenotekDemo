@@ -105,6 +105,14 @@ const getMatchScoreClass = (score) => {
   if (score < 80) return 'medium';
   return 'high';
 };
+const getOwnerInitials = (owner = '') => {
+  const ownerName = String(owner).split('@')[0].replace(/[._-]+/g, ' ').trim();
+  const parts = ownerName.split(/\s+/).filter(Boolean);
+  return parts.slice(0, 2).map((part) => part.charAt(0)).join('').toUpperCase() || '??';
+};
+const getTreeMatchTitle = (count) => (
+  `Найдено совпадение по ${count} ${count === 1 ? 'родственнику' : 'родственникам'}`
+);
 
 const FourPointStar = ({ size = 16, className = '' }) => (
   <svg
@@ -161,6 +169,7 @@ const getSourceRecords = (person, sourceKey) => {
           sourceLabel,
           sourceKey,
           score: match.score,
+          matchedPersonId: String(match.data_id || person.id),
           tree_id: match.tree_id,
           tree_owner: match.tree_owner,
           database_id: match.database_id
@@ -2616,14 +2625,9 @@ function App() {
   );
 
   const smartSearchPeople = useMemo(() => {
-    const query = normalizeSearchValue(smartSearchQuery);
     return Object.values(people)
-      .filter((person) => {
-        if (!query) return true;
-        return normalizeSearchValue(getFullName(person)).includes(query);
-      })
       .sort((a, b) => getFullName(a).localeCompare(getFullName(b), 'ru'));
-  }, [people, smartSearchQuery]);
+  }, [people]);
 
   const smartSearchPeopleWithStatus = useMemo(() => (
     smartSearchPeople.map((person) => {
@@ -2663,18 +2667,33 @@ function App() {
 
   const smartSearchEntries = useMemo(() => {
     const entries = [];
+    const treeGroups = new Map();
     smartSearchPeopleWithStatus.forEach((card) => {
       if (!card.hasMatches) return;
       const treeRecords = card.sourceRecords.filter((record) => isUserTreeRecord(record));
       const archiveRecords = card.sourceRecords.filter((record) => isArchiveRecord(record));
-      if (treeRecords.length > 0) {
-        entries.push({
-          id: `${card.person.id}:tree`,
-          person: card.person,
-          sourceType: 'tree',
-          sourceRecords: treeRecords
-        });
-      }
+      treeRecords.forEach((record) => {
+        const treeId = String(record.tree_id || '');
+        if (!treeId) return;
+        if (!treeGroups.has(treeId)) {
+          treeGroups.set(treeId, {
+            id: `tree:${treeId}`,
+            sourceType: 'tree',
+            tree_id: treeId,
+            treeOwner: record.tree_owner || 'Владелец дерева',
+            pairsByPersonId: new Map()
+          });
+        }
+        const group = treeGroups.get(treeId);
+        const personId = String(card.person.id);
+        const currentPair = group.pairsByPersonId.get(personId);
+        if (!currentPair || Number(record.score || 0) > Number(currentPair.record.score || 0)) {
+          group.pairsByPersonId.set(personId, {
+            person: card.person,
+            record
+          });
+        }
+      });
       if (archiveRecords.length > 0) {
         entries.push({
           id: `${card.person.id}:archive`,
@@ -2684,7 +2703,21 @@ function App() {
         });
       }
     });
-    return entries;
+    const treeEntries = Array.from(treeGroups.values()).map((group) => {
+      const pairs = Array.from(group.pairsByPersonId.values())
+        .sort((a, b) => getFullName(a.person).localeCompare(getFullName(b.person), 'ru'));
+      return {
+        id: group.id,
+        person: pairs[0]?.person || null,
+        sourceType: 'tree',
+        tree_id: group.tree_id,
+        treeOwner: group.treeOwner,
+        pairs,
+        sourceRecords: pairs.map((pair) => pair.record),
+        relatedPersonIds: pairs.map((pair) => String(pair.person.id))
+      };
+    });
+    return [...treeEntries, ...entries];
   }, [smartSearchPeopleWithStatus]);
 
   const rejectedSmartSearchEntryIds = useMemo(
@@ -2723,7 +2756,9 @@ function App() {
     () => smartSearchEntries.find((entry) => entry.id === smartSearchExploringPersonId) || null,
     [smartSearchEntries, smartSearchExploringPersonId]
   );
+  const isSmartSearchExploreTree = smartSearchExploreEntry?.sourceType === 'tree';
   const smartSearchExplorePerson = smartSearchExploreEntry?.person || null;
+  const smartSearchExplorePairs = smartSearchExploreEntry?.pairs || [];
   const smartSearchExploreSourceRecords = smartSearchExploreEntry?.sourceRecords || [];
   const isSmartSearchExploreRejected = Boolean(
     smartSearchExploreEntry && rejectedSmartSearchEntryIds.has(smartSearchExploreEntry.id)
@@ -2914,7 +2949,10 @@ function App() {
   const getSmartSearchCardsByTab = useCallback((tabKey) => {
     const applyFocus = (entries) => (
       smartSearchFocusedPersonId
-        ? entries.filter((entry) => String(entry.person.id) === String(smartSearchFocusedPersonId))
+        ? entries.filter((entry) => (
+          String(entry.person?.id) === String(smartSearchFocusedPersonId)
+          || entry.relatedPersonIds?.includes(String(smartSearchFocusedPersonId))
+        ))
         : entries
     );
     switch (tabKey) {
@@ -2971,7 +3009,18 @@ function App() {
 
   const visibleSmartSearchListCards = useMemo(
     () => getSmartSearchCardsByTab(smartSearchMatchTab)
-      .filter((entry) => normalizeSearchValue(getFullName(entry.person)).includes(normalizeSearchValue(smartSearchQuery))),
+      .filter((entry) => {
+        const query = normalizeSearchValue(smartSearchQuery);
+        if (!query) return true;
+        const entryText = entry.sourceType === 'tree'
+          ? [
+            entry.treeOwner,
+            getTreeMatchTitle(entry.pairs?.length || 0),
+            ...(entry.pairs || []).map((pair) => getFullName(pair.person))
+          ].join(' ')
+          : getFullName(entry.person);
+        return normalizeSearchValue(entryText).includes(query);
+      }),
     [getSmartSearchCardsByTab, smartSearchMatchTab, smartSearchQuery]
   );
 
@@ -3016,7 +3065,7 @@ function App() {
     const owners = Array.from(treeMap.values());
 
     setSmartSearchActionContext({
-      type: 'cardPurchase',
+      type: treeIds.length ? 'treeMerge' : 'cardPurchase',
       personId: person.id,
       personName: getFullName(person),
       requiredMatches,
@@ -3047,7 +3096,7 @@ function App() {
       return;
     }
     const firstOwner = smartSearchActionContext.treeOwners?.[0] || 'владельцу дерева';
-    setSmartSearchRequestMessage(`Здравствуйте, ${firstOwner}! Я хотел бы получить доступ к данным вашего семейного древа.`);
+    setSmartSearchRequestMessage(`Здравствуйте, ${firstOwner}! Я хотел бы объединить наши семейные древа.`);
     setShowSmartSearchRequestModal(true);
   };
 
@@ -3085,7 +3134,7 @@ function App() {
     setShowSmartSearchRequestModal(false);
     setSmartSearchActionContext(null);
     setSmartSearchRequestMessage('');
-    showToast('Карточка разблокирована');
+    showToast('Деревья объединены');
   };
 
   const savePersonDocuments = async (personId, documents, successMessage) => {
@@ -3500,7 +3549,12 @@ function App() {
   const smartSearchPaymentBasicPrice = 199;
   const smartSearchPaymentPackagePrice = 1790;
   const smartSearchPaymentBasicTotal = smartSearchBasicQuantity * smartSearchPaymentBasicPrice;
-  const smartSearchActionTitle = 'разблокировки карточки';
+  const smartSearchActionTitle = smartSearchActionContext?.type === 'treeMerge'
+    ? 'объединения деревьев'
+    : 'разблокировки карточки';
+  const smartSearchPurchaseTitle = smartSearchActionContext?.type === 'treeMerge'
+    ? 'объединение деревьев'
+    : 'разблокировку карточки';
   const smartSearchProgressPercent = useMemo(() => {
     if (!smartSearchStatus.running || !smartSearchStatus.totalSteps) return 0;
     return Math.min(100, Math.round((smartSearchStatus.completedSteps / smartSearchStatus.totalSteps) * 100));
@@ -3785,12 +3839,14 @@ function App() {
 
                   <div className="smart-search-cards">
                     {visibleSmartSearchListCards.map((entry) => {
-                        const { person, sourceRecords, sourceType, id } = entry;
-                        const personName = getFullName(person) || 'Без имени';
-                        const personGenderClass = getGenderClass(person);
-                        const initials = getInitials(person);
-                        const genderVerb = person.gender === 'female' ? 'Найдена' : 'Найден';
-                        const foundIn = sourceType === 'tree' ? 'в древе' : 'в архиве';
+                        const { person, sourceType, id } = entry;
+                        const isTreeEntry = sourceType === 'tree';
+                        const personName = isTreeEntry
+                          ? getTreeMatchTitle(entry.pairs?.length || 0)
+                          : (getFullName(person) || 'Без имени');
+                        const personGenderClass = isTreeEntry ? 'tree-owner' : getGenderClass(person);
+                        const initials = isTreeEntry ? getOwnerInitials(entry.treeOwner) : getInitials(person);
+                        const genderVerb = person?.gender === 'female' ? 'Найдена' : 'Найден';
 
                         return (
                           <article key={id} className="smart-match-card">
@@ -3800,7 +3856,11 @@ function App() {
                                 <h3 className="smart-match-name">{personName}</h3>
                               </div>
                               <div className="smart-match-footer">
-                                <p>{genderVerb} {foundIn}</p>
+                                <p>
+                                  {isTreeEntry
+                                    ? `Древо: ${entry.treeOwner || 'владельца'}`
+                                    : `${genderVerb} в архиве`}
+                                </p>
                                 <button
                                   type="button"
                                   className="smart-study-btn"
@@ -3827,7 +3887,11 @@ function App() {
                     Назад
                   </button>
                   <div className="smart-explore-header">
-                    <h2>{getFullName(smartSearchExplorePerson) || 'Без имени'}</h2>
+                    <h2>
+                      {isSmartSearchExploreTree
+                        ? getTreeMatchTitle(smartSearchExplorePairs.length)
+                        : (getFullName(smartSearchExplorePerson) || 'Без имени')}
+                    </h2>
                     <div className="smart-explore-actions">
                       {isSmartSearchExploreRejected ? (
                         <button
@@ -3859,17 +3923,75 @@ function App() {
                                 );
                                 return;
                               }
+                              if (isSmartSearchExploreTree) return;
                               handleAddAllUnlockedDocumentsForPerson(smartSearchExplorePerson, smartSearchExploreRecords);
                             }}
+                            disabled={isSmartSearchExploreTree && !smartSearchExploreHasLockedRecords}
                           >
-                            {smartSearchExploreHasLockedRecords ? 'Получить доступ' : 'Добавить'}
+                            {isSmartSearchExploreTree
+                              ? 'Объединить деревья'
+                              : (smartSearchExploreHasLockedRecords ? 'Получить доступ' : 'Добавить')}
                           </button>
                         </>
                       )}
                     </div>
                   </div>
 
-                  {smartSearchExplorePerson && (
+                  {isSmartSearchExploreTree && (
+                    <div className="smart-tree-pairs">
+                      {smartSearchExplorePairs.map(({ person: pairPerson, record }, index) => {
+                        const isUnlocked = isSmartSearchRecordUnlocked(record);
+                        return (
+                          <div
+                            key={`${pairPerson.id}-${record.database_id || index}`}
+                            className="smart-tree-pair"
+                          >
+                            <article className="smart-detail-card">
+                              <p className="smart-detail-source">Из вашего древа</p>
+                              <div className="smart-detail-person">
+                                <div className={`smart-match-initials ${getGenderClass(pairPerson)}`}>
+                                  {getInitials(pairPerson)}
+                                </div>
+                                <h3>{getFullName(pairPerson) || 'Без имени'}</h3>
+                              </div>
+                              <div className="smart-detail-divider" />
+                              <div className="smart-detail-fields">
+                                <p><strong>Дата рождения:</strong> {formatDate(pairPerson.birthDate)}</p>
+                                <p><strong>Место рождения:</strong> {pairPerson.birthPlace || 'Не указано'}</p>
+                              </div>
+                            </article>
+
+                            <article className="smart-detail-card">
+                              {typeof record.score === 'number' && (
+                                <span className={`smart-match-score-badge ${getMatchScoreClass(record.score)}`}>
+                                  {Math.round(record.score)}%
+                                </span>
+                              )}
+                              <p className="smart-detail-source">
+                                Из древа{' '}
+                                <span className={!isUnlocked ? 'blurred-info' : ''}>
+                                  {record.tree_owner || 'пользователя'}
+                                </span>
+                              </p>
+                              <div className="smart-detail-person">
+                                <div className={`smart-match-initials ${getGenderClass(record)}`}>
+                                  {getInitials(record)}
+                                </div>
+                                <h3>{record.title || getPersonLabel(record)}</h3>
+                              </div>
+                              <div className="smart-detail-divider" />
+                              <div className="smart-detail-fields">
+                                <p><strong>Дата рождения:</strong> {record.birthDate || 'Не указана'}</p>
+                                <p><strong>Место рождения:</strong> {record.birthPlace || 'Не указано'}</p>
+                              </div>
+                            </article>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {!isSmartSearchExploreTree && smartSearchExplorePerson && (
                     <div className="smart-explore-compare">
                       <article className="smart-detail-card">
                         <p className="smart-detail-source">Из вашего древа</p>
@@ -4318,7 +4440,7 @@ function App() {
               <h3>Подтверждение</h3>
             </div>
             <p className="confirm-purchase-text">
-              Вы хотите приобрести разблокировку карточки за <strong>1 совпадение</strong>?
+              Вы хотите приобрести {smartSearchPurchaseTitle} за <strong>1 совпадение</strong>?
             </p>
             <p className="confirm-purchase-balance">
               Текущий баланс: <strong>{smartMatchBalance}</strong> совпадений
@@ -4341,7 +4463,7 @@ function App() {
           <div className="modal-content request-content" onClick={(e) => e.stopPropagation()}>
             <div className="request-header">
               <Send size={24} className="request-icon" />
-              <h3>Запрос доступа</h3>
+              <h3>{smartSearchActionContext?.type === 'treeMerge' ? 'Объединение деревьев' : 'Запрос доступа'}</h3>
             </div>
             <p className="request-recipient">
               Кому: <strong>{smartSearchActionContext?.treeOwners?.join(', ') || 'Владелец дерева'}</strong>
