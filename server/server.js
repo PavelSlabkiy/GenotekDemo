@@ -58,7 +58,73 @@ const normalizeGenderToStorage = (gender) => (
   String(gender).toLowerCase() === 'female' ? 'Female' : 'Male'
 );
 
+const normalizePartialDate = (value) => {
+  const text = String(value || '').trim().replace(/\s+/g, ' ');
+  if (!text) return '';
+
+  let match = text.match(/^(\d{4})$/) || text.match(/^(?:__|00)\.(?:__|00)\.(\d{4})$/);
+  if (match) return String(Number(match[1])).padStart(4, '0');
+
+  match = text.match(/^(\d{4})-(\d{1,2})$/);
+  if (match) {
+    const [, year, month] = match;
+    const monthNumber = Number(month);
+    return monthNumber >= 1 && monthNumber <= 12
+      ? `${String(Number(year)).padStart(4, '0')}-${String(monthNumber).padStart(2, '0')}`
+      : '';
+  }
+
+  match = text.match(/^(\d{1,2})\.(\d{4})$/) || text.match(/^(?:__|00)\.(\d{1,2})\.(\d{4})$/);
+  if (match) {
+    const [, month, year] = match;
+    const monthNumber = Number(month);
+    return monthNumber >= 1 && monthNumber <= 12
+      ? `${String(Number(year)).padStart(4, '0')}-${String(monthNumber).padStart(2, '0')}`
+      : '';
+  }
+
+  match = text.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  let year;
+  let month;
+  let day;
+  if (match) {
+    [, year, month, day] = match;
+  } else {
+    match = text.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+    if (!match) return '';
+    [, day, month, year] = match;
+  }
+
+  const yearNumber = Number(year);
+  const monthNumber = Number(month);
+  const dayNumber = Number(day);
+  const candidate = new Date(Date.UTC(yearNumber, monthNumber - 1, dayNumber));
+  if (
+    candidate.getUTCFullYear() !== yearNumber
+    || candidate.getUTCMonth() !== monthNumber - 1
+    || candidate.getUTCDate() !== dayNumber
+  ) {
+    return '';
+  }
+  return `${String(yearNumber).padStart(4, '0')}-${String(monthNumber).padStart(2, '0')}-${String(dayNumber).padStart(2, '0')}`;
+};
+
+const normalizeBirthDatesDeep = (value) => {
+  if (Array.isArray(value)) return value.map(normalizeBirthDatesDeep);
+  if (!value || typeof value !== 'object') return value;
+  return Object.fromEntries(Object.entries(value).map(([key, child]) => {
+    if (key !== 'birthDate' || !['string', 'number'].includes(typeof child)) {
+      return [key, normalizeBirthDatesDeep(child)];
+    }
+    const normalized = normalizePartialDate(child);
+    return [key, normalized || String(child || '').trim()];
+  }));
+};
+
 const birthDateToApp = (birthdate) => {
+  if (typeof birthdate === 'string' || typeof birthdate === 'number') {
+    return normalizePartialDate(birthdate);
+  }
   if (!Array.isArray(birthdate) || birthdate.length === 0) return '';
   const raw = birthdate[0] || {};
   const year = raw.year;
@@ -72,8 +138,9 @@ const birthDateToApp = (birthdate) => {
 };
 
 const birthDateToStorage = (birthDate) => {
-  if (!birthDate) return [];
-  const parts = String(birthDate).split('-');
+  const normalized = normalizePartialDate(birthDate);
+  if (!normalized) return [];
+  const parts = normalized.split('-');
   const year = Number(parts[0]) || null;
   const month = parts[1] ? Number(parts[1]) : null;
   const day = parts[2] ? Number(parts[2]) : null;
@@ -120,7 +187,7 @@ const SMART_MATCHING_SCORE_VERSION = 2;
 
 const hasValue = (value) => Boolean(String(value || '').trim());
 const extractBirthYear = (birthDate = '') => {
-  const match = String(birthDate).match(/^\s*(\d{4})/);
+  const match = normalizePartialDate(birthDate).match(/^(\d{4})/);
   return match ? Number(match[1]) : null;
 };
 const isYearInRange = (year, leftBound, rightBound) => {
@@ -436,9 +503,9 @@ const buildPeopleFromEntries = (entries) => {
       birthDate: birthDateToApp(entry.birthdate),
       birthPlace: firstString(entry.birthplace),
       hasMatch: Boolean(entry.hasMatch),
-      sourceSearchCache: entry.sourceSearchCache || {},
+      sourceSearchCache: normalizeBirthDatesDeep(entry.sourceSearchCache || {}),
       information: entry.information || '',
-      documents: Array.isArray(entry.documents) ? entry.documents : []
+      documents: Array.isArray(entry.documents) ? normalizeBirthDatesDeep(entry.documents) : []
     };
     people[id].hasMatch = calculatePersonHasMatch(people[id]) || people[id].hasMatch;
   });
@@ -878,6 +945,10 @@ app.get('/api/people/:id', (req, res) => {
 app.post('/api/people', async (req, res) => {
   const state = readDatabaseState();
   const people = { ...state.people };
+  const normalizedBirthDate = normalizePartialDate(req.body.birthDate);
+  if (hasValue(req.body.birthDate) && !normalizedBirthDate) {
+    return res.status(400).json({ error: 'Birth date must use YYYY, MM.YYYY or DD.MM.YYYY format' });
+  }
   const newPerson = {
     id: req.body.id || generateId(),
     name: req.body.name || '',
@@ -889,11 +960,11 @@ app.post('/api/people', async (req, res) => {
     partnerId: req.body.partnerId || null,
     children: req.body.children || [],
     isAlive: req.body.isAlive !== undefined ? req.body.isAlive : true,
-    birthDate: req.body.birthDate || '',
+    birthDate: normalizedBirthDate,
     birthPlace: req.body.birthPlace || '',
     hasMatch: req.body.hasMatch || false,
     information: req.body.information || '',
-    documents: Array.isArray(req.body.documents) ? req.body.documents : []
+    documents: Array.isArray(req.body.documents) ? normalizeBirthDatesDeep(req.body.documents) : []
   };
 
   people[newPerson.id] = newPerson;
@@ -923,9 +994,17 @@ app.put('/api/people/:id', async (req, res) => {
   }
   
   // Update person fields
+  const normalizedBody = normalizeBirthDatesDeep(req.body);
+  if (Object.prototype.hasOwnProperty.call(req.body, 'birthDate')) {
+    const normalizedBirthDate = normalizePartialDate(req.body.birthDate);
+    if (hasValue(req.body.birthDate) && !normalizedBirthDate) {
+      return res.status(400).json({ error: 'Birth date must use YYYY, MM.YYYY or DD.MM.YYYY format' });
+    }
+    normalizedBody.birthDate = normalizedBirthDate;
+  }
   const updatedPerson = {
     ...person,
-    ...req.body,
+    ...normalizedBody,
     id: req.params.id // Ensure ID doesn't change
   };
   
@@ -998,6 +1077,11 @@ app.post('/api/people/:id/relative', async (req, res) => {
   if (!person) {
     return res.status(404).json({ error: 'Person not found' });
   }
+
+  const normalizedBirthDate = normalizePartialDate(relativeData.birthDate);
+  if (hasValue(relativeData.birthDate) && !normalizedBirthDate) {
+    return res.status(400).json({ error: 'Birth date must use YYYY, MM.YYYY or DD.MM.YYYY format' });
+  }
   
   const newRelativeId = generateId();
   const newRelative = {
@@ -1011,11 +1095,11 @@ app.post('/api/people/:id/relative', async (req, res) => {
     partnerId: null,
     children: [],
     isAlive: true,
-    birthDate: relativeData.birthDate || '',
+    birthDate: normalizedBirthDate,
     birthPlace: relativeData.birthPlace || '',
     hasMatch: false,
     information: relativeData.information || '',
-    documents: Array.isArray(relativeData.documents) ? relativeData.documents : []
+    documents: Array.isArray(relativeData.documents) ? normalizeBirthDatesDeep(relativeData.documents) : []
   };
   
   switch (relationType) {
@@ -1201,9 +1285,10 @@ const filterMatchesByThreshold = (matches, sourceKey, scoreThresholds) => {
 
 const applyThresholdToCacheEntry = (cacheEntry, sourceKey, scoreThresholds) => {
   if (!cacheEntry || typeof cacheEntry !== 'object') return cacheEntry;
-  const rawMatches = Array.isArray(cacheEntry.rawMatches)
+  const existingRawMatches = Array.isArray(cacheEntry.rawMatches)
     ? cacheEntry.rawMatches
     : (Array.isArray(cacheEntry.matches) ? cacheEntry.matches : []);
+  const rawMatches = normalizeBirthDatesDeep(existingRawMatches);
   const matches = filterMatchesByThreshold(rawMatches, sourceKey, scoreThresholds);
   cacheEntry.rawMatches = rawMatches;
   cacheEntry.matches = matches;
@@ -1885,7 +1970,7 @@ app.post('/api/people/:id/confirm-match', (req, res) => {
         .map(childId => idMapping[childId])
         .filter(Boolean),
       isAlive: fragmentPerson.isAlive !== undefined ? fragmentPerson.isAlive : true,
-      birthDate: fragmentPerson.birthDate || '',
+      birthDate: normalizePartialDate(fragmentPerson.birthDate),
       birthPlace: fragmentPerson.birthPlace || '',
       information: fragmentPerson.information || '',
       hasMatch: false
@@ -1922,7 +2007,7 @@ app.post('/api/people/:id/confirm-archive-match', (req, res) => {
   
   // Optionally update other fields if they're empty
   if (!person.birthDate && match.person.birthDate) {
-    person.birthDate = match.person.birthDate;
+    person.birthDate = normalizePartialDate(match.person.birthDate);
   }
   if (!person.birthPlace && match.person.birthPlace) {
     person.birthPlace = match.person.birthPlace;

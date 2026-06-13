@@ -22,6 +22,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable
 
+from date_utils import normalize_partial_date
 from parser_runtime import (
     RESULT_BLOCKED,
     ParserRuntime,
@@ -1139,7 +1140,8 @@ def app_queries_from_people(
         if full_name_enabled and (not last_name or not first_name):
             continue
 
-        birth_year = birth_year_from_date(person.get("birthDate")) if birth_date_enabled else None
+        birth_date = normalize_partial_date(person.get("birthDate")) if birth_date_enabled else ""
+        birth_year = birth_year_from_date(birth_date) if birth_date_enabled else None
         birth_date_from = str(birth_year) if birth_year else ""
         birth_place = compact_text(person.get("birthPlace")) if birth_place_enabled else ""
         if not any((last_name, first_name, middle_name, birth_date_from, birth_place)):
@@ -1156,6 +1158,7 @@ def app_queries_from_people(
                 "last_name": last_name,
                 "first_name": first_name,
                 "middle_name": middle_name,
+                "birth_date": birth_date,
                 "birth_date_from": birth_date_from,
                 "birth_place": birth_place,
                 "search_criteria": search_criteria,
@@ -1228,14 +1231,14 @@ def app_similarity_score(query: dict[str, Any], source: dict[str, Any]) -> float
         "lastName": compact_text(query.get("last_name")),
         "name": compact_text(query.get("first_name")),
         "middleName": compact_text(query.get("middle_name")),
-        "birthDate": str(birth_year_from_date(query.get("birth_date_from")) or ""),
+        "birthDate": normalize_partial_date(query.get("birth_date")) or str(birth_year_from_date(query.get("birth_date_from")) or ""),
         "birthPlace": compact_text(query.get("birth_place")),
     }
     source_person = {
         "lastName": compact_text(source.get("last_name")),
         "name": compact_text(source.get("first_name")),
         "middleName": compact_text(source.get("middle_name")),
-        "birthDate": str(birth_year_from_date(source.get("date_birth")) or ""),
+        "birthDate": normalize_partial_date(source.get("date_birth")) or str(birth_year_from_date(source.get("date_birth")) or ""),
         "birthPlace": compact_text(source.get("place_birth")),
     }
     return SMART_MATCHING_SCORER.compare_idx2idx(query_person, source_person)
@@ -1267,7 +1270,7 @@ def normalize_birth_date_for_app(value: str) -> str:
     if not value:
         return ""
     normalized = value.replace("__.", "").replace("__. ", "").strip()
-    return normalized
+    return normalize_partial_date(value) or normalized
 
 
 def birth_year_from_date(value: Any) -> int | None:

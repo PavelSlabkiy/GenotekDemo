@@ -72,15 +72,101 @@ const COUPLE_GAP = 80;
 const PADDING = 60;
 const BRANCH_GAP = 86;
 
-// Helper function to format date
+const PARTIAL_DATE_ERROR = 'Введите дату в формате гггг, мм.гггг или дд.мм.гггг';
+
+const normalizePartialDate = (value) => {
+  const text = String(value || '').trim().replace(/\s+/g, ' ');
+  if (!text) return '';
+
+  let match = text.match(/^(\d{4})$/) || text.match(/^(?:__|00)\.(?:__|00)\.(\d{4})$/);
+  if (match) return String(Number(match[1])).padStart(4, '0');
+
+  match = text.match(/^(\d{4})-(\d{1,2})$/);
+  if (match) {
+    const [, year, month] = match;
+    const monthNumber = Number(month);
+    return monthNumber >= 1 && monthNumber <= 12
+      ? `${String(Number(year)).padStart(4, '0')}-${String(monthNumber).padStart(2, '0')}`
+      : '';
+  }
+
+  match = text.match(/^(\d{1,2})\.(\d{4})$/) || text.match(/^(?:__|00)\.(\d{1,2})\.(\d{4})$/);
+  if (match) {
+    const [, month, year] = match;
+    const monthNumber = Number(month);
+    return monthNumber >= 1 && monthNumber <= 12
+      ? `${String(Number(year)).padStart(4, '0')}-${String(monthNumber).padStart(2, '0')}`
+      : '';
+  }
+
+  match = text.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  let year;
+  let month;
+  let day;
+  if (match) {
+    [, year, month, day] = match;
+  } else {
+    match = text.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+    if (!match) return '';
+    [, day, month, year] = match;
+  }
+
+  const yearNumber = Number(year);
+  const monthNumber = Number(month);
+  const dayNumber = Number(day);
+  const candidate = new Date(Date.UTC(yearNumber, monthNumber - 1, dayNumber));
+  if (
+    candidate.getUTCFullYear() !== yearNumber
+    || candidate.getUTCMonth() !== monthNumber - 1
+    || candidate.getUTCDate() !== dayNumber
+  ) {
+    return '';
+  }
+  return `${String(yearNumber).padStart(4, '0')}-${String(monthNumber).padStart(2, '0')}-${String(dayNumber).padStart(2, '0')}`;
+};
+
+const formatDateForInput = (dateStr) => {
+  const normalized = normalizePartialDate(dateStr);
+  if (!normalized) return String(dateStr || '').trim();
+  const [year, month, day] = normalized.split('-');
+  if (!month) return year;
+  if (!day) return `${month}.${year}`;
+  return `${day}.${month}.${year}`;
+};
+
 const formatDate = (dateStr) => {
   if (!dateStr) return 'Не указана';
-  const date = new Date(dateStr);
-  return date.toLocaleDateString('ru-RU', { 
-    day: 'numeric', 
-    month: 'long', 
-    year: 'numeric' 
-  });
+  return formatDateForInput(dateStr) || 'Не указана';
+};
+
+const extractBirthYear = (dateStr) => {
+  const normalized = normalizePartialDate(dateStr);
+  return normalized ? Number(normalized.slice(0, 4)) : null;
+};
+
+const PartialDateInput = ({ value, onChange }) => {
+  const validate = (event) => {
+    const raw = event.currentTarget.value.trim();
+    event.currentTarget.setCustomValidity(raw && !normalizePartialDate(raw) ? PARTIAL_DATE_ERROR : '');
+  };
+
+  return (
+    <input
+      type="text"
+      name="birthDate"
+      inputMode="numeric"
+      className="form-input"
+      value={value}
+      onChange={(event) => {
+        event.currentTarget.setCustomValidity('');
+        onChange(event.target.value);
+      }}
+      onBlur={validate}
+      onInvalid={validate}
+      placeholder="гггг, мм.гггг или дд.мм.гггг"
+      title={PARTIAL_DATE_ERROR}
+    />
+  );
 };
 
 // Get full name
@@ -404,8 +490,7 @@ class TreeLayoutEngine {
   }
 
   getBirthYear(person) {
-    const match = String(person?.birthDate || '').match(/^\d{4}/);
-    return match ? Number(match[0]) : Infinity;
+    return extractBirthYear(person?.birthDate) ?? Infinity;
   }
 
   comparePersonIds(a, b) {
@@ -1103,7 +1188,7 @@ const TreeConnectors = ({ positions, layout, width, height }) => {
 
 const PersonNode = ({ person, position, isSelected, onClick, onMatchClick }) => {
   const fullName = getFullName(person);
-  const birthYear = person.birthDate ? new Date(person.birthDate).getFullYear() : null;
+  const birthYear = extractBirthYear(person.birthDate);
 
   const handleMatchClick = (e) => {
     e.stopPropagation();
@@ -1343,7 +1428,7 @@ const EditModal = ({ isOpen, person, onSave, onClose }) => {
         name: person.name || '',
         lastName: person.lastName || '',
         middleName: person.middleName || '',
-        birthDate: person.birthDate || '',
+        birthDate: formatDateForInput(person.birthDate),
         birthPlace: person.birthPlace || '',
         information: person.information || '',
         documents: Array.isArray(person.documents) ? person.documents : []
@@ -1355,7 +1440,14 @@ const EditModal = ({ isOpen, person, onSave, onClose }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave(formData);
+    const birthDate = normalizePartialDate(formData.birthDate);
+    if (formData.birthDate.trim() && !birthDate) {
+      const input = e.currentTarget.elements.birthDate;
+      input?.setCustomValidity(PARTIAL_DATE_ERROR);
+      e.currentTarget.reportValidity();
+      return;
+    }
+    onSave({ ...formData, birthDate });
   };
 
   return (
@@ -1403,11 +1495,9 @@ const EditModal = ({ isOpen, person, onSave, onClose }) => {
             </div>
             <div className="form-group">
               <label className="form-label">Дата рождения</label>
-              <input
-                type="date"
-                className="form-input"
+              <PartialDateInput
                 value={formData.birthDate}
-                onChange={e => setFormData({...formData, birthDate: e.target.value})}
+                onChange={birthDate => setFormData({...formData, birthDate})}
               />
             </div>
             <div className="form-group">
@@ -1474,7 +1564,7 @@ const EditModal = ({ isOpen, person, onSave, onClose }) => {
                         )}
                       </p>
                       {document.birthDate && (
-                        <p className="smart-source-meta">Дата рождения: {document.birthDate}</p>
+                        <p className="smart-source-meta">Дата рождения: {formatDate(document.birthDate)}</p>
                       )}
                       {document.birthPlace && (
                         <p className="smart-source-meta">Место рождения: {document.birthPlace}</p>
@@ -1541,7 +1631,14 @@ const AddRelativeModal = ({ isOpen, person, availableRelations, initialRelation,
   const handleSubmit = (e) => {
     e.preventDefault();
     if (selectedRelation) {
-      onAdd(selectedRelation, formData);
+      const birthDate = normalizePartialDate(formData.birthDate);
+      if (formData.birthDate.trim() && !birthDate) {
+        const input = e.currentTarget.elements.birthDate;
+        input?.setCustomValidity(PARTIAL_DATE_ERROR);
+        e.currentTarget.reportValidity();
+        return;
+      }
+      onAdd(selectedRelation, { ...formData, birthDate });
     }
   };
 
@@ -1612,11 +1709,9 @@ const AddRelativeModal = ({ isOpen, person, availableRelations, initialRelation,
                 </div>
                 <div className="form-group">
                   <label className="form-label">Дата рождения</label>
-                  <input
-                    type="date"
-                    className="form-input"
+                  <PartialDateInput
                     value={formData.birthDate}
-                    onChange={e => setFormData({...formData, birthDate: e.target.value})}
+                    onChange={birthDate => setFormData({...formData, birthDate})}
                   />
                 </div>
                 <div className="form-group">
@@ -1879,7 +1974,7 @@ const PersonCard = ({ person, people, onClose, onEdit, onAddRelative, onDelete, 
                       )}
                     </p>
                     {document.birthDate && (
-                      <p className="smart-source-meta">Дата рождения: {document.birthDate}</p>
+                      <p className="smart-source-meta">Дата рождения: {formatDate(document.birthDate)}</p>
                     )}
                     {document.birthPlace && (
                       <p className="smart-source-meta">Место рождения: {document.birthPlace}</p>
@@ -2391,7 +2486,7 @@ const MatchVerificationModal = ({
                                 <p className="match-name">{getFullName(person)}</p>
                                 <p className="match-detail">
                                   <Calendar size={14} />
-                                  {person.birthDate || 'Не указана'}
+                                  {formatDate(person.birthDate)}
                                 </p>
                                 <p className="match-detail">
                                   <MapPin size={14} />
@@ -2410,7 +2505,7 @@ const MatchVerificationModal = ({
                                 <p className="match-name">{matchedPerson ? getFullName(matchedPerson) : 'Неизвестно'}</p>
                                 <p className="match-detail">
                                   <Calendar size={14} />
-                                  {matchedPerson?.birthDate || 'Не указана'}
+                                  {formatDate(matchedPerson?.birthDate)}
                                 </p>
                                 <p className="match-detail">
                                   <MapPin size={14} />
@@ -2448,7 +2543,7 @@ const MatchVerificationModal = ({
                                           <p className="relative-name">{getFullName(relative)}</p>
                                           <p className="relative-detail">
                                             <Calendar size={12} />
-                                            {relative.birthDate || 'Не указана'}
+                                            {formatDate(relative.birthDate)}
                                           </p>
                                           <p className="relative-detail">
                                             <MapPin size={12} />
@@ -2508,7 +2603,7 @@ const MatchVerificationModal = ({
                                 <p className="match-name">{getFullName(person)}</p>
                                 <p className="match-detail">
                                   <Calendar size={14} />
-                                  {person.birthDate || 'Не указана'}
+                                  {formatDate(person.birthDate)}
                                 </p>
                                 <p className="match-detail">
                                   <MapPin size={14} />
@@ -2527,7 +2622,7 @@ const MatchVerificationModal = ({
                                 <p className="match-name">{archivePerson ? getFullName(archivePerson) : 'Неизвестно'}</p>
                                 <p className="match-detail">
                                   <Calendar size={14} />
-                                  {archivePerson?.birthDate || 'Не указана'}
+                                  {formatDate(archivePerson?.birthDate)}
                                 </p>
                                 <p className="match-detail">
                                   <MapPin size={14} />
@@ -4039,7 +4134,7 @@ function App() {
                               </div>
                               <div className="smart-detail-divider" />
                               <div className="smart-detail-fields">
-                                <p><strong>Дата рождения:</strong> {record.birthDate || 'Не указана'}</p>
+                                <p><strong>Дата рождения:</strong> {formatDate(record.birthDate)}</p>
                                 <p><strong>Место рождения:</strong> {record.birthPlace || 'Не указано'}</p>
                               </div>
                             </article>
@@ -4115,7 +4210,7 @@ function App() {
                                 </div>
                                 <div className="smart-detail-divider" />
                                 <div className="smart-detail-fields">
-                                  <p><strong>Дата рождения:</strong> {record.birthDate || 'Не указана'}</p>
+                                  <p><strong>Дата рождения:</strong> {formatDate(record.birthDate)}</p>
                                   <p><strong>Место рождения:</strong> {record.birthPlace || 'Не указано'}</p>
                                   <p><strong>Источник:</strong> {record.url ? (
                                     <a

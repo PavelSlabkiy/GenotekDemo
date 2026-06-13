@@ -1,9 +1,10 @@
 from rapidfuzz import fuzz
-from datetime import date
 import json
 import heapq
 import sys
 import re
+
+from date_utils import partial_date_range
 
 
 class SmartMatching:
@@ -274,28 +275,12 @@ class SmartMatching:
                 return 70
             return fuzz.token_sort_ratio(normalize_text(a), normalize_text(b))
 
-        def parse_date_range(d: str):
-            if not d:
-                return None
-            parts = d.split("-")
-            try:
-                year = int(parts[0])
-                if len(parts) == 1:
-                    return date(year, 1, 1), date(year, 12, 31)
-                month = int(parts[1])
-                if len(parts) == 2:
-                    return date(year, month, 1), date(year, month, 28)
-                day = int(parts[2])
-                return date(year, month, day), date(year, month, day)
-            except Exception:
-                return None
-
         def date_similarity(d1: str, d2: str) -> int:
             if not d1 or not d2:
                 return 50
 
-            r1 = parse_date_range(d1)
-            r2 = parse_date_range(d2)
+            r1 = partial_date_range(d1)
+            r2 = partial_date_range(d2)
 
             if not r1 or not r2:
                 return 50

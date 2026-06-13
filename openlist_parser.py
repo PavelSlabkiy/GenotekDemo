@@ -13,6 +13,7 @@ from datetime import datetime, timezone
 from html.parser import HTMLParser
 from typing import Any
 
+from date_utils import normalize_partial_date
 from parser_runtime import RESULT_BLOCKED, ParserRuntime, RuntimeOptions
 from smart_matching import SmartMatching
 
@@ -523,7 +524,8 @@ def app_queries_from_people(
         if full_name_enabled and (not last_name or not first_name):
             continue
 
-        birth_year = birth_year_from_date(person.get("birthDate")) if birth_date_enabled else ""
+        birth_date = normalize_partial_date(person.get("birthDate")) if birth_date_enabled else ""
+        birth_year = birth_year_from_date(birth_date) if birth_date_enabled else ""
         birth_place = compact_text(person.get("birthPlace")) if birth_place_enabled else ""
         if not any((last_name, first_name, middle_name, birth_year, birth_place)):
             continue
@@ -539,6 +541,7 @@ def app_queries_from_people(
                 "last_name": last_name,
                 "first_name": first_name,
                 "middle_name": middle_name,
+                "birth_date": birth_date,
                 "birth_year": birth_year,
                 "birth_place": birth_place,
                 "search_criteria": search_criteria,
@@ -566,14 +569,14 @@ def app_similarity_score(
         "lastName": compact_text(query.get("last_name")),
         "name": compact_text(query.get("first_name")),
         "middleName": compact_text(query.get("middle_name")),
-        "birthDate": birth_year_from_date(query.get("birth_year")),
+        "birthDate": normalize_partial_date(query.get("birth_date")) or birth_year_from_date(query.get("birth_year")),
         "birthPlace": compact_text(query.get("birth_place")),
     }
     result_person = {
         "lastName": last_name,
         "name": first_name,
         "middleName": middle_name,
-        "birthDate": birth_year_from_date(birth_date),
+        "birthDate": normalize_partial_date(birth_date) or birth_year_from_date(birth_date),
         "birthPlace": compact_text(birth_place),
     }
     return SMART_MATCHING_SCORER.compare_idx2idx(query_person, result_person)
@@ -627,7 +630,7 @@ def app_records_from_response(
                     "title": title or query.get("display_name") or "Запись",
                     "information": information,
                     "url": url,
-                    "birthDate": birth_date,
+                    "birthDate": normalize_partial_date(birth_date) or birth_date,
                     "birthPlace": birth_place,
                     "score": app_similarity_score(query, title, birth_date, birth_place),
                 }
@@ -784,7 +787,7 @@ def maybe_run_app_search(payload: dict[str, Any]) -> dict[str, Any] | None:
                 "lastName": top_last_name or compact_text(query.get("last_name")),
                 "name": top_first_name or compact_text(query.get("first_name")),
                 "middleName": top_middle_name or compact_text(query.get("middle_name")),
-                "birthDate": compact_text(top_record.get("birthDate")),
+                "birthDate": normalize_partial_date(top_record.get("birthDate")) or compact_text(top_record.get("birthDate")),
                 "birthPlace": compact_text(top_record.get("birthPlace")),
                 "information": top_record.get("information", ""),
             },
