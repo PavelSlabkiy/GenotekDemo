@@ -38,7 +38,7 @@ import {
 } from 'lucide-react';
 
 const API_URL = '/api';
-const SMART_SEARCH_STUDIED_STORAGE_KEY = 'genotek-smart-search-studied-entry-ids';
+const SMART_SEARCH_STUDIED_STORAGE_KEY = 'genotek-smart-search-studied-entry-keys-v2';
 const SMART_SEARCH_SUPPORTED_SOURCE_KEYS = ['userTrees', 'pamyatNaroda', 'openList', 'gwar'];
 const SMART_SEARCH_SOURCE_LABELS = {
   userTrees: 'Деревья других пользователей',
@@ -364,6 +364,28 @@ const getDocumentKey = (document = {}) => {
   return keyParts
     .filter((part) => part !== undefined && part !== null && String(part).trim())
     .join('|');
+};
+
+const getStableStringHash = (value) => {
+  let hash = 2166136261;
+  String(value).split('').forEach((character) => {
+    hash ^= character.charCodeAt(0);
+    hash = Math.imul(hash, 16777619);
+  });
+  return (hash >>> 0).toString(36);
+};
+
+const getSmartSearchEntryStudyKey = (entry = {}) => {
+  const recordKeys = entry.sourceType === 'tree'
+    ? (entry.pairs || []).map(({ person, record }) => [
+      String(person?.id || ''),
+      getDocumentKey(record),
+      record?.treeMergeStatus || '',
+      record?.treeMergeOperationId || '',
+      Number(record?.treeMergeAddedCount) || 0
+    ].join('|'))
+    : (entry.sourceRecords || []).map((record) => getDocumentKey(record));
+  return `${entry.id || 'entry'}:${getStableStringHash(recordKeys.sort().join('||'))}`;
 };
 
 const normalizeDocumentRecord = (record = {}) => ({
@@ -2761,10 +2783,10 @@ function App() {
   const [smartSearchMatchTab, setSmartSearchMatchTab] = useState('all');
   const [smartSearchViewMode, setSmartSearchViewMode] = useState('list');
   const [smartSearchExploringPersonId, setSmartSearchExploringPersonId] = useState(null);
-  const [studiedSmartSearchEntryIds, setStudiedSmartSearchEntryIds] = useState(() => {
+  const [studiedSmartSearchEntryKeys, setStudiedSmartSearchEntryKeys] = useState(() => {
     try {
-      const storedIds = JSON.parse(localStorage.getItem(SMART_SEARCH_STUDIED_STORAGE_KEY) || '[]');
-      return Array.isArray(storedIds) ? storedIds.map(String) : [];
+      const storedKeys = JSON.parse(localStorage.getItem(SMART_SEARCH_STUDIED_STORAGE_KEY) || '[]');
+      return Array.isArray(storedKeys) ? storedKeys.map(String) : [];
     } catch (error) {
       console.error('Failed to read studied smart search cards:', error);
       return [];
@@ -3007,6 +3029,16 @@ function App() {
       const data = await response.json();
       const nextPeople = data.people || {};
 
+      setStudiedSmartSearchEntryKeys([]);
+      try {
+        localStorage.removeItem(SMART_SEARCH_STUDIED_STORAGE_KEY);
+      } catch (storageError) {
+        console.error('Failed to reset studied smart search cards:', storageError);
+      }
+      setSmartSearchViewMode('list');
+      setSmartSearchExploringPersonId(null);
+      setSmartSearchFocusedPersonId(null);
+      setSmartSearchQuery('');
       setPeople(nextPeople);
       setExpandedSiblingGroups({});
       setSelectedPerson(null);
@@ -3155,13 +3187,20 @@ function App() {
     setSmartSearchFocusedPersonId(null);
   };
 
-  const handleEnterSmartSearchExplore = (entryId) => {
-    setStudiedSmartSearchEntryIds((prev) => (
-      prev.includes(String(entryId))
+  const markSmartSearchEntryStudied = useCallback((entry) => {
+    if (!entry) return;
+    const studyKey = getSmartSearchEntryStudyKey(entry);
+    setStudiedSmartSearchEntryKeys((prev) => (
+      prev.includes(studyKey)
         ? prev
-        : [...prev, String(entryId)]
+        : [...prev, studyKey]
     ));
-    setSmartSearchExploringPersonId(entryId);
+  }, []);
+
+  const handleEnterSmartSearchExplore = (entry) => {
+    if (!entry) return;
+    markSmartSearchEntryStudied(entry);
+    setSmartSearchExploringPersonId(entry.id);
     setSmartSearchViewMode('explore');
   };
 
@@ -3791,12 +3830,18 @@ function App() {
     try {
       localStorage.setItem(
         SMART_SEARCH_STUDIED_STORAGE_KEY,
-        JSON.stringify(studiedSmartSearchEntryIds)
+        JSON.stringify(studiedSmartSearchEntryKeys)
       );
     } catch (error) {
       console.error('Failed to save studied smart search cards:', error);
     }
-  }, [studiedSmartSearchEntryIds]);
+  }, [studiedSmartSearchEntryKeys]);
+
+  useEffect(() => {
+    if (smartSearchViewMode === 'explore' && smartSearchExploreEntry) {
+      markSmartSearchEntryStudied(smartSearchExploreEntry);
+    }
+  }, [markSmartSearchEntryStudied, smartSearchExploreEntry, smartSearchViewMode]);
 
   const smartSearchRequiredMatches = smartSearchActionContext?.requiredMatches || 1;
   const smartSearchPaymentBasicPrice = 199;
@@ -4104,7 +4149,9 @@ function App() {
                         const personGenderClass = isTreeEntry ? 'tree-owner' : getGenderClass(person);
                         const initials = isTreeEntry ? getOwnerInitials(entry.treeOwner) : getInitials(person);
                         const genderVerb = person?.gender === 'female' ? 'Найдена' : 'Найден';
-                        const isStudied = studiedSmartSearchEntryIds.includes(String(id));
+                        const isStudied = studiedSmartSearchEntryKeys.includes(
+                          getSmartSearchEntryStudyKey(entry)
+                        );
 
                         return (
                           <article key={id} className="smart-match-card">
@@ -4125,7 +4172,7 @@ function App() {
                                 <button
                                   type="button"
                                   className="smart-study-btn"
-                                  onClick={() => handleEnterSmartSearchExplore(id)}
+                                  onClick={() => handleEnterSmartSearchExplore(entry)}
                                 >
                                   Изучить совпадения
                                 </button>

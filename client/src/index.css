@@ -2964,10 +2964,14 @@ body {
 .smartmatching-tutorial-modal {
   width: 90%;
   max-width: 600px;
+  height: min(650px, calc(100vh - 32px));
   background: linear-gradient(135deg, #77C1DF 0%, #F0949E 100%);
   border-radius: 24px;
   padding: 32px;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
   color: white;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
 }
@@ -3026,7 +3030,8 @@ body {
 
 .smartmatching-tutorial-image {
   width: 100%;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 16 / 9;
+  flex-shrink: 0;
   background: rgba(255, 255, 255, 0.1);
   border-radius: 16px;
   overflow: hidden;
@@ -3057,7 +3062,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 24px;
+  margin-top: auto;
+  padding-top: 24px;
 }
 
 .smartmatching-tutorial-dots {
