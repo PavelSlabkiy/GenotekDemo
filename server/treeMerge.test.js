@@ -44,6 +44,10 @@ test('merges missing relatives through multiple matched people without changing 
   });
 
   assert.equal(result.addedPersonIds.length, 2);
+  assert.deepEqual(
+    new Set(result.mappedPersonIds),
+    new Set(['currentChild', 'currentFather', 'new-1', 'new-2'])
+  );
   assert.equal(result.people.currentFather.information, 'keep me');
   assert.equal(result.people.currentChild.fatherId, 'currentFather');
   assert.equal(result.people.currentChild.motherId, 'new-1');
@@ -76,5 +80,6 @@ test('repeated merge is idempotent', () => {
 
   assert.equal(first.addedPersonIds.length, 1);
   assert.equal(second.addedPersonIds.length, 0);
+  assert.deepEqual(new Set(second.mappedPersonIds), new Set(['currentChild', 'new-1']));
   assert.equal(Object.keys(second.people).length, 2);
 });

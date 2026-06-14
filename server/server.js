@@ -217,7 +217,7 @@ const AUTO_SOURCE_REQUIREMENTS = {
       && hasValue(person?.middleName)
       && hasValue(person?.birthDate)
       && hasValue(person?.birthPlace)
-      && isYearInRange(extractBirthYear(person?.birthDate), 1880, 1820)
+      && isYearInRange(extractBirthYear(person?.birthDate), 1880, 1928)
     )
   },
   [OPENLIST_SOURCE_KEY]: {
@@ -368,6 +368,15 @@ const areSearchCriteriaEqual = (left, right) => {
     && normalizedLeft.birthDate === normalizedRight.birthDate
     && normalizedLeft.birthPlace === normalizedRight.birthPlace;
 };
+
+const isUsableAutoSearchCache = (sourceCache, expectedSignature, searchCriteria) => (
+  sourceCache
+  && typeof sourceCache === 'object'
+  && areSearchCriteriaEqual(sourceCache.searchCriteria, searchCriteria)
+  && sourceCache.autoSearchSignature === expectedSignature
+  && Array.isArray(sourceCache.matches)
+  && (!Array.isArray(sourceCache.errors) || sourceCache.errors.length === 0)
+);
 
 const relationshipTemplate = (partnerId) => ({
   with: toOidObject(partnerId),
@@ -1510,11 +1519,7 @@ const runSmartMatchingForPeople = async ({
     const sourceCache = person.sourceSearchCache[USER_TREES_SOURCE_KEY];
     applyThresholdToCacheEntry(sourceCache, USER_TREES_SOURCE_KEY, scoreThresholds);
     const expectedSignature = buildAutoSearchSignature(person, USER_TREES_SOURCE_KEY);
-    const hasMatchingCriteria = sourceCache
-      && typeof sourceCache === 'object'
-      && areSearchCriteriaEqual(sourceCache.searchCriteria, searchCriteria);
-    const hasCurrentSignature = sourceCache?.autoSearchSignature === expectedSignature;
-    const hasCache = hasMatchingCriteria && hasCurrentSignature && Array.isArray(sourceCache.matches);
+    const hasCache = isUsableAutoSearchCache(sourceCache, expectedSignature, searchCriteria);
     if (hasCache) {
       person.hasMatch = calculatePersonHasMatch(person);
       markPersonSourceProcessed(USER_TREES_SOURCE_KEY, personId);
@@ -1608,11 +1613,7 @@ const runSmartMatchingForPeople = async ({
       const sourceCache = person.sourceSearchCache[source.key];
       applyThresholdToCacheEntry(sourceCache, source.key, scoreThresholds);
       const expectedSignature = buildAutoSearchSignature(person, source.key);
-      const hasMatchingCriteria = sourceCache
-        && typeof sourceCache === 'object'
-        && areSearchCriteriaEqual(sourceCache.searchCriteria, searchCriteria);
-      const hasCurrentSignature = sourceCache?.autoSearchSignature === expectedSignature;
-      const hasCache = hasMatchingCriteria && hasCurrentSignature && Array.isArray(sourceCache.matches);
+      const hasCache = isUsableAutoSearchCache(sourceCache, expectedSignature, searchCriteria);
       if (!hasCache) {
         peopleToSearch.push(personId);
       } else {
@@ -1701,6 +1702,53 @@ const runSmartMatchingForPeople = async ({
     }
     throw error;
   }
+};
+
+let backgroundSmartSearchQueue = Promise.resolve();
+
+const scheduleSmartMatchingForPeople = ({
+  personIds = null,
+  trigger = 'auto',
+  delayMs = 0
+} = {}) => {
+  const requestedPersonIds = Array.isArray(personIds)
+    ? Array.from(new Set(personIds.map(String).filter(Boolean)))
+    : null;
+
+  const runScheduledSearch = async () => {
+    if (delayMs > 0) {
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+
+    const state = readDatabaseState();
+    const people = { ...state.people };
+    const idsToProcess = requestedPersonIds
+      ? requestedPersonIds.filter((personId) => people[personId])
+      : Object.keys(people);
+    if (idsToProcess.length === 0) return;
+
+    await runSmartMatchingForPeople({
+      people,
+      personIds: idsToProcess,
+      searchCriteria: AUTO_SMART_SEARCH_CRITERIA,
+      runtimeOptions: { trigger }
+    });
+
+    if (!writeCurrentPeople(people)) {
+      throw new Error(`Failed to save smart-search results for trigger=${trigger}`);
+    }
+  };
+
+  backgroundSmartSearchQueue = backgroundSmartSearchQueue
+    .catch((error) => {
+      console.error('Previous background smart-search task failed:', error);
+    })
+    .then(runScheduledSearch)
+    .catch((error) => {
+      console.error(`Background smart-search failed for trigger=${trigger}:`, error);
+    });
+
+  return backgroundSmartSearchQueue;
 };
 
 const isReadyForSmartSearch = (person, searchCriteria = DEFAULT_SMART_SEARCH_CRITERIA) => {
@@ -1872,6 +1920,10 @@ app.put('/api/admin/source-preferences', (req, res) => {
     person.hasMatch = calculatePersonHasMatch(person);
   });
   writeCurrentPeople(state.people);
+  scheduleSmartMatchingForPeople({
+    trigger: 'source_preferences_changed',
+    delayMs: 100
+  });
 
   res.json({
     success: true,
@@ -1959,13 +2011,20 @@ app.post('/api/trees/:treeId/merge', (req, res) => {
     return res.status(500).json({ error: 'Failed to save merged tree' });
   }
 
+  scheduleSmartMatchingForPeople({
+    personIds: mergeResult.mappedPersonIds,
+    trigger: 'tree_merged',
+    delayMs: 100
+  });
+
   return res.json({
     success: true,
     treeId,
     addedCount: mergeResult.addedPersonIds.length,
     addedPersonIds: mergeResult.addedPersonIds,
     conflicts: mergeResult.conflicts,
-    people: mergeResult.people
+    people: mergeResult.people,
+    autoSearchScheduled: mergeResult.mappedPersonIds.length > 0
   });
 });
 
@@ -2045,7 +2104,18 @@ app.post('/api/people/:id/confirm-match', (req, res) => {
   });
 
   if (writeCurrentPeople(people)) {
-    res.json({ success: true, message: 'Match confirmed and relatives added', people });
+    const affectedPersonIds = Array.from(new Set(Object.values(idMapping).map(String)));
+    scheduleSmartMatchingForPeople({
+      personIds: affectedPersonIds,
+      trigger: 'tree_match_confirmed',
+      delayMs: 100
+    });
+    res.json({
+      success: true,
+      message: 'Match confirmed and relatives added',
+      people,
+      autoSearchScheduled: affectedPersonIds.length > 0
+    });
   } else {
     res.status(500).json({ error: 'Failed to save data' });
   }
@@ -2084,7 +2154,17 @@ app.post('/api/people/:id/confirm-archive-match', (req, res) => {
   people[personId] = person;
 
   if (writeCurrentPeople(people)) {
-    res.json({ success: true, message: 'Archive information added', person: person });
+    scheduleSmartMatchingForPeople({
+      personIds: [personId],
+      trigger: 'archive_match_confirmed',
+      delayMs: 100
+    });
+    res.json({
+      success: true,
+      message: 'Archive information added',
+      person: person,
+      autoSearchScheduled: true
+    });
   } else {
     res.status(500).json({ error: 'Failed to save data' });
   }
@@ -2114,23 +2194,10 @@ app.post('/api/database/upload', async (req, res) => {
   });
 
   // Start auto-search slightly later, after client renders uploaded tree.
-  setTimeout(async () => {
-    try {
-      const freshState = readDatabaseState();
-      const people = { ...freshState.people };
-      const personIds = Object.keys(people);
-      if (personIds.length === 0) return;
-      await runSmartMatchingForPeople({
-        people,
-        personIds,
-        searchCriteria: AUTO_SMART_SEARCH_CRITERIA,
-        runtimeOptions: { trigger: 'database_upload' }
-      });
-      writeCurrentPeople(people);
-    } catch (error) {
-      console.error('Deferred auto-search after upload failed:', error);
-    }
-  }, 600);
+  scheduleSmartMatchingForPeople({
+    trigger: 'database_upload',
+    delayMs: 600
+  });
 });
 
 app.get('/api/database/export', (req, res) => {
@@ -2140,6 +2207,20 @@ app.get('/api/database/export', (req, res) => {
   res.send(JSON.stringify(entries, null, 2));
 });
 
-app.listen(PORT, () => {
-  console.log(`🌳 Family Tree Server running on http://localhost:${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`🌳 Family Tree Server running on http://localhost:${PORT}`);
+    scheduleSmartMatchingForPeople({
+      trigger: 'server_startup',
+      delayMs: 800
+    });
+  });
+}
+
+module.exports = {
+  app,
+  AUTO_SOURCE_REQUIREMENTS,
+  buildAutoSearchSignature,
+  isUsableAutoSearchCache,
+  shouldRunSourceForPerson
+};
