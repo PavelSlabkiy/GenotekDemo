@@ -503,6 +503,7 @@ body {
 }
 
 .smart-match-card {
+  position: relative;
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 14px;
@@ -553,6 +554,27 @@ body {
   align-items: flex-start;
   justify-content: space-between;
   gap: 8px;
+  padding-right: 78px;
+}
+
+.smart-match-status-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  border-radius: 7px;
+  padding: 4px 9px;
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.smart-match-status-badge.new {
+  background: #f59e0b;
+}
+
+.smart-match-status-badge.studied {
+  background: #10b981;
 }
 
 .smart-match-name {
@@ -590,6 +612,23 @@ body {
 
 .smart-study-btn:hover {
   background: rgba(27, 52, 99, 0.06);
+}
+
+.section-under-development {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  padding: 24px;
+}
+
+.section-under-development p {
+  margin: 0;
+  color: #475569;
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: center;
 }
 
 .smart-explore-view {

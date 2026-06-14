@@ -38,6 +38,7 @@ import {
 } from 'lucide-react';
 
 const API_URL = '/api';
+const SMART_SEARCH_STUDIED_STORAGE_KEY = 'genotek-smart-search-studied-entry-ids';
 const SMART_SEARCH_SUPPORTED_SOURCE_KEYS = ['userTrees', 'pamyatNaroda', 'openList', 'gwar'];
 const SMART_SEARCH_SOURCE_LABELS = {
   userTrees: 'Деревья других пользователей',
@@ -2760,6 +2761,15 @@ function App() {
   const [smartSearchMatchTab, setSmartSearchMatchTab] = useState('all');
   const [smartSearchViewMode, setSmartSearchViewMode] = useState('list');
   const [smartSearchExploringPersonId, setSmartSearchExploringPersonId] = useState(null);
+  const [studiedSmartSearchEntryIds, setStudiedSmartSearchEntryIds] = useState(() => {
+    try {
+      const storedIds = JSON.parse(localStorage.getItem(SMART_SEARCH_STUDIED_STORAGE_KEY) || '[]');
+      return Array.isArray(storedIds) ? storedIds.map(String) : [];
+    } catch (error) {
+      console.error('Failed to read studied smart search cards:', error);
+      return [];
+    }
+  });
   const [smartSearchStatus, setSmartSearchStatus] = useState({
     running: false,
     totalSteps: 0,
@@ -2769,8 +2779,7 @@ function App() {
 
   // Show notification as long as there are any unconfirmed matches (people with hasMatch = true)
   const showMatchFoundNotification = useMemo(() => {
-    if (activeSection === 'smart-search') return false;
-    return Object.values(people).some(person => person.hasMatch);
+    return activeSection === 'tree' && Object.values(people).some(person => person.hasMatch);
   }, [people, activeSection]);
 
   const focalPersonId = useMemo(
@@ -3147,6 +3156,11 @@ function App() {
   };
 
   const handleEnterSmartSearchExplore = (entryId) => {
+    setStudiedSmartSearchEntryIds((prev) => (
+      prev.includes(String(entryId))
+        ? prev
+        : [...prev, String(entryId)]
+    ));
     setSmartSearchExploringPersonId(entryId);
     setSmartSearchViewMode('explore');
   };
@@ -3773,6 +3787,17 @@ function App() {
     setShowAdminPanel(false);
   }, [activeSection]);
 
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        SMART_SEARCH_STUDIED_STORAGE_KEY,
+        JSON.stringify(studiedSmartSearchEntryIds)
+      );
+    } catch (error) {
+      console.error('Failed to save studied smart search cards:', error);
+    }
+  }, [studiedSmartSearchEntryIds]);
+
   const smartSearchRequiredMatches = smartSearchActionContext?.requiredMatches || 1;
   const smartSearchPaymentBasicPrice = 199;
   const smartSearchPaymentPackagePrice = 1790;
@@ -4079,9 +4104,13 @@ function App() {
                         const personGenderClass = isTreeEntry ? 'tree-owner' : getGenderClass(person);
                         const initials = isTreeEntry ? getOwnerInitials(entry.treeOwner) : getInitials(person);
                         const genderVerb = person?.gender === 'female' ? 'Найдена' : 'Найден';
+                        const isStudied = studiedSmartSearchEntryIds.includes(String(id));
 
                         return (
                           <article key={id} className="smart-match-card">
+                            <span className={`smart-match-status-badge ${isStudied ? 'studied' : 'new'}`}>
+                              {isStudied ? 'Изучено' : 'Новое'}
+                            </span>
                             <div className={`smart-match-initials ${personGenderClass}`}>{initials}</div>
                             <div className="smart-match-content">
                               <div className="smart-match-top">
@@ -4090,7 +4119,7 @@ function App() {
                               <div className="smart-match-footer">
                                 <p>
                                   {isTreeEntry
-                                    ? `Древо: ${entry.treeOwner || 'владельца'}`
+                                    ? 'Из деревьев других пользователей'
                                     : `${genderVerb} в архиве`}
                                 </p>
                                 <button
@@ -4328,7 +4357,7 @@ function App() {
               )}
             </section>
           </div>
-        ) : (
+        ) : activeSection === 'tree' ? (
           <>
             <div className="tree-container">
               <FamilyTree
@@ -4528,6 +4557,10 @@ function App() {
               </button>
             </div>
           </>
+        ) : (
+          <section className="section-under-development">
+            <p>Этот раздел пока в разработке</p>
+          </section>
         )}
       </div>
 
