@@ -106,6 +106,7 @@ npm run dev
 | PUT | /api/people/:id | Обновить данные человека |
 | DELETE | /api/people/:id | Удалить человека и почистить связи |
 | POST | /api/people/:id/relative | Добавить родственника (partner/father/mother/son/daughter) |
+| POST | /api/trees/:treeId/merge | Объединить чужое дерево с текущим по найденным совпадениям |
 
 #### POST `/api/people/:id/relative`
 
@@ -131,6 +132,36 @@ npm run dev
 {
   "person": { "id": "target_id" },
   "newRelative": { "id": "new_relative_id" }
+}
+```
+
+#### POST `/api/trees/:treeId/merge`
+
+Принимает все подтвержденные точки стыковки с одним деревом. Совпавшие люди и
+существующие карточки не изменяются, отсутствующие родственники добавляются с
+сохранением семейных связей. Повторный запрос идемпотентен.
+
+```json
+{
+  "matches": [
+    {
+      "data_id": "person_in_current_tree",
+      "database_id": "person_in_source_tree"
+    }
+  ]
+}
+```
+
+Пример `response`:
+
+```json
+{
+  "success": true,
+  "treeId": "source_tree_id",
+  "addedCount": 3,
+  "addedPersonIds": ["new_person_1", "new_person_2", "new_person_3"],
+  "conflicts": [],
+  "people": {}
 }
 ```
 

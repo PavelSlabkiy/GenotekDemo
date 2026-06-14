@@ -3273,7 +3273,40 @@ function App() {
     setShowSmartSearchRequestModal(false);
     setSmartSearchActionContext(null);
     setSmartSearchRequestMessage('');
-    showToast('Деревья объединены');
+    showToast('Доступ к древу получен');
+  };
+
+  const handleMergeSmartSearchTree = async (entry) => {
+    if (!entry?.tree_id || !Array.isArray(entry.pairs) || entry.pairs.length === 0) return;
+    setIsSmartSearchActionProcessing(true);
+    try {
+      const response = await fetch(`${API_URL}/trees/${encodeURIComponent(entry.tree_id)}/merge`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          matches: entry.pairs.map(({ person, record }) => ({
+            data_id: person.id,
+            database_id: record.database_id
+          }))
+        })
+      });
+      if (!response.ok) {
+        throw new Error('Не удалось объединить деревья');
+      }
+      const result = await response.json();
+      setPeople(result.people || {});
+      handleExitSmartSearchExplore();
+      showToast(
+        result.addedCount > 0
+          ? `Деревья объединены, добавлено родственников: ${result.addedCount}`
+          : 'Деревья уже объединены'
+      );
+    } catch (error) {
+      console.error('Tree merge error:', error);
+      showToast('Ошибка объединения деревьев', 'error');
+    } finally {
+      setIsSmartSearchActionProcessing(false);
+    }
   };
 
   const savePersonDocuments = async (personId, documents, successMessage) => {
@@ -4076,12 +4109,17 @@ function App() {
                                 );
                                 return;
                               }
-                              if (isSmartSearchExploreTree) return;
+                              if (isSmartSearchExploreTree) {
+                                handleMergeSmartSearchTree(smartSearchExploreEntry);
+                                return;
+                              }
                               handleAddAllUnlockedDocumentsForPerson(smartSearchExplorePerson, smartSearchExploreRecords);
                             }}
-                            disabled={isSmartSearchExploreTree && !smartSearchExploreHasLockedRecords}
+                            disabled={isSmartSearchActionProcessing}
                           >
-                            {isSmartSearchExploreTree
+                            {isSmartSearchActionProcessing && isSmartSearchExploreTree
+                              ? 'Объединение...'
+                              : isSmartSearchExploreTree
                               ? 'Объединить деревья'
                               : (smartSearchExploreHasLockedRecords ? 'Получить доступ' : 'Добавить')}
                           </button>

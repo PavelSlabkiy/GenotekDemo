@@ -3,6 +3,7 @@ const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const { spawn } = require('child_process');
+const { mergeTreePeople } = require('./treeMerge');
 
 const app = express();
 const PORT = 3001;
@@ -505,7 +506,8 @@ const buildPeopleFromEntries = (entries) => {
       hasMatch: Boolean(entry.hasMatch),
       sourceSearchCache: normalizeBirthDatesDeep(entry.sourceSearchCache || {}),
       information: entry.information || '',
-      documents: Array.isArray(entry.documents) ? normalizeBirthDatesDeep(entry.documents) : []
+      documents: Array.isArray(entry.documents) ? normalizeBirthDatesDeep(entry.documents) : [],
+      mergedTreeRefs: Array.isArray(entry.mergedTreeRefs) ? entry.mergedTreeRefs : []
     };
     people[id].hasMatch = calculatePersonHasMatch(people[id]) || people[id].hasMatch;
   });
@@ -701,7 +703,10 @@ const convertPeopleToEntries = (people, treeId, existingEntries = []) => {
       middleName: person.middleName ? [person.middleName] : [],
       liveOrDead: liveOrDeadFromApp(person.isAlive !== false),
       hasMatch: calculatePersonHasMatch(person) || Boolean(person.hasMatch),
-      sourceSearchCache: person.sourceSearchCache || base.sourceSearchCache || {}
+      sourceSearchCache: person.sourceSearchCache || base.sourceSearchCache || {},
+      mergedTreeRefs: Array.isArray(person.mergedTreeRefs)
+        ? person.mergedTreeRefs
+        : (Array.isArray(base.mergedTreeRefs) ? base.mergedTreeRefs : [])
     };
 
     if (person.information) {
@@ -714,6 +719,10 @@ const convertPeopleToEntries = (people, treeId, existingEntries = []) => {
       entry.documents = person.documents;
     } else {
       delete entry.documents;
+    }
+
+    if (!entry.mergedTreeRefs.length) {
+      delete entry.mergedTreeRefs;
     }
 
     return entry;
@@ -1902,6 +1911,62 @@ app.get('/api/people/:id/matches', async (req, res) => {
 
 app.get('/api/smart-matching/status', (req, res) => {
   res.json(smartSearchRuntimeState);
+});
+
+app.post('/api/trees/:treeId/merge', (req, res) => {
+  const treeId = String(req.params.treeId || '');
+  const matches = Array.isArray(req.body?.matches) ? req.body.matches : [];
+  if (!treeId || matches.length === 0) {
+    return res.status(400).json({ error: 'Tree id and at least one match are required' });
+  }
+
+  const state = readDatabaseState();
+  const sourceTree = buildTreesDirectorySmartDatabase().tree_id?.[treeId];
+  if (!sourceTree?.people) {
+    return res.status(404).json({ error: 'Source tree not found' });
+  }
+
+  const validMatches = matches.filter((match) => (
+    state.people[String(match?.data_id || '')]
+    && sourceTree.people[String(match?.database_id || '')]
+  ));
+  if (validMatches.length === 0) {
+    return res.status(400).json({ error: 'No valid merge points found' });
+  }
+
+  const mergeResult = mergeTreePeople({
+    currentPeople: state.people,
+    sourcePeople: sourceTree.people,
+    treeId,
+    matches: validMatches,
+    generateId
+  });
+
+  Object.values(mergeResult.people).forEach((person) => {
+    const cacheEntry = person.sourceSearchCache?.[USER_TREES_SOURCE_KEY];
+    if (cacheEntry) {
+      ['rawMatches', 'matches'].forEach((key) => {
+        if (Array.isArray(cacheEntry[key])) {
+          cacheEntry[key] = cacheEntry[key].filter((match) => String(match?.tree_id || '') !== treeId);
+        }
+      });
+      cacheEntry.status = cacheEntry.matches?.length > 0 ? 'matches_found' : 'no_matches';
+    }
+    person.hasMatch = calculatePersonHasMatch(person);
+  });
+
+  if (!writeCurrentPeople(mergeResult.people)) {
+    return res.status(500).json({ error: 'Failed to save merged tree' });
+  }
+
+  return res.json({
+    success: true,
+    treeId,
+    addedCount: mergeResult.addedPersonIds.length,
+    addedPersonIds: mergeResult.addedPersonIds,
+    conflicts: mergeResult.conflicts,
+    people: mergeResult.people
+  });
 });
 
 // Confirm match and add fragment to tree
