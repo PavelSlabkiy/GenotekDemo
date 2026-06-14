@@ -1,7 +1,11 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
-const { mergeTreePeople } = require('./treeMerge');
+const {
+  createTreeMergeOperation,
+  mergeTreePeople,
+  undoTreeMergePeople
+} = require('./treeMerge');
 
 const person = (id, overrides = {}) => ({
   id,
@@ -82,4 +86,42 @@ test('repeated merge is idempotent', () => {
   assert.equal(second.addedPersonIds.length, 0);
   assert.deepEqual(new Set(second.mappedPersonIds), new Set(['currentChild', 'new-1']));
   assert.equal(Object.keys(second.people).length, 2);
+});
+
+test('undo restores existing cards and removes only people added by the merge', () => {
+  const currentPeople = {
+    currentChild: person('currentChild', { fatherId: 'currentFather' }),
+    currentFather: person('currentFather', { information: 'keep me' }),
+    unrelated: person('unrelated', { information: 'untouched' })
+  };
+  const sourcePeople = {
+    sourceChild: person('sourceChild', { motherId: 'sourceMother' }),
+    sourceMother: person('sourceMother', { children: ['sourceChild'] })
+  };
+  let counter = 0;
+  const mergeResult = mergeTreePeople({
+    currentPeople,
+    sourcePeople,
+    treeId: 'tree-b',
+    matches: [{ data_id: 'currentChild', database_id: 'sourceChild' }],
+    generateId: () => `new-${++counter}`
+  });
+  const operation = createTreeMergeOperation({
+    operationId: 'operation-1',
+    treeId: 'tree-b',
+    matches: [{ data_id: 'currentChild', database_id: 'sourceChild' }],
+    currentPeople,
+    mergeResult
+  });
+  mergeResult.people.currentFather.information = 'changed after merge';
+
+  const restored = undoTreeMergePeople({
+    currentPeople: mergeResult.people,
+    operation
+  });
+
+  assert.deepEqual(restored.currentChild, currentPeople.currentChild);
+  assert.deepEqual(restored.currentFather, currentPeople.currentFather);
+  assert.deepEqual(restored.unrelated, currentPeople.unrelated);
+  assert.equal(restored['new-1'], undefined);
 });

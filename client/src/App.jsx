@@ -202,6 +202,23 @@ const getOwnerInitials = (owner = '') => {
 const getTreeMatchTitle = (count) => (
   `Найдено совпадение по ${count} ${count === 1 ? 'родственнику' : 'родственникам'}`
 );
+const getAddedRelativesTitle = (count) => {
+  const normalizedCount = Number(count) || 0;
+  const mod10 = normalizedCount % 10;
+  const mod100 = normalizedCount % 100;
+  const noun = mod10 === 1 && mod100 !== 11
+    ? 'родственник'
+    : mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)
+      ? 'родственника'
+      : 'родственников';
+  const verb = normalizedCount === 1 ? 'Добавлен' : 'Добавлено';
+  return `${verb} ${normalizedCount} ${noun}`;
+};
+const getTreeEntryTitle = (entry = {}) => (
+  entry.isMerged
+    ? getAddedRelativesTitle(entry.addedCount)
+    : getTreeMatchTitle(entry.pairs?.length || 0)
+);
 
 const FourPointStar = ({ size = 16, className = '' }) => (
   <svg
@@ -295,7 +312,10 @@ const getSourceRecords = (person, sourceKey) => {
           matchedPersonId: String(match.data_id || person.id),
           tree_id: match.tree_id,
           tree_owner: match.tree_owner,
-          database_id: match.database_id
+          database_id: match.database_id,
+          treeMergeOperationId: match.treeMergeOperationId || '',
+          treeMergeStatus: match.treeMergeStatus || '',
+          treeMergeAddedCount: Number(match.treeMergeAddedCount) || 0
         });
       }
       return;
@@ -2845,6 +2865,9 @@ function App() {
     const treeEntries = Array.from(treeGroups.values()).map((group) => {
       const pairs = Array.from(group.pairsByPersonId.values())
         .sort((a, b) => getFullName(a.person).localeCompare(getFullName(b.person), 'ru'));
+      const mergedRecord = pairs
+        .map((pair) => pair.record)
+        .find((record) => record.treeMergeStatus === 'merged' && record.treeMergeOperationId);
       return {
         id: group.id,
         person: pairs[0]?.person || null,
@@ -2853,7 +2876,10 @@ function App() {
         treeOwner: group.treeOwner,
         pairs,
         sourceRecords: pairs.map((pair) => pair.record),
-        relatedPersonIds: pairs.map((pair) => String(pair.person.id))
+        relatedPersonIds: pairs.map((pair) => String(pair.person.id)),
+        isMerged: Boolean(mergedRecord),
+        mergeOperationId: mergedRecord?.treeMergeOperationId || '',
+        addedCount: Number(mergedRecord?.treeMergeAddedCount) || 0
       };
     });
     return [...treeEntries, ...entries];
@@ -3154,7 +3180,7 @@ function App() {
         const entryText = entry.sourceType === 'tree'
           ? [
             entry.treeOwner,
-            getTreeMatchTitle(entry.pairs?.length || 0),
+            getTreeEntryTitle(entry),
             ...(entry.pairs || []).map((pair) => getFullName(pair.person))
           ].join(' ')
           : getFullName(entry.person);
@@ -3295,7 +3321,6 @@ function App() {
       }
       const result = await response.json();
       setPeople(result.people || {});
-      handleExitSmartSearchExplore();
       showToast(
         result.addedCount > 0
           ? `Деревья объединены, добавлено родственников: ${result.addedCount}`
@@ -3304,6 +3329,27 @@ function App() {
     } catch (error) {
       console.error('Tree merge error:', error);
       showToast('Ошибка объединения деревьев', 'error');
+    } finally {
+      setIsSmartSearchActionProcessing(false);
+    }
+  };
+
+  const handleUndoSmartSearchTreeMerge = async (entry) => {
+    if (!entry?.mergeOperationId) return;
+    setIsSmartSearchActionProcessing(true);
+    try {
+      const response = await fetch(`${API_URL}/tree-merges/${encodeURIComponent(entry.mergeOperationId)}/undo`, {
+        method: 'POST'
+      });
+      if (!response.ok) {
+        throw new Error('Не удалось отменить объединение деревьев');
+      }
+      const result = await response.json();
+      setPeople(result.people || {});
+      showToast('Объединение деревьев отменено');
+    } catch (error) {
+      console.error('Tree merge undo error:', error);
+      showToast('Ошибка отмены объединения деревьев', 'error');
     } finally {
       setIsSmartSearchActionProcessing(false);
     }
@@ -4028,7 +4074,7 @@ function App() {
                         const { person, sourceType, id } = entry;
                         const isTreeEntry = sourceType === 'tree';
                         const personName = isTreeEntry
-                          ? getTreeMatchTitle(entry.pairs?.length || 0)
+                          ? getTreeEntryTitle(entry)
                           : (getFullName(person) || 'Без имени');
                         const personGenderClass = isTreeEntry ? 'tree-owner' : getGenderClass(person);
                         const initials = isTreeEntry ? getOwnerInitials(entry.treeOwner) : getInitials(person);
@@ -4075,11 +4121,20 @@ function App() {
                   <div className="smart-explore-header">
                     <h2>
                       {isSmartSearchExploreTree
-                        ? getTreeMatchTitle(smartSearchExplorePairs.length)
+                        ? getTreeEntryTitle(smartSearchExploreEntry)
                         : (getFullName(smartSearchExplorePerson) || 'Без имени')}
                     </h2>
                     <div className="smart-explore-actions">
-                      {isSmartSearchExploreRejected ? (
+                      {smartSearchExploreEntry?.isMerged ? (
+                        <button
+                          type="button"
+                          className="smart-reject-btn"
+                          onClick={() => handleUndoSmartSearchTreeMerge(smartSearchExploreEntry)}
+                          disabled={isSmartSearchActionProcessing}
+                        >
+                          {isSmartSearchActionProcessing ? 'Отмена...' : 'Отменить'}
+                        </button>
+                      ) : isSmartSearchExploreRejected ? (
                         <button
                           type="button"
                           className="smart-reject-btn"

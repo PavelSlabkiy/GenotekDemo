@@ -641,6 +641,11 @@ body {
   background: rgba(220, 38, 38, 0.06);
 }
 
+.smart-reject-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 .smart-access-btn {
   border: 1px solid #1b3463;
   background: #1b3463;

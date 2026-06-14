@@ -3,7 +3,11 @@ const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const { spawn } = require('child_process');
-const { mergeTreePeople } = require('./treeMerge');
+const {
+  createTreeMergeOperation,
+  mergeTreePeople,
+  undoTreeMergePeople
+} = require('./treeMerge');
 
 const app = express();
 const PORT = 3001;
@@ -13,6 +17,7 @@ app.use(express.json({ limit: '20mb' }));
 
 const DATABASE_FILE = path.join(__dirname, '..', 'database.json');
 const ADMIN_SETTINGS_FILE = path.join(__dirname, '..', 'admin-settings.json');
+const TREE_MERGE_HISTORY_FILE = path.join(__dirname, '..', 'tree-merge-history.json');
 const TREES_DIR = path.join(__dirname, '..', 'trees');
 const PAMYAT_PARSER_SCRIPT = path.join(__dirname, '..', 'pamyat_parser.py');
 const OPENLIST_PARSER_SCRIPT = path.join(__dirname, '..', 'openlist_parser.py');
@@ -389,7 +394,10 @@ const relationshipTemplate = (partnerId) => ({
 const calculatePersonHasMatch = (person) => {
   const sourceSearchCache = person?.sourceSearchCache || {};
   return Object.values(sourceSearchCache).some((cacheEntry) => (
-    cacheEntry && typeof cacheEntry === 'object' && Array.isArray(cacheEntry.matches) && cacheEntry.matches.length > 0
+    cacheEntry
+    && typeof cacheEntry === 'object'
+    && Array.isArray(cacheEntry.matches)
+    && cacheEntry.matches.some((match) => match?.treeMergeStatus !== 'merged')
   ));
 };
 
@@ -656,6 +664,9 @@ const readDatabaseState = () => {
 
   Object.values(people).forEach((person) => {
     Object.entries(person.sourceSearchCache || {}).forEach(([sourceKey, cacheEntry]) => {
+      if (sourceKey === USER_TREES_SOURCE_KEY) {
+        filterOriginTreeMatchesInCache(cacheEntry, person);
+      }
       applyThresholdToCacheEntry(cacheEntry, sourceKey, scoreThresholds);
     });
     person.hasMatch = calculatePersonHasMatch(person);
@@ -744,6 +755,29 @@ const writeDatabaseEntries = (entries) => {
     return true;
   } catch (error) {
     console.error('Error writing database file:', error);
+    return false;
+  }
+};
+
+const readTreeMergeHistory = () => {
+  try {
+    if (!fs.existsSync(TREE_MERGE_HISTORY_FILE)) return { operations: [] };
+    const parsed = JSON.parse(fs.readFileSync(TREE_MERGE_HISTORY_FILE, 'utf8'));
+    return {
+      operations: Array.isArray(parsed?.operations) ? parsed.operations : []
+    };
+  } catch (error) {
+    console.error('Error reading tree merge history:', error);
+    return { operations: [] };
+  }
+};
+
+const writeTreeMergeHistory = (history) => {
+  try {
+    fs.writeFileSync(TREE_MERGE_HISTORY_FILE, JSON.stringify(history, null, 2), 'utf8');
+    return true;
+  } catch (error) {
+    console.error('Error writing tree merge history:', error);
     return false;
   }
 };
@@ -914,7 +948,16 @@ const runTreeMatchingParser = ({ people, personIds, searchCriteria }) => {
 
       try {
         const parsed = JSON.parse(stdout);
-        resolve(parsed && typeof parsed === 'object' ? parsed : fallback);
+        if (!parsed || typeof parsed !== 'object') {
+          resolve(fallback);
+          return;
+        }
+        const matches = filterMatchesFromOriginTrees(parsed.matches, people);
+        resolve({
+          ...parsed,
+          matches,
+          matchedDataIds: Array.from(new Set(matches.map((match) => String(match.data_id))))
+        });
       } catch (error) {
         console.error('Failed to parse smart matching parser output:', error);
         fallback.errors.push({ person_id: null, message: 'Failed to parse parser output JSON' });
@@ -1286,7 +1329,7 @@ const filterMatchesByThreshold = (matches, sourceKey, scoreThresholds) => {
   return (Array.isArray(matches) ? matches : []).flatMap((match) => {
     if (!match || typeof match !== 'object') return [];
     if (sourceKey === USER_TREES_SOURCE_KEY || !Array.isArray(match.records)) {
-      return matchScore(match) >= threshold ? [match] : [];
+      return match?.treeMergeStatus === 'merged' || matchScore(match) >= threshold ? [match] : [];
     }
 
     const records = match.records
@@ -1333,6 +1376,77 @@ const sourceCacheEntry = ({
     errors
   };
   return applyThresholdToCacheEntry(entry, sourceKey, scoreThresholds);
+};
+
+const personHasMergedTreeRef = (person, treeId) => (
+  Array.isArray(person?.mergedTreeRefs)
+  && person.mergedTreeRefs.some((ref) => String(ref?.treeId || '') === String(treeId || ''))
+);
+
+const filterMatchesFromOriginTrees = (matches, people) => (
+  (Array.isArray(matches) ? matches : []).filter((match) => {
+    const person = people[String(match?.data_id || '')];
+    return match?.treeMergeStatus === 'merged' || !personHasMergedTreeRef(person, match?.tree_id);
+  })
+);
+
+const filterOriginTreeMatchesInCache = (cacheEntry, person) => {
+  if (!cacheEntry || typeof cacheEntry !== 'object') return cacheEntry;
+  ['rawMatches', 'matches'].forEach((key) => {
+    if (!Array.isArray(cacheEntry[key])) return;
+    cacheEntry[key] = cacheEntry[key].filter((match) => (
+      match?.treeMergeStatus === 'merged' || !personHasMergedTreeRef(person, match?.tree_id)
+    ));
+  });
+  cacheEntry.status = cacheEntry.matches?.length > 0 ? 'matches_found' : 'no_matches';
+  return cacheEntry;
+};
+
+const getMergedTreeHistoryMatches = (cacheEntry) => {
+  const matches = Array.isArray(cacheEntry?.rawMatches)
+    ? cacheEntry.rawMatches
+    : (Array.isArray(cacheEntry?.matches) ? cacheEntry.matches : []);
+  return matches.filter((match) => match?.treeMergeStatus === 'merged');
+};
+
+const clearSourceCachePreservingTreeMergeHistory = (person, sourceKey) => {
+  if (!person?.sourceSearchCache) return;
+  const cacheEntry = person.sourceSearchCache[sourceKey];
+  const mergedMatches = sourceKey === USER_TREES_SOURCE_KEY
+    ? getMergedTreeHistoryMatches(cacheEntry)
+    : [];
+  if (mergedMatches.length === 0) {
+    delete person.sourceSearchCache[sourceKey];
+    return;
+  }
+  cacheEntry.rawMatches = mergedMatches;
+  cacheEntry.matches = mergedMatches;
+  cacheEntry.errors = [];
+  cacheEntry.status = 'matches_found';
+};
+
+const markTreeMergeInPeopleCache = (people, treeId, operation) => {
+  Object.values(people).forEach((person) => {
+    const cacheEntry = person.sourceSearchCache?.[USER_TREES_SOURCE_KEY];
+    if (!cacheEntry) return;
+
+    ['rawMatches', 'matches'].forEach((key) => {
+      if (!Array.isArray(cacheEntry[key])) return;
+      cacheEntry[key] = cacheEntry[key].map((match) => {
+        if (String(match?.tree_id || '') !== String(treeId)) return match;
+        return {
+          ...match,
+          treeMergeOperationId: operation.id,
+          treeMergeStatus: 'merged',
+          treeMergeAddedCount: operation.addedPersonIds.length,
+          treeMergeAddedPersonIds: [...operation.addedPersonIds],
+          treeMergedAt: operation.createdAt
+        };
+      });
+    });
+    cacheEntry.status = cacheEntry.matches?.length > 0 ? 'matches_found' : 'no_matches';
+    person.hasMatch = calculatePersonHasMatch(person);
+  });
 };
 
 const normalizePersonIds = (personIds, people) => {
@@ -1511,12 +1625,13 @@ const runSmartMatchingForPeople = async ({
     }
     person.sourceSearchCache = person.sourceSearchCache || {};
     if (!shouldRunSourceForPerson(person, USER_TREES_SOURCE_KEY)) {
-      delete person.sourceSearchCache[USER_TREES_SOURCE_KEY];
+      clearSourceCachePreservingTreeMergeHistory(person, USER_TREES_SOURCE_KEY);
       person.hasMatch = calculatePersonHasMatch(person);
       markPersonSourceProcessed(USER_TREES_SOURCE_KEY, personId);
       return;
     }
     const sourceCache = person.sourceSearchCache[USER_TREES_SOURCE_KEY];
+    filterOriginTreeMatchesInCache(sourceCache, person);
     applyThresholdToCacheEntry(sourceCache, USER_TREES_SOURCE_KEY, scoreThresholds);
     const expectedSignature = buildAutoSearchSignature(person, USER_TREES_SOURCE_KEY);
     const hasCache = isUsableAutoSearchCache(sourceCache, expectedSignature, searchCriteria);
@@ -1553,7 +1668,7 @@ const runSmartMatchingForPeople = async ({
     if (!person) return;
     person.sourceSearchCache = person.sourceSearchCache || {};
     if (!userTreesEnabled) {
-      delete person.sourceSearchCache[USER_TREES_SOURCE_KEY];
+      clearSourceCachePreservingTreeMergeHistory(person, USER_TREES_SOURCE_KEY);
       person.hasMatch = calculatePersonHasMatch(person);
       return;
     }
@@ -1567,10 +1682,16 @@ const runSmartMatchingForPeople = async ({
       return;
     }
 
+    const mergedHistoryMatches = getMergedTreeHistoryMatches(
+      person.sourceSearchCache[USER_TREES_SOURCE_KEY]
+    );
     person.sourceSearchCache[USER_TREES_SOURCE_KEY] = sourceCacheEntry({
       sourceKey: USER_TREES_SOURCE_KEY,
       sourceLabel: USER_TREES_SOURCE.label,
-      matches: treeMatchesByPersonId[personId] || [],
+      matches: [
+        ...mergedHistoryMatches,
+        ...(treeMatchesByPersonId[personId] || [])
+      ],
       errors: (treeParserResult.errors || []).filter((entry) => String(entry?.person_id) === personId),
       searchCriteria,
       scoreThresholds
@@ -1824,7 +1945,7 @@ app.post('/api/smart-matching', async (req, res) => {
       if (!person || !person.sourceSearchCache) return;
       Object.keys(person.sourceSearchCache).forEach((sourceKey) => {
         if (!enabledSourceKeys.has(sourceKey)) {
-          delete person.sourceSearchCache[sourceKey];
+          clearSourceCachePreservingTreeMergeHistory(person, sourceKey);
         }
       });
       person.hasMatch = calculatePersonHasMatch(person);
@@ -1908,7 +2029,7 @@ app.put('/api/admin/source-preferences', (req, res) => {
     person.sourceSearchCache = person.sourceSearchCache || {};
     Object.entries(saved.sourcePreferences).forEach(([sourceKey, enabled]) => {
       if (!enabled) {
-        delete person.sourceSearchCache[sourceKey];
+        clearSourceCachePreservingTreeMergeHistory(person, sourceKey);
         return;
       }
       applyThresholdToCacheEntry(
@@ -1986,6 +2107,17 @@ app.post('/api/trees/:treeId/merge', (req, res) => {
     return res.status(400).json({ error: 'No valid merge points found' });
   }
 
+  const mergeHistory = readTreeMergeHistory();
+  const activeOperation = mergeHistory.operations.find((operation) => (
+    operation?.status === 'merged' && String(operation?.treeId || '') === treeId
+  ));
+  if (activeOperation) {
+    return res.status(409).json({
+      error: 'This tree already has an active merge operation',
+      operationId: activeOperation.id
+    });
+  }
+
   const mergeResult = mergeTreePeople({
     currentPeople: state.people,
     sourcePeople: sourceTree.people,
@@ -1994,20 +2126,23 @@ app.post('/api/trees/:treeId/merge', (req, res) => {
     generateId
   });
 
-  Object.values(mergeResult.people).forEach((person) => {
-    const cacheEntry = person.sourceSearchCache?.[USER_TREES_SOURCE_KEY];
-    if (cacheEntry) {
-      ['rawMatches', 'matches'].forEach((key) => {
-        if (Array.isArray(cacheEntry[key])) {
-          cacheEntry[key] = cacheEntry[key].filter((match) => String(match?.tree_id || '') !== treeId);
-        }
-      });
-      cacheEntry.status = cacheEntry.matches?.length > 0 ? 'matches_found' : 'no_matches';
-    }
-    person.hasMatch = calculatePersonHasMatch(person);
+  const operation = createTreeMergeOperation({
+    operationId: `tree-merge-${generateId()}`,
+    treeId,
+    matches: validMatches,
+    currentPeople: state.people,
+    mergeResult
   });
+  markTreeMergeInPeopleCache(mergeResult.people, treeId, operation);
+
+  mergeHistory.operations.push(operation);
+  if (!writeTreeMergeHistory(mergeHistory)) {
+    return res.status(500).json({ error: 'Failed to save tree merge history' });
+  }
 
   if (!writeCurrentPeople(mergeResult.people)) {
+    mergeHistory.operations = mergeHistory.operations.filter((item) => item.id !== operation.id);
+    writeTreeMergeHistory(mergeHistory);
     return res.status(500).json({ error: 'Failed to save merged tree' });
   }
 
@@ -2024,7 +2159,55 @@ app.post('/api/trees/:treeId/merge', (req, res) => {
     addedPersonIds: mergeResult.addedPersonIds,
     conflicts: mergeResult.conflicts,
     people: mergeResult.people,
+    operation: {
+      id: operation.id,
+      status: operation.status,
+      addedCount: operation.addedPersonIds.length
+    },
     autoSearchScheduled: mergeResult.mappedPersonIds.length > 0
+  });
+});
+
+app.post('/api/tree-merges/:operationId/undo', async (req, res) => {
+  const operationId = String(req.params.operationId || '');
+  const mergeHistory = readTreeMergeHistory();
+  const operation = mergeHistory.operations.find((item) => item?.id === operationId);
+  if (!operation) {
+    return res.status(404).json({ error: 'Tree merge operation not found' });
+  }
+  if (operation.status !== 'merged') {
+    return res.status(409).json({ error: 'Tree merge operation is already undone' });
+  }
+
+  await backgroundSmartSearchQueue.catch(() => {});
+  const state = readDatabaseState();
+  const people = undoTreeMergePeople({
+    currentPeople: state.people,
+    operation
+  });
+
+  const previousUndoneAt = operation.undoneAt;
+  operation.status = 'undone';
+  operation.undoneAt = new Date().toISOString();
+  if (!writeTreeMergeHistory(mergeHistory)) {
+    return res.status(500).json({ error: 'Failed to update tree merge history' });
+  }
+
+  if (!writeCurrentPeople(people)) {
+    operation.status = 'merged';
+    operation.undoneAt = previousUndoneAt;
+    writeTreeMergeHistory(mergeHistory);
+    return res.status(500).json({ error: 'Failed to restore tree before merge' });
+  }
+
+  return res.json({
+    success: true,
+    operation: {
+      id: operation.id,
+      status: operation.status,
+      addedCount: operation.addedPersonIds.length
+    },
+    people
   });
 });
 
@@ -2185,6 +2368,7 @@ app.post('/api/database/upload', async (req, res) => {
   if (!writeDatabaseEntries(entries)) {
     return res.status(500).json({ error: 'Failed to save uploaded database' });
   }
+  writeTreeMergeHistory({ operations: [] });
 
   const state = readDatabaseState();
   res.json({
@@ -2221,6 +2405,10 @@ module.exports = {
   app,
   AUTO_SOURCE_REQUIREMENTS,
   buildAutoSearchSignature,
+  clearSourceCachePreservingTreeMergeHistory,
+  filterMatchesByThreshold,
+  filterMatchesFromOriginTrees,
+  filterOriginTreeMatchesInCache,
   isUsableAutoSearchCache,
   shouldRunSourceForPerson
 };

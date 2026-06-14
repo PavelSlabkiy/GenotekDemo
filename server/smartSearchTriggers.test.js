@@ -3,6 +3,10 @@ const assert = require('node:assert/strict');
 
 const {
   buildAutoSearchSignature,
+  clearSourceCachePreservingTreeMergeHistory,
+  filterMatchesByThreshold,
+  filterMatchesFromOriginTrees,
+  filterOriginTreeMatchesInCache,
   isUsableAutoSearchCache,
   shouldRunSourceForPerson
 } = require('./server');
@@ -70,4 +74,69 @@ test('only current successful results are treated as usable cache', () => {
   assert.equal(isUsableAutoSearchCache({ ...cache, errors: [{ message: 'temporary failure' }] }, signature, cache.searchCriteria), false);
   assert.equal(isUsableAutoSearchCache({ ...cache, autoSearchSignature: 'stale' }, signature, cache.searchCriteria), false);
   assert.equal(isUsableAutoSearchCache({ ...cache, matches: null }, signature, cache.searchCriteria), false);
+});
+
+test('people imported from a tree are not offered matches from their origin tree', () => {
+  const people = {
+    imported: eligiblePerson({
+      id: 'imported',
+      mergedTreeRefs: [{ treeId: 'tree-x', personId: 'source-person' }]
+    }),
+    local: eligiblePerson({ id: 'local' })
+  };
+  const matches = [
+    { data_id: 'imported', tree_id: 'tree-x', database_id: 'source-person' },
+    {
+      data_id: 'imported',
+      tree_id: 'tree-x',
+      database_id: 'source-person',
+      treeMergeStatus: 'merged'
+    },
+    { data_id: 'imported', tree_id: 'tree-y', database_id: 'other-person' },
+    { data_id: 'local', tree_id: 'tree-x', database_id: 'source-person' }
+  ];
+
+  assert.deepEqual(filterMatchesFromOriginTrees(matches, people), [
+    matches[1],
+    matches[2],
+    matches[3]
+  ]);
+
+  const cacheEntry = {
+    rawMatches: matches.slice(0, 3),
+    matches: matches.slice(0, 3),
+    status: 'matches_found'
+  };
+  filterOriginTreeMatchesInCache(cacheEntry, people.imported);
+  assert.deepEqual(cacheEntry.rawMatches, [matches[1], matches[2]]);
+  assert.deepEqual(cacheEntry.matches, [matches[1], matches[2]]);
+});
+
+test('completed tree merges remain visible when thresholds or source settings change', () => {
+  const pendingMatch = { tree_id: 'tree-x', score: 0.4 };
+  const mergedMatch = { tree_id: 'tree-y', score: 0.1, treeMergeStatus: 'merged' };
+
+  assert.deepEqual(
+    filterMatchesByThreshold(
+      [pendingMatch, mergedMatch],
+      'userTrees',
+      { treeMatches: 0.9, archiveMatches: 0.9 }
+    ),
+    [mergedMatch]
+  );
+
+  const person = {
+    sourceSearchCache: {
+      userTrees: {
+        rawMatches: [pendingMatch, mergedMatch],
+        matches: [pendingMatch, mergedMatch],
+        errors: [{ message: 'old error' }],
+        status: 'matches_found'
+      }
+    }
+  };
+  clearSourceCachePreservingTreeMergeHistory(person, 'userTrees');
+  assert.deepEqual(person.sourceSearchCache.userTrees.rawMatches, [mergedMatch]);
+  assert.deepEqual(person.sourceSearchCache.userTrees.matches, [mergedMatch]);
+  assert.deepEqual(person.sourceSearchCache.userTrees.errors, []);
 });

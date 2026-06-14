@@ -1,4 +1,5 @@
 const unique = (values) => Array.from(new Set(values.filter(Boolean)));
+const cloneValue = (value) => JSON.parse(JSON.stringify(value));
 
 const normalizeText = (value) => String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
 
@@ -12,14 +13,16 @@ const personIdentity = (person = {}) => [
 ].join('|');
 
 const clonePeople = (people = {}) => Object.fromEntries(
-  Object.entries(people).map(([id, person]) => [
-    id,
-    {
+  Object.entries(people).map(([id, person]) => {
+    const clone = {
       ...person,
-      children: [...(person.children || [])],
-      mergedTreeRefs: [...(person.mergedTreeRefs || [])]
+      children: [...(person.children || [])]
+    };
+    if (Array.isArray(person.mergedTreeRefs)) {
+      clone.mergedTreeRefs = [...person.mergedTreeRefs];
     }
-  ])
+    return [id, clone];
+  })
 );
 
 const addMergeRef = (person, treeId, sourcePersonId) => {
@@ -204,4 +207,58 @@ const mergeTreePeople = ({
   };
 };
 
-module.exports = { mergeTreePeople };
+const createTreeMergeOperation = ({
+  operationId,
+  treeId,
+  matches,
+  currentPeople,
+  mergeResult,
+  createdAt = new Date().toISOString()
+}) => {
+  const previousPeople = {};
+  Object.entries(currentPeople || {}).forEach(([personId, person]) => {
+    const mergedPerson = mergeResult.people?.[personId];
+    const mergeChangedPerson = JSON.stringify(mergedPerson) !== JSON.stringify(person);
+    const cacheWillChange = Object.values(person.sourceSearchCache || {}).some((cacheEntry) => (
+      ['rawMatches', 'matches'].some((key) => (
+        Array.isArray(cacheEntry?.[key])
+        && cacheEntry[key].some((match) => String(match?.tree_id || '') === String(treeId))
+      ))
+    ));
+    if (mergeChangedPerson || cacheWillChange) {
+      previousPeople[personId] = cloneValue(person);
+    }
+  });
+
+  return {
+    id: String(operationId),
+    treeId: String(treeId),
+    status: 'merged',
+    createdAt,
+    undoneAt: null,
+    matches: cloneValue(matches || []),
+    addedPersonIds: [...(mergeResult.addedPersonIds || [])],
+    affectedPersonIds: unique([
+      ...Object.keys(previousPeople),
+      ...(mergeResult.addedPersonIds || [])
+    ]),
+    previousPeople
+  };
+};
+
+const undoTreeMergePeople = ({ currentPeople, operation }) => {
+  const people = cloneValue(currentPeople || {});
+  (operation?.addedPersonIds || []).forEach((personId) => {
+    delete people[String(personId)];
+  });
+  Object.entries(operation?.previousPeople || {}).forEach(([personId, person]) => {
+    people[String(personId)] = cloneValue(person);
+  });
+  return people;
+};
+
+module.exports = {
+  createTreeMergeOperation,
+  mergeTreePeople,
+  undoTreeMergePeople
+};
