@@ -17,15 +17,13 @@ class SmartMatching:
     """
 
     def __init__(self, data, database, trashhold=None, k: int = 5, person_ids=None):
-        # Kept for backwards-compatible callers; results are intentionally unfiltered.
+        # Старое имя параметра оставлено для совместимости; фильтрацию тут не включаем.
         self.data = data
         self.database = database
         self.k = k
         self.person_ids = [str(pid) for pid in (person_ids or [])]
 
-    # ----------------------------------------------------------------------
-    # Normalization helpers
-    # ----------------------------------------------------------------------
+    # Здесь приводим старые и новые форматы деревьев к одной внутренней форме.
 
     @staticmethod
     def _parse_raw(raw):
@@ -257,10 +255,8 @@ class SmartMatching:
 
         return {}
 
-    # ----------------------------------------------------------------------
-
     def compare_idx2idx(self, idx1: dict, idx2: dict) -> float:
-        # ---------- helpers (local) ----------
+        # Локальные функции держим рядом с весами, чтобы было видно всю формулу.
 
         def normalize_text(s: str) -> str:
             if not s:
@@ -296,7 +292,7 @@ class SmartMatching:
 
             return 0
 
-        # ---------- new birthPlace similarity ----------
+        # Место рождения сравниваем мягко: архивы часто пишут его разными словами.
 
         def place_similarity(str1: str, str2: str) -> int:
             STOP_WORDS = {
@@ -368,7 +364,7 @@ class SmartMatching:
                 return 40
             return 0
 
-        # ---------- weighted scoring ----------
+        # Итоговая оценка собирается из отдельных признаков с понятными весами.
 
         score = 0.0
         weight_sum = 0.0
@@ -411,9 +407,7 @@ class SmartMatching:
                 oldest_idx.append(person_id)
         return oldest_idx
 
-    # ----------------------------------------------------------------------
-    # Поиск совпадений во всех деревьях
-    # ----------------------------------------------------------------------
+    # Поиск совпадений во всех деревьях.
     def parse_json(self):
         data_json = {"people": self._normalize_data_to_people()}
         database_json = {"tree_id": self._normalize_database_to_tree_map()}
@@ -451,8 +445,7 @@ class SmartMatching:
 
         return scores_dict
 
-    # Формируем отдельный people-фрагмент для КАЖДОГО совпадения
-    # ----------------------------------------------------------------------
+    # Для каждого совпадения возвращаем свой фрагмент предков.
     def get_older_generation_idx(self):
         scores_dict = self.parse_json()
         top = [entry for entries in scores_dict.values() for entry in entries]
@@ -468,11 +461,11 @@ class SmartMatching:
 
             people = database_json["tree_id"][tree_id]["people"]
 
-            # если по какой-то причине нет — пропускаем
+            # Если запись исчезла из дерева между шагами, спокойно пропускаем.
             if db_person_id not in people:
                 continue
 
-            # собираем предков именно для этого совпадения
+            # Забираем только ветку предков, нужную для выбранного совпадения.
             fragment_people = {}
 
             def collect_ancestors(pid):
@@ -487,7 +480,7 @@ class SmartMatching:
 
             collect_ancestors(db_person_id)
 
-            # добавляем в общий список
+            # Интерфейс ждёт список независимых вариантов для подтверждения.
             results.append({
                 **match,
                 "people": fragment_people
@@ -499,9 +492,7 @@ class SmartMatching:
         }
 
 
-# ------------------------------------------------------------------------------
-# CLI
-# ------------------------------------------------------------------------------
+# Консольный режим нужен серверу: он отправляет JSON в stdin и читает JSON из stdout.
 if __name__ == "__main__":
     payload = sys.stdin.read()
     if not payload:

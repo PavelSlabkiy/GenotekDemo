@@ -2,6 +2,7 @@
   "name": "family-tree-client",
   "private": true,
   "version": "1.0.0",
+  "description": "Frontend семейного древа с умным поиском",
   "type": "module",
   "scripts": {
     "dev": "vite",

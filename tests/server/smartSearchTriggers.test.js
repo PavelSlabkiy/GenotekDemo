@@ -9,7 +9,9 @@ const {
   filterOriginTreeMatchesInCache,
   isUsableAutoSearchCache,
   shouldRunSourceForPerson
-} = require('./server');
+} = require('../../server/server');
+
+// Автопоиск дорогой, поэтому тесты фиксируют условия запуска и повторного использования кэша.
 
 const eligiblePerson = (overrides = {}) => ({
   id: 'person-1',

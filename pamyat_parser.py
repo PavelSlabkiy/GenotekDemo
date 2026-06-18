@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+# Парсер «Памяти народа» умеет работать и через HTTP, и через живую Chrome-сессию.
+
 import argparse
 import hashlib
 import json

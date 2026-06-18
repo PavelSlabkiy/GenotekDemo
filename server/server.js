@@ -9,6 +9,8 @@ const {
   undoTreeMergePeople
 } = require('./treeMerge');
 
+// Сервер хранит локальное дерево рядом с репозиторием, а архивные поиски запускает отдельными процессами.
+
 const app = express();
 const PORT = 3001;
 
@@ -179,6 +181,7 @@ const DEFAULT_ADMIN_SCORE_THRESHOLDS = {
   treeMatches: 90,
   archiveMatches: 80
 };
+const ADMIN_SETTINGS_NOTE = 'Стартовые настройки админки; сервер при чтении берёт только источники и пороги.';
 const DEFAULT_SMART_SEARCH_CRITERIA = {
   fullName: true,
   birthDate: true,
@@ -312,6 +315,7 @@ const readAdminSourcePreferences = () => readAdminSettings().sourcePreferences;
 const writeAdminSettings = ({ sourcePreferences, scoreThresholds }) => {
   try {
     const normalized = {
+      _note: ADMIN_SETTINGS_NOTE,
       sourcePreferences: normalizeSourcePreferences(sourcePreferences),
       scoreThresholds: normalizeScoreThresholds(scoreThresholds)
     };
@@ -320,7 +324,10 @@ const writeAdminSettings = ({ sourcePreferences, scoreThresholds }) => {
       JSON.stringify(normalized, null, 2),
       'utf8'
     );
-    return normalized;
+    return {
+      sourcePreferences: normalized.sourcePreferences,
+      scoreThresholds: normalized.scoreThresholds
+    };
   } catch (error) {
     console.error('Failed to write admin settings:', error);
     return null;
@@ -867,7 +874,7 @@ const runSourceParser = ({ scriptPath, sourceKey, sourceLabel, people, personIds
   });
 };
 
-// Run pamyat parser in app-search mode
+// «Память народа» запускается в режиме поиска для приложения.
 const runPamyatParser = ({ people, personIds, searchCriteria, runtimeOptions }) => {
   return runSourceParser({
     scriptPath: PAMYAT_PARSER_SCRIPT,
@@ -982,15 +989,15 @@ const runTreeMatchingParser = ({ people, personIds, searchCriteria }) => {
   });
 };
 
-// API Routes
+// API приложения.
 
-// Get all people
+// Все люди текущего дерева.
 app.get('/api/people', (req, res) => {
   const state = readDatabaseState();
   res.json(state.people);
 });
 
-// Get single person by ID
+// Одна карточка по ID.
 app.get('/api/people/:id', (req, res) => {
   const state = readDatabaseState();
   const person = state.people[req.params.id];
@@ -1002,7 +1009,7 @@ app.get('/api/people/:id', (req, res) => {
   res.json(person);
 });
 
-// Create new person
+// Новая карточка человека.
 app.post('/api/people', async (req, res) => {
   const state = readDatabaseState();
   const people = { ...state.people };
@@ -1044,7 +1051,7 @@ app.post('/api/people', async (req, res) => {
   }
 });
 
-// Update person
+// Обновление карточки.
 app.put('/api/people/:id', async (req, res) => {
   const state = readDatabaseState();
   const people = { ...state.people };
@@ -1054,7 +1061,7 @@ app.put('/api/people/:id', async (req, res) => {
     return res.status(404).json({ error: 'Person not found' });
   }
   
-  // Update person fields
+  // ID оставляем неизменным, остальные поля берём из формы.
   const normalizedBody = normalizeBirthDatesDeep(req.body);
   if (Object.prototype.hasOwnProperty.call(req.body, 'birthDate')) {
     const normalizedBirthDate = normalizePartialDate(req.body.birthDate);
@@ -1085,7 +1092,7 @@ app.put('/api/people/:id', async (req, res) => {
   }
 });
 
-// Delete person
+// Удаление карточки.
 app.delete('/api/people/:id', (req, res) => {
   const state = readDatabaseState();
   const people = { ...state.people };
@@ -1096,14 +1103,14 @@ app.delete('/api/people/:id', (req, res) => {
     return res.status(404).json({ error: 'Person not found' });
   }
   
-  // Remove references to this person from other people
+  // Перед удалением чистим ссылки из соседних карточек.
   Object.values(people).forEach((p) => {
-    // Remove from partner
+    // Разрываем партнёрскую связь.
     if (p.partnerId === personId) {
       p.partnerId = null;
     }
     
-    // Remove from parent references
+    // Убираем ссылку из полей родителей.
     if (p.fatherId === personId) {
       p.fatherId = null;
     }
@@ -1111,13 +1118,13 @@ app.delete('/api/people/:id', (req, res) => {
       p.motherId = null;
     }
     
-    // Remove from children arrays
+    // Вычищаем человека из списков детей.
     if (p.children && p.children.includes(personId)) {
       p.children = p.children.filter(id => id !== personId);
     }
   });
   
-  // Delete the person
+  // Теперь саму карточку можно убрать.
   delete people[personId];
 
   if (writeCurrentPeople(people)) {
@@ -1127,7 +1134,7 @@ app.delete('/api/people/:id', (req, res) => {
   }
 });
 
-// Add relative to a person
+// Добавление родственника из карточки человека.
 app.post('/api/people/:id/relative', async (req, res) => {
   const state = readDatabaseState();
   const people = { ...state.people };
@@ -1177,7 +1184,7 @@ app.post('/api/people/:id/relative', async (req, res) => {
         newRelative.children.push(personId);
       }
       person.fatherId = newRelativeId;
-      // If mother exists, link father as partner
+      // Если мать уже есть, связываем её с новым отцом.
       if (person.motherId && people[person.motherId]) {
         newRelative.partnerId = person.motherId;
         people[person.motherId].partnerId = newRelativeId;
@@ -1190,7 +1197,7 @@ app.post('/api/people/:id/relative', async (req, res) => {
         newRelative.children.push(personId);
       }
       person.motherId = newRelativeId;
-      // If father exists, link mother as partner
+      // Если отец уже есть, связываем его с новой матерью.
       if (person.fatherId && people[person.fatherId]) {
         newRelative.partnerId = person.fatherId;
         people[person.fatherId].partnerId = newRelativeId;
@@ -1265,7 +1272,7 @@ app.post('/api/people/:id/relative', async (req, res) => {
   }
 });
 
-// Get person with full family info (for card display)
+// Полная семейная карточка для модального окна.
 app.get('/api/people/:id/family', (req, res) => {
   const state = readDatabaseState();
   const people = state.people;
@@ -1290,7 +1297,7 @@ app.get('/api/people/:id/family', (req, res) => {
     };
   };
   
-  // Get siblings (people with same parents)
+  // Братья и сёстры определяются по общим родителям.
   const siblings = [];
   Object.values(people).forEach(p => {
     if (p.id !== person.id) {
@@ -1888,7 +1895,7 @@ const isReadyForSmartSearch = (person, searchCriteria = DEFAULT_SMART_SEARCH_CRI
   );
 };
 
-// Source search endpoint
+// Ручной поиск по выбранным источникам.
 app.post('/api/smart-matching', async (req, res) => {
   try {
     const state = readDatabaseState();
@@ -2053,7 +2060,7 @@ app.put('/api/admin/source-preferences', (req, res) => {
   });
 });
 
-// Get cached source matches for a specific person
+// Кэш найденных совпадений для конкретного человека.
 app.get('/api/people/:id/matches', async (req, res) => {
   try {
     const state = readDatabaseState();
@@ -2211,7 +2218,7 @@ app.post('/api/tree-merges/:operationId/undo', async (req, res) => {
   });
 });
 
-// Confirm match and add fragment to tree
+// Подтверждение совпадения и добавление ветки в дерево.
 app.post('/api/people/:id/confirm-match', (req, res) => {
   const state = readDatabaseState();
   const people = { ...state.people };
@@ -2230,40 +2237,40 @@ app.post('/api/people/:id/confirm-match', (req, res) => {
   const fragment = match.people;
   const matchedDbId = match.database_id;
   
-  // Create ID mapping from old database IDs to new IDs
+  // Сначала строим соответствие старых ID новым ID текущего дерева.
   const idMapping = {};
   
-  // First pass: generate new IDs for all people in fragment except the matched person
+  // Первый проход создаёт ID для всех родственников, кроме уже найденного человека.
   Object.keys(fragment).forEach(oldId => {
     if (oldId === matchedDbId) {
-      // The matched person maps to the existing person in our tree
+      // Совпавшая карточка остаётся той же карточкой в текущем дереве.
       idMapping[oldId] = personId;
     } else {
-      // Generate new ID for relatives
+      // Родственникам выдаём новые локальные ID.
       idMapping[oldId] = generateId() + Math.random().toString(36).substr(2, 4);
     }
   });
   
-  // Second pass: add people with remapped IDs
+  // Второй проход добавляет людей уже с локальными связями.
   Object.entries(fragment).forEach(([oldId, fragmentPerson]) => {
     const newId = idMapping[oldId];
     
-    // Skip the matched person (they already exist)
+    // Совпавший человек уже есть, его не дублируем.
     if (oldId === matchedDbId) {
-      // But update their parent references if they don't have them
+      // Но недостающие ссылки на родителей можно подтянуть.
       if (fragmentPerson.fatherId && !person.fatherId) {
         person.fatherId = idMapping[fragmentPerson.fatherId] || null;
       }
       if (fragmentPerson.motherId && !person.motherId) {
         person.motherId = idMapping[fragmentPerson.motherId] || null;
       }
-      // Mark match as confirmed
+      // После подтверждения прячем это совпадение из выдачи.
       person.hasMatch = false;
       people[personId] = person;
       return;
     }
     
-    // Create new person with remapped IDs
+    // Новую карточку собираем с уже перекинутыми связями.
     const newPerson = {
       id: newId,
       name: fragmentPerson.name || '',
@@ -2304,7 +2311,7 @@ app.post('/api/people/:id/confirm-match', (req, res) => {
   }
 });
 
-// Confirm archive match (add information to person's card)
+// Подтверждение архивного совпадения добавляет сведения в карточку.
 app.post('/api/people/:id/confirm-archive-match', (req, res) => {
   const state = readDatabaseState();
   const people = { ...state.people };
@@ -2320,10 +2327,10 @@ app.post('/api/people/:id/confirm-archive-match', (req, res) => {
     return res.status(400).json({ error: 'Invalid archive match data' });
   }
   
-  // Update person's information with archive data
+  // Архивный текст дописываем к биографической заметке.
   person.information = match.person.information || '';
   
-  // Optionally update other fields if they're empty
+  // Пустые поля можно дополнить из архивной записи.
   if (!person.birthDate && match.person.birthDate) {
     person.birthDate = normalizePartialDate(match.person.birthDate);
   }
@@ -2331,7 +2338,7 @@ app.post('/api/people/:id/confirm-archive-match', (req, res) => {
     person.birthPlace = match.person.birthPlace;
   }
   
-  // Reset hasMatch flag (check if there are still other matches)
+  // Индикатор совпадений оставляем только если есть ещё неподтверждённые записи.
   person.hasMatch = false;
   
   people[personId] = person;
@@ -2377,7 +2384,7 @@ app.post('/api/database/upload', async (req, res) => {
     records: entries.length
   });
 
-  // Start auto-search slightly later, after client renders uploaded tree.
+  // Автопоиск стартует чуть позже, когда клиент уже показал загруженное дерево.
   scheduleSmartMatchingForPeople({
     trigger: 'database_upload',
     delayMs: 600

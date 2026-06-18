@@ -5,6 +5,8 @@ from date_utils import normalize_partial_date, partial_date_range
 from smart_matching import SmartMatching
 
 
+# Эти проверки держат неполные даты честными для UI, API и алгоритма совпадений.
+
 class PartialDateTests(unittest.TestCase):
     def test_normalizes_supported_display_and_storage_formats(self):
         cases = {

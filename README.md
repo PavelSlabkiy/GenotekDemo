@@ -41,6 +41,9 @@
 Genotek/
 ├── server/                    # Backend (Node.js + Express)
 ├── client/                    # Frontend (React + Vite)
+├── tests/                     # Все автотесты проекта
+│   ├── server/                # Node.js тесты серверной логики
+│   └── test_date_utils.py     # Python тесты дат и SmartMatching
 ├── smart_matching.py          # Модуль SmartMatching (Python)
 ├── pamyat_parser.py           # Парсер Память Народа
 ├── gwar_parser.py             # Парсер Герои Великой войны
@@ -74,7 +77,7 @@ npm install
 
 #### Python зависимости:
 ```bash
-pip install rapidfuzz
+python3 -m pip install rapidfuzz
 ```
 
 ### 2. Запуск приложения
@@ -92,6 +95,21 @@ cd client
 npm run dev
 ```
 Приложение откроется на `http://localhost:5173`
+
+### 3. Запуск тестов
+
+Все автотесты собраны в каталоге `tests/`.
+
+#### Backend:
+```bash
+cd server
+npm test
+```
+
+#### Python:
+```bash
+python3 -m unittest discover -s tests
+```
 
 ## API Endpoints
 
@@ -424,7 +442,7 @@ npm run dev
         "middleName": "Отчество",
         "birthDate": "1920",
         "birthPlace": "Место",
-        "information": "AI-суммаризация архивных данных"
+        "information": "Краткое описание архивной записи"
       },
       "records": [],
       "searchedAt": "2026-05-16T10:00:00.000Z"
@@ -504,7 +522,7 @@ SmartMatching сравнивает персон текущего дерева с
 
 #### 1. Текстовое сравнение (ФИО)
 ```python
-# Нормализация: lowercase, удаление пунктуации, сжатие пробелов
+# Нормализация: нижний регистр, удаление пунктуации, сжатие пробелов
 # Алгоритм: token_sort_ratio из RapidFuzz
 # При отсутствии данных: 70 (нейтральный score)
 ```

@@ -1,4 +1,5 @@
 {
+  "_note": "Стартовые настройки админки; сервер при чтении берёт только источники и пороги.",
   "sourcePreferences": {
     "userTrees": true,
     "pamyatNaroda": false,

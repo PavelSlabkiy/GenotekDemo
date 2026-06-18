@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+// Одноразовый запуск Chrome помогает достать cookies и csrf для «Памяти народа».
+
 import { spawn } from "node:child_process";
 import { mkdtempSync, rmSync } from "node:fs";
 import net from "node:net";
@@ -68,7 +70,7 @@ async function waitForDevtools(port, timeoutMs) {
       const response = await fetch(`http://127.0.0.1:${port}/json/version`);
       if (response.ok) return;
     } catch {
-      // Chrome is still starting.
+      // Chrome ещё поднимает DevTools, ждём следующий короткий интервал.
     }
     await sleep(250);
   }

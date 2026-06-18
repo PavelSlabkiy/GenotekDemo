@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+# Общая обвязка для архивных парсеров: ретраи, лимиты и аккуратный JSON-ответ.
+
 import email.utils
 import json
 import random
@@ -506,7 +508,7 @@ class ParserRuntime:
                     classification=RESULT_RETRYABLE_ERROR,
                     error=str(getattr(exc, "reason", exc)),
                 )
-            except Exception as exc:  # noqa: BLE001 - parsers should convert unexpected failures into JSON results.
+            except Exception as exc:  # noqa: BLE001 - парсер отвечает JSON даже на неожиданные сбои.
                 result = self._synthetic_result(
                     query,
                     status="error",

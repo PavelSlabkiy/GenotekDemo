@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+# Парсер «Открытого списка» совмещает API-поиск и разбор карточек репрессированных.
+
 import hashlib
 import json
 import socket

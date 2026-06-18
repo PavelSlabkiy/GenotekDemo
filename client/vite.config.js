@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// https://vitejs.dev/config/
+// Локальная разработка ходит в Express через прокси, чтобы фронт не знал порт API.
 export default defineConfig({
   plugins: [
     react({

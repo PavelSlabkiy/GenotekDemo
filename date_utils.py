@@ -3,6 +3,7 @@ from datetime import date
 import re
 from typing import Any
 
+# Неполные даты храним в ISO-виде, но принимаем и привычную русскую запись.
 
 _YEAR_RE = re.compile(r"^(?P<year>\d{4})$")
 _ISO_MONTH_RE = re.compile(r"^(?P<year>\d{4})-(?P<month>\d{1,2})$")
@@ -14,7 +15,7 @@ _UNKNOWN_MONTH_DAY_RE = re.compile(r"^(?:__|00)\.(?:__|00)\.(?P<year>\d{4})$")
 
 
 def normalize_partial_date(value: Any) -> str:
-    """Return YYYY, YYYY-MM or YYYY-MM-DD for a supported partial date."""
+    """Возвращает YYYY, YYYY-MM или YYYY-MM-DD для поддержанной неполной даты."""
     if value is None:
         return ""
 

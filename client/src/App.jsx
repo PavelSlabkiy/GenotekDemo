@@ -64,7 +64,7 @@ const DEFAULT_ADMIN_SCORE_THRESHOLDS = {
   archiveMatches: 80
 };
 
-// Layout constants
+// Размеры карточек и шаги сетки держим рядом с движком раскладки.
 const CARD_WIDTH = 140;
 const CARD_HEIGHT = 120;
 const HORIZONTAL_GAP = 44;
@@ -170,7 +170,7 @@ const PartialDateInput = ({ value, onChange }) => {
   );
 };
 
-// Get full name
+// ФИО собираем мягко: пустые части просто не попадают в строку.
 const getFullName = (person) => {
   if (!person) return '';
   return `${person.lastName || ''} ${person.name || ''} ${person.middleName || ''}`.trim();
@@ -513,9 +513,7 @@ const buildTreeView = (allPeople, focalPersonId, expandedSiblingGroups) => {
   return { visiblePeople, collapsedGroups };
 };
 
-// ============================================
-// TREE LAYOUT ENGINE
-// ============================================
+// Движок раскладки дерева.
 
 class TreeLayoutEngine {
   constructor(people) {
@@ -1102,9 +1100,7 @@ class TreeLayoutEngine {
   }
 }
 
-// ============================================
-// CONNECTOR LINES COMPONENT
-// ============================================
+// Линии связей между карточками.
 
 const TreeConnectors = ({ positions, layout, width, height }) => {
   const paths = useMemo(() => {
@@ -1225,9 +1221,7 @@ const TreeConnectors = ({ positions, layout, width, height }) => {
   );
 };
 
-// ============================================
-// PERSON NODE COMPONENT
-// ============================================
+// Карточка человека на полотне дерева.
 
 const PersonNode = ({ person, position, isSelected, onClick, onMatchClick }) => {
   const fullName = getFullName(person);
@@ -1271,9 +1265,7 @@ const PersonNode = ({ person, position, isSelected, onClick, onMatchClick }) => 
   );
 };
 
-// ============================================
-// FAMILY TREE COMPONENT
-// ============================================
+// Интерактивное полотно семейного дерева.
 
 const FamilyTree = ({
   people,
@@ -1296,7 +1288,7 @@ const FamilyTree = ({
   const lastMousePos = useRef({ x: 0, y: 0 });
 
   const handleMouseDown = (e) => {
-    // Left mouse button for panning
+    // Панорамирование включаем только левой кнопкой мыши.
     if (e.button === 0) {
       isPanning.current = true;
       lastMousePos.current = { x: e.clientX, y: e.clientY };
@@ -1399,11 +1391,9 @@ const FamilyTree = ({
   );
 };
 
-// ============================================
-// MODAL COMPONENTS
-// ============================================
+// Модальные окна и короткие всплывающие сообщения.
 
-// Toast Component
+// Небольшое уведомление поверх интерфейса.
 const Toast = ({ message, type, onClose }) => {
   const onCloseRef = useRef(onClose);
 
@@ -1426,7 +1416,7 @@ const Toast = ({ message, type, onClose }) => {
   );
 };
 
-// Confirm Dialog Component
+// Диалог подтверждения для необратимых действий.
 const ConfirmDialog = ({ isOpen, title, message, onConfirm, onCancel }) => {
   if (!isOpen) return null;
 
@@ -1453,7 +1443,7 @@ const ConfirmDialog = ({ isOpen, title, message, onConfirm, onCancel }) => {
   );
 };
 
-// Edit Person Modal
+// Форма редактирования карточки.
 const EditModal = ({ isOpen, person, onSave, onClose }) => {
   const [formData, setFormData] = useState({
     name: '',
@@ -1635,7 +1625,7 @@ const EditModal = ({ isOpen, person, onSave, onClose }) => {
   );
 };
 
-// Add Relative Modal
+// Форма добавления родственника.
 const AddRelativeModal = ({ isOpen, person, availableRelations, initialRelation, onAdd, onClose }) => {
   const [selectedRelation, setSelectedRelation] = useState(null);
   const [formData, setFormData] = useState({
@@ -1796,7 +1786,7 @@ const AddRelativeModal = ({ isOpen, person, availableRelations, initialRelation,
   );
 };
 
-// Person Card Modal
+// Подробная карточка человека.
 const PersonCard = ({ person, people, onClose, onEdit, onAddRelative, onDelete, onSelectPerson }) => {
   const [showDropdown, setShowDropdown] = useState(false);
 
@@ -1804,14 +1794,14 @@ const PersonCard = ({ person, people, onClose, onEdit, onAddRelative, onDelete, 
 
   const fullName = getFullName(person);
   
-  // Get family members
+  // Ближайших родственников показываем прямо в карточке.
   const partner = person.partnerId ? people[person.partnerId] : null;
   const father = person.fatherId ? people[person.fatherId] : null;
   const mother = person.motherId ? people[person.motherId] : null;
   const children = (person.children || []).map(id => people[id]).filter(Boolean);
   const documents = Array.isArray(person.documents) ? person.documents : [];
   
-  // Get siblings
+  // Братьев и сестёр считаем по общему родителю.
   const siblings = Object.values(people).filter(p => {
     if (p.id === person.id) return false;
     const sameFather = person.fatherId && p.fatherId === person.fatherId;
@@ -1819,7 +1809,7 @@ const PersonCard = ({ person, people, onClose, onEdit, onAddRelative, onDelete, 
     return sameFather || sameMother;
   });
 
-  // Determine available relations to add
+  // Уже занятые роли не предлагаем повторно.
   const availableRelations = [];
   if (!partner) availableRelations.push('partner');
   if (!father) availableRelations.push('father');
@@ -2043,9 +2033,7 @@ const PersonCard = ({ person, people, onClose, onEdit, onAddRelative, onDelete, 
   );
 };
 
-// ============================================
-// BALANCE PANEL
-// ============================================
+// Панель баланса совпадений.
 
 const BalancePanel = ({ balance, onAddBalance, onClose }) => {
   const [showReplenishModal, setShowReplenishModal] = useState(false);
@@ -2188,9 +2176,7 @@ const BalancePanel = ({ balance, onAddBalance, onClose }) => {
   );
 };
 
-// ============================================
-// MATCH VERIFICATION MODAL
-// ============================================
+// Проверка и подтверждение найденных совпадений.
 
 const MatchVerificationModal = ({ 
   isOpen, 
@@ -2221,7 +2207,7 @@ const MatchVerificationModal = ({
 
   if (!isOpen || !person) return null;
 
-  // Sort matches by score descending
+  // Более уверенные совпадения показываем первыми.
   const sortedTreeMatches = [...(treeMatches || [])].sort((a, b) => b.score - a.score);
   const sortedArchiveMatches = [...(archiveMatches || [])].sort((a, b) => b.score - a.score);
 
@@ -2248,10 +2234,10 @@ const MatchVerificationModal = ({
     setRequiredMatches(relativesCount);
     
     if (smartMatchBalance >= relativesCount) {
-      // Sufficient balance - show confirmation modal
+      // При достаточном балансе сразу просим подтверждение.
       setShowConfirmPurchaseModal(true);
     } else {
-      // Insufficient balance - show payment modal first
+      // Если баланса не хватает, сначала показываем оплату.
       setBasicQuantity(relativesCount);
       setSelectedPlan('basic');
       setShowPaymentModal(true);
@@ -2260,7 +2246,7 @@ const MatchVerificationModal = ({
 
   const handleConfirmPurchase = () => {
     setShowConfirmPurchaseModal(false);
-    // Proceed to request modal
+    // После подтверждения переходим к запросу доступа.
     if (currentRequestMatch) {
       setRequestMessage(`Здравствуйте, ${currentRequestMatch.tree_owner}! Я хотел бы получить доступ к данным вашего семейного древа.`);
       setShowRequestModal(true);
@@ -2274,21 +2260,21 @@ const MatchVerificationModal = ({
 
   const handleBuyMatches = async () => {
     setIsProcessing(true);
-    // Simulate payment processing
+    // Имитация оплаты оставлена для прототипа.
     await new Promise(resolve => setTimeout(resolve, 2000));
     setIsProcessing(false);
     setShowPaymentSuccess(true);
     
-    // Calculate matches to add
+    // Количество купленных совпадений зависит от выбранного тарифа.
     const matchesToAdd = selectedPlan === 'package' ? 10 : basicQuantity;
     
-    // After showing success, add balance and close
+    // После успешной оплаты пополняем баланс и закрываем форму.
     await new Promise(resolve => setTimeout(resolve, 1500));
     setShowPaymentSuccess(false);
     setShowPaymentModal(false);
     onAddBalance(matchesToAdd);
     
-    // Now show confirmation modal if we came from a match request
+    // Если пользователь пришёл из запроса совпадения, возвращаем его к подтверждению.
     if (currentRequestMatch) {
       setShowConfirmPurchaseModal(true);
     }
@@ -2296,7 +2282,7 @@ const MatchVerificationModal = ({
 
   const handleSendRequest = async () => {
     setIsProcessing(true);
-    // Simulate sending request and getting access
+    // Доступ в прототипе выдаётся сразу после имитации запроса.
     await new Promise(resolve => setTimeout(resolve, 2000));
     setIsProcessing(false);
     
@@ -2313,7 +2299,7 @@ const MatchVerificationModal = ({
     return grantedAccessIds?.includes(match.tree_id);
   };
 
-  // Payment Modal with rates
+  // Модалка оплаты с двумя тарифами.
   const PaymentModal = () => {
     const basicPrice = 210;
     const packagePrice = 1600;
@@ -2417,7 +2403,7 @@ const MatchVerificationModal = ({
     );
   };
 
-  // Confirm Purchase Modal
+  // Подтверждение списания совпадений.
   const ConfirmPurchaseModal = () => {
     const relatives = currentRequestMatch ? getRelativesFromFragment(currentRequestMatch) : [];
     const relativesCount = relatives.length;
@@ -2455,7 +2441,7 @@ const MatchVerificationModal = ({
     );
   };
 
-  // Request Access Modal
+  // Запрос доступа к приватному дереву.
   const RequestModal = () => (
     <div className="modal-overlay request-modal" onClick={() => !isProcessing && setShowRequestModal(false)}>
       <div className="modal-content request-content" onClick={e => e.stopPropagation()}>
@@ -2510,7 +2496,7 @@ const MatchVerificationModal = ({
               <p className="no-matches">Совпадения не найдены</p>
             ) : (
               <>
-                {/* Tree matches section */}
+                {/* Совпадения с деревьями пользователей */}
                 {sortedTreeMatches.length > 0 && (
                   <div className="match-section">
                     <h4 className="match-section-title">Совпадения с деревьями других пользователей</h4>
@@ -2629,7 +2615,7 @@ const MatchVerificationModal = ({
                   </div>
                 )}
 
-                {/* Archive matches section */}
+                {/* Совпадения из архивных источников */}
                 {sortedArchiveMatches.length > 0 && (
                   <div className="match-section">
                     <h4 className="match-section-title archive-title">Совпадения с архивом «Память народа»</h4>
@@ -2727,9 +2713,7 @@ const MatchVerificationModal = ({
   );
 };
 
-// ============================================
-// MAIN APP COMPONENT
-// ============================================
+// Основное приложение.
 
 function App() {
   const [people, setPeople] = useState({});
@@ -2760,7 +2744,7 @@ function App() {
   const [adminSourcePreferences, setAdminSourcePreferences] = useState(DEFAULT_ADMIN_SOURCE_PREFERENCES);
   const [adminScoreThresholds, setAdminScoreThresholds] = useState(DEFAULT_ADMIN_SCORE_THRESHOLDS);
   const [isAdminSaving, setIsAdminSaving] = useState(false);
-  // Use refs for matches to ensure synchronous access
+  // refs нужны там, где обработчик должен видеть самые свежие совпадения.
   const allTreeMatchesRef = useRef([]);
   const allArchiveMatchesRef = useRef([]);
   const uploadInputRef = useRef(null);
@@ -2799,7 +2783,7 @@ function App() {
     currentSource: null
   });
 
-  // Show notification as long as there are any unconfirmed matches (people with hasMatch = true)
+  // Плашку держим видимой, пока в дереве есть неподтверждённые совпадения.
   const showMatchFoundNotification = useMemo(() => {
     return activeSection === 'tree' && Object.values(people).some(person => person.hasMatch);
   }, [people, activeSection]);
@@ -3050,7 +3034,7 @@ function App() {
       allArchiveMatchesRef.current = [];
       showToast('Новый JSON загружен, прежние данные заменены');
 
-      // Poll briefly to pick up deferred auto-search results without page refresh.
+      // Короткий опрос забирает отложенный автопоиск без перезагрузки страницы.
       const pollAttempts = 6;
       const pollDelayMs = 900;
       for (let attempt = 0; attempt < pollAttempts; attempt += 1) {
@@ -3484,7 +3468,7 @@ function App() {
     { key: 'pregnancy', label: 'Планирование беременности', icon: Baby }
   ];
 
-  // Fetch people data
+  // Первичная загрузка дерева и регулярное обновление статуса поиска.
   const fetchPeople = useCallback(async () => {
     try {
       const response = await fetch(`${API_URL}/people`);
@@ -3542,11 +3526,11 @@ function App() {
     };
   }, [fetchPeople]);
 
-  // Toast helper - also adds to notifications
+  // Toast одновременно пишет сообщение в центр уведомлений.
   const showToast = (message, type = 'success') => {
     const id = Date.now();
     setToasts(prev => [...prev, { id, message, type }]);
-    // Add to notifications (only for success messages)
+    // В историю кладём только успешные события, чтобы не плодить шум.
     if (type === 'success') {
       setNotifications(prev => [
         { id, message, timestamp: new Date(), type },
@@ -3563,12 +3547,12 @@ function App() {
     setNotifications([]);
   };
 
-  // Handle person selection
+  // Выбор человека на дереве.
   const handleSelectPerson = (person) => {
     setSelectedPerson(person);
   };
 
-  // Handle edit
+  // Сохранение отредактированной карточки.
   const handleEdit = () => {
     setShowEditModal(true);
   };
@@ -3597,7 +3581,7 @@ function App() {
     }
   };
 
-  // Handle add relative
+  // Добавление родственника через API.
   const handleAddRelative = (relation) => {
     setAvailableRelations([relation]);
     setInitialRelation(relation);
@@ -3623,7 +3607,7 @@ function App() {
     }
   };
 
-  // Handle delete
+  // Удаление карточки с подтверждением.
   const handleDelete = () => {
     setShowConfirmDelete(true);
   };
@@ -3646,7 +3630,7 @@ function App() {
     }
   };
 
-  // Handle adding new root person
+  // Нового корневого человека добавляем без родительских связей.
   const handleAddNewPerson = async () => {
     try {
       const response = await fetch(`${API_URL}/people`, {
@@ -3671,8 +3655,8 @@ function App() {
     }
   };
 
-  // Run source search for selected people
-  // Handle match icon click - open Smart Search filtered by person
+  // Запуск поиска по выбранным людям.
+  // Клик по индикатору открывает Smart Search уже с фильтром по человеку.
   const handleMatchClick = (person) => {
     openSmartSearchForPerson(person);
   };
@@ -3752,7 +3736,7 @@ function App() {
     }
   };
 
-  // Handle tree match confirmation
+  // Подтверждение совпадения с пользовательским деревом.
   const handleConfirmTreeMatch = async (match) => {
     try {
       const response = await fetch(`${API_URL}/people/${matchPerson.id}/confirm-match`, {
@@ -3775,7 +3759,7 @@ function App() {
     }
   };
 
-  // Handle archive match confirmation
+  // Подтверждение архивного совпадения.
   const handleConfirmArchiveMatch = async (match) => {
     try {
       const response = await fetch(`${API_URL}/people/${matchPerson.id}/confirm-archive-match`, {
@@ -3787,7 +3771,7 @@ function App() {
       if (response.ok) {
         const data = await response.json();
         await fetchPeople();
-        // Update selected person if it's the same
+        // Если открыта эта же карточка, сразу обновляем её в модалке.
         if (selectedPerson?.id === matchPerson.id) {
           setSelectedPerson(data.person);
         }
@@ -3803,7 +3787,7 @@ function App() {
     }
   };
 
-  // Close notifications/balance panel when clicking outside
+  // Клик вне панели закрывает уведомления и баланс.
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (showNotifications && !e.target.closest('.notifications-wrapper')) {
@@ -4430,7 +4414,7 @@ function App() {
               />
             </div>
 
-            {/* Right Toolbar */}
+            {/* Правая панель быстрых действий */}
             <div className="right-toolbar">
               <div className="admin-wrapper">
                 <button className="toolbar-btn" title="Профиль" onClick={handleProfileClick}>
@@ -4515,7 +4499,7 @@ function App() {
                 )}
               </div>
 
-              {/* Balance Panel */}
+              {/* Баланс совпадений */}
               <div className="balance-wrapper">
                 <button
                   className="toolbar-btn"
@@ -4844,7 +4828,7 @@ function App() {
         onChange={handleFileUpload}
       />
 
-      {/* Smart Search Found Notification */}
+      {/* Плашка о найденных совпадениях */}
       {showMatchFoundNotification && (
         <div 
           className="smartmatching-notification"
@@ -4860,7 +4844,7 @@ function App() {
         </div>
       )}
 
-      {/* Smart Search Tutorial Modal */}
+      {/* Обучающее окно Smart Search */}
       {showSmartMatchingTutorial && (
         <div className="modal-overlay smartmatching-tutorial-overlay" onClick={handleTutorialClose}>
           <div className="smartmatching-tutorial-modal" onClick={e => e.stopPropagation()}>

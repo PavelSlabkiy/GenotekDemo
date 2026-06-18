@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+# Парсер «Героев великой войны» возвращает архивные совпадения в формате приложения.
+
 import hashlib
 import json
 import re

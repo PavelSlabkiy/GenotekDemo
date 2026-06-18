@@ -1,3 +1,5 @@
+// Слияние деревьев бережёт уже заполненные карточки и добавляет только недостающую родню.
+
 const unique = (values) => Array.from(new Set(values.filter(Boolean)));
 const cloneValue = (value) => JSON.parse(JSON.stringify(value));
 

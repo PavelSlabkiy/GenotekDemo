@@ -5,7 +5,9 @@ const {
   createTreeMergeOperation,
   mergeTreePeople,
   undoTreeMergePeople
-} = require('./treeMerge');
+} = require('../../server/treeMerge');
+
+// Проверяем, что импорт чужой ветки не портит уже заполненное дерево.
 
 const person = (id, overrides = {}) => ({
   id,
