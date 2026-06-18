@@ -4303,8 +4303,18 @@ function App() {
                               </div>
                               <div className="smart-detail-divider" />
                               <div className="smart-detail-fields">
-                                <p><strong>Дата рождения:</strong> {formatDate(record.birthDate)}</p>
-                                <p><strong>Место рождения:</strong> {record.birthPlace || 'Не указано'}</p>
+                                <p>
+                                  <strong>Дата рождения:</strong>{' '}
+                                  <span className={!isUnlocked ? 'blurred-info' : ''}>
+                                    {formatDate(record.birthDate)}
+                                  </span>
+                                </p>
+                                <p>
+                                  <strong>Место рождения:</strong>{' '}
+                                  <span className={!isUnlocked ? 'blurred-info' : ''}>
+                                    {record.birthPlace || 'Не указано'}
+                                  </span>
+                                </p>
                               </div>
                             </article>
                           </div>
